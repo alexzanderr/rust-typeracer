@@ -71,8 +71,8 @@ use ansi_term::{
     Colour,
     Color::{
         Red,
-        Green
-    }
+        Green,
+    },
 };
 
 use core_dev::traits::StringExtended;
@@ -87,38 +87,69 @@ fn term_print(stdout: &mut TERM, text: &str, x: usize, y: usize) {
         text,
         // Hide the cursor.
         termion::cursor::Hide,
-    ).unwrap();
+    )
+    .unwrap();
     stdout.flush().unwrap();
 }
 
-fn get_text_colored(text: &str, index: usize, wrong_index: usize) -> String {
-    let green = Green.paint(&text[..index]).to_string();
-    let red =
-        Red.paint(&text[index..index + wrong_index]).to_string();
+fn get_text_colored(
+    text: &str,
+    index: usize,
+    wrong_index: usize,
+) -> String {
+    let green = Green.paint(&text[..index]).to_string().replace(" ", "_");
+    let red = Red
+        .paint(&text[index..index + wrong_index])
+        .to_string()
+        .replace(" ", "_");
     let rest = &text[index + wrong_index..];
     green + &red + rest
 }
 
+use core_dev::terminal::screen::Screen;
+
 fn main() {
+    let mut screen = Screen::new();
+    screen.init_screen();
     let (mut stdin, mut stdout) = init_term();
+    // let mut stdin = termion::async_stdin();
 
-
-    let text = String::from("hello from ansi term, its andrew from another world.");
-    // let text = String::from("hello");
-    term_print(&mut stdout, &text, 2, 1);
-    term_print(&mut stdout, "^", 3, 1);
-    term_print(&mut stdout, "│", 4, 1);
 
     let mut index = 0;
     let mut wrong_index = 0;
-
     let mut skip = false;
-    for c in stdin.events() {
-        let e = c.unwrap();
-        match e {
-            Event::Key(Key::Ctrl('c')) => {
-                break
-            }
+
+    let text = String::from(
+        "hello from ansi term, its andrew from another world.",
+    );
+    // let text = String::from("hello");
+    screen.println(&text, 2, 1);
+    screen.println("^", 3, 1);
+    screen.println("│", 4, 1);
+    screen.println(format!("Index: {index}").as_str(), 6, 1);
+    screen.println(format!("Wrong: {wrong_index}").as_str(), 7, 1);
+    screen.println(
+        format!("Index + Wrong: {}", index + wrong_index).as_str(),
+        8,
+        1,
+    );
+    screen.println(&get_text_colored(&text, index, wrong_index), 2, 1);
+    if !skip {
+        screen.println("^", 3, index + wrong_index + 1);
+        screen.println("│", 4, index + wrong_index + 1);
+    }
+    screen.println(format!("text len: {}", text.len()).as_str(), 9, 1);
+    screen.println(
+        format!("text len-1: {}", text.len() - 1).as_str(),
+        10,
+        1,
+    );
+    screen.refresh();
+
+    for event in stdin.events() {
+        let event = event.unwrap();
+        match event {
+            Event::Key(Key::Ctrl('c')) => break,
             Event::Key(Key::Backspace) => {
                 skip = false;
                 if wrong_index > 0 {
@@ -128,145 +159,59 @@ fn main() {
                         index -= 1;
                     }
                 }
-            }
+            },
             Event::Key(Key::Char(character)) => {
                 skip = false;
-                term_print(&mut stdout, character.to_string().as_str(), 10, 1);
+                screen.println(character.to_string().as_str(), 10, 1);
 
                 if index == text.len() - 1 {
                     index += 1;
-                    break
+                    break;
                 }
-                if character == text.get_char(index).unwrap() && wrong_index == 0 {
+                if character == text.get_char(index).unwrap()
+                    && wrong_index == 0
+                {
                     index += 1;
                 } else {
-                    if index + wrong_index < text.len() - 10 {
+                    if index + wrong_index < text.len() {
                         wrong_index += 1;
                     } else {
-                        write!(
-                            stdout,
-                            "{}{}{}{}",
-                            // Clear the screen.
-                            termion::cursor::Goto(index as u16 + wrong_index as u16 + 3, 4),
-                            termion::clear::AfterCursor,
-                            "you cant go further, sorry",
-                            // Hide the cursor.
-                            termion::cursor::Hide,
-                        ).unwrap();
-                        stdout.flush().unwrap();
-                        // term_print(&mut stdout, , 4, index + wrong_index + 3);
+                        let y = 4;
+                        let x = index + wrong_index + 3;
+                        screen
+                            .println("you cant go further, sorry", y, x)
+                            .refresh();
                         skip = true;
                     }
                 }
-                term_print(&mut stdout, character.to_string().as_str(), 5, 1);
-
-            }
-            _ => {}
+                screen.println(character.to_string().as_str(), 5, 1);
+            },
+            _ => {},
         }
-        term_print(&mut stdout, format!("Index: {index}").as_str(), 6, 1);
-        term_print(&mut stdout, format!("Wrong: {wrong_index}").as_str(), 7, 1);
-        term_print(&mut stdout, format!("Index + Wrong: {}", index + wrong_index).as_str(), 8, 1);
-        term_print(&mut stdout, &get_text_colored(&text, index, wrong_index), 2, 1);
+        screen.println(format!("Index: {index}").as_str(), 6, 1);
+        screen.println(format!("Wrong: {wrong_index}").as_str(), 7, 1);
+        screen.println(
+            format!("Index + Wrong: {}", index + wrong_index).as_str(),
+            8,
+            1,
+        );
+        screen.println(&get_text_colored(&text, index, wrong_index), 2, 1);
         if !skip {
-            term_print(&mut stdout, "^", 3, index + wrong_index + 1);
-            term_print(&mut stdout, "│", 4, index + wrong_index + 1);
+            screen.println("^", 3, index + wrong_index + 1);
+            screen.println("│", 4, index + wrong_index + 1);
         }
-        term_print(&mut stdout, format!("text len: {}", text.len()).as_str(), 9, 1);
-        term_print(&mut stdout, format!("text len-1: {}", text.len() - 1).as_str(), 10, 1);
+        screen.println(format!("text len: {}", text.len()).as_str(), 9, 1);
+        screen.println(
+            format!("text len-1: {}", text.len() - 1).as_str(),
+            10,
+            1,
+        );
+        screen.refresh()
     }
-    term_print(&mut stdout, &get_text_colored(&text, index, wrong_index), 2, 1);
-    // for c in stdin.events() {
-    //     let e = c.unwrap();
-    //     match e {
-    //         Event::Key(Key::Char('a')) => {
-    //             write!(
-    //                 stdout,
-    //                 "{}{}{}",
-    //                 // Clear the screen.
-    //                 // termion::clear::All,
-    //                 termion::cursor::Goto(1, 10),
-    //                 "its me mario",
-    //                 // Goto (1,1).
-    //                 // Hide the cursor.
-    //                 termion::cursor::Hide,
-    //             )
-    //             .unwrap();
-    //             stdout.flush().unwrap();
-    //         },
-    //         Event::Key(Key::Char('b')) => {
-    //             write!(
-    //                 stdout,
-    //                 "{}{}{}",
-    //                 // Clear the screen.
-    //                 // termion::clear::All,
-    //                 termion::cursor::Goto(1, 20),
-    //                 "its working",
-    //                 // Goto (1,1).
-    //                 // Hide the cursor.
-    //                 termion::cursor::Hide,
-    //             )
-    //             .unwrap();
-    //             stdout.flush().unwrap();
-    //         },
-    //         Event::Key(Key::Char('c')) => {
-    //             write!(
-    //                 stdout,
-    //                 "{}{}{}",
-    //                 // Clear the screen.
-    //                 termion::clear::All,
-    //                 termion::cursor::Goto(1, 1),
-    //                 // Goto (1,1).
-    //                 // Hide the cursor.
-    //                 termion::cursor::Hide,
-    //             )
-    //             .unwrap();
-    //             stdout.flush().unwrap();
-    //         },
-    //         Event::Key(Key::Char(character)) => {
-    //             println!("{}", character);
-    //             break
-    //         },
-    //         Event::Key(Key::Ctrl('c')) => break,
+    screen
+        .println(&get_text_colored(&text, index, wrong_index), 2, 1)
+        .refresh();
 
-    //         Event::Mouse(m) => {
-    //             // println!("asd");
-    //             match m {
 
-    //             MouseEvent::Press(_, a, b)
-    //             | MouseEvent::Release(a, b)
-    //             | MouseEvent::Hold(a, b) => {
-    //                 write!(stdout, "{}", termion::cursor::Goto(a, b)).unwrap();
-    //                 // let (x, y) = stdout.cursor_pos().unwrap();
-    //                 write!(
-    //                     stdout,
-    //                     "{}",
-    //                     "*")
-
-    //                 // write!(
-    //                 //     stdout,
-    //                 //     "{}{}Cursor is at:
-    //                 //         ({},{}){}",
-    //                 //     termion::cursor::Goto(5, 5),
-    //                 //     termion::clear::UntilNewline,
-    //                 //     5,
-    //                 //     5,
-    //                 //     termion::cursor::Goto(a, b)
-    //                 // )
-    //                 .unwrap();
-    //                 stdout.flush().unwrap();
-    //             },
-    //         }},
-    //         _ => {},
-    //     }
-    // }
-    write!(
-        stdout,
-        "{}{}\n",
-        // termion::cursor::Goto(1, 1),
-        termion::clear::AfterCursor,
-        termion::cursor::Show,
-    )
-    .unwrap();
-    stdout.flush().unwrap();
-    // end_term(stdout);
+    screen.end_screen();
 }
