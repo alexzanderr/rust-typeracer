@@ -2,49 +2,29 @@
 //!
 //! cargo run --example event-poll-read
 
-
 use rand::Rng;
 use termion::color::Color;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::input::MouseTerminal;
 
-use termion::cursor::{
-    self,
-    DetectCursorPos,
-};
-
+use termion::cursor::{self, DetectCursorPos};
 
 use termion::raw::IntoRawMode;
 use termion::raw::RawTerminal;
 
 use std::io::Stdout;
-use std::io::{
-    stdin,
-    stdout,
-    Stdin,
-    Write,
-};
+use std::io::{stdin, stdout, Stdin, Write};
 use std::time::Duration;
-
 
 use crossterm::{
     cursor::position,
     event::{
-        poll,
-        read,
-        DisableMouseCapture,
-        EnableMouseCapture,
-        Event,
-        KeyCode,
-        KeyEvent,
-        KeyModifiers,
+        poll, read, DisableMouseCapture, EnableMouseCapture, Event,
+        KeyCode, KeyEvent, KeyModifiers,
     },
     execute,
-    terminal::{
-        disable_raw_mode,
-        enable_raw_mode,
-    },
+    terminal::{disable_raw_mode, enable_raw_mode},
     Result,
 };
 
@@ -70,6 +50,8 @@ fn print_events(stdout: &mut Stdout) {
             // It's guaranteed that read() wont block if `poll` returns `Ok(true)`
             let event = read().unwrap();
 
+            // asta se ruleaza decat daca read primeste ceva ca input
+            // std::thread::sleep(std::time::Duration::from_secs(1));
             // println!("Event::{:?}\r", event);
             // Event::Key(KeyEvent { code: Char('c'), modifiers: CONTROL })
             match event {
@@ -86,7 +68,7 @@ fn print_events(stdout: &mut Stdout) {
                 }) => {
                     write!(
                         stdout,
-                        "{}{}{}",
+                        "{}{}",
                         // Clear the screen.
                         // termion::clear::CurrentLine,
                         // Goto (1,1).
@@ -142,7 +124,6 @@ fn main() -> Result<()> {
     .unwrap();
 
     execute!(stdout, EnableMouseCapture)?;
-
 
     print_events(&mut stdout);
 

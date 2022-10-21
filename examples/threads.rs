@@ -60,7 +60,7 @@ fn spawn_stdin_channel() -> Receiver<String> {
                 Event::Key(Key::Char(character)) => {
                     tx.send(character.to_string()).unwrap()
                 },
-                _ => {}
+                _ => {},
             }
         }
         // let mut buffer = vec![];

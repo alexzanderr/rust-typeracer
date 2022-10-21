@@ -1,8 +1,9 @@
-
-
 use futures::StreamExt;
 use std::future;
-use termion::{event::Key, raw::IntoRawMode};
+use termion::{
+    event::Key,
+    raw::IntoRawMode,
+};
 use termion_input_tokio::TermReadAsync;
 
 
@@ -18,12 +19,16 @@ async fn main() -> Result<(), std::io::Error> {
         .take_while(|event| {
             future::ready(match event {
                 Ok(Key::Char('q')) => false,
-                _ => { println!("its working"); true }, }) })
+                _ => {
+                    println!("its working");
+                    true
+                },
+            })
+        })
         // Print each key that was pressed.
         .for_each(|event| async move {
             println!("{:?}\r", event);
         })
-
         .await;
 
     println!("asd");

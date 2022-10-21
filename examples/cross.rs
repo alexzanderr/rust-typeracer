@@ -1,7 +1,12 @@
-
 use std::time::Duration;
 
-use crossterm::{event::{read, poll}, Result};
+use crossterm::{
+    event::{
+        read,
+        poll,
+    },
+    Result,
+};
 
 fn print_events() -> Result<bool> {
     loop {
