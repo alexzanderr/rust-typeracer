@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use crossterm::{
     event::{
-        read,
         poll,
+        read
     },
-    Result,
+    Result
 };
 
 fn print_events() -> Result<bool> {

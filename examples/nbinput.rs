@@ -1,17 +1,16 @@
-use futures::StreamExt;
 use std::future;
+
+use futures::StreamExt;
 use termion::{
     event::Key,
-    raw::IntoRawMode,
+    raw::IntoRawMode
 };
 use termion_input_tokio::TermReadAsync;
-
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // Disable line buffering, local echo, etc.
     let _raw_term = std::io::stdout().into_raw_mode()?;
-
 
     tokio::io::stdin()
         .keys_stream()
@@ -22,7 +21,7 @@ async fn main() -> Result<(), std::io::Error> {
                 _ => {
                     println!("its working");
                     true
-                },
+                }
             })
         })
         // Print each key that was pressed.

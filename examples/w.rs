@@ -51,7 +51,7 @@ fn menu_routine() -> Result<(), NCurseswError> {
     loop {
         let result_type = get_wch()?;
 
-        r#move(origin)?;
+        remove(origin)?;
         clrtoeol()?;
 
         match result_type {
@@ -67,7 +67,7 @@ fn menu_routine() -> Result<(), NCurseswError> {
                         format!(
                             "{:?}, KeyBinding = {:?}",
                             result_type, result_type_as_keybinding
-                        ),
+                        )
                     )?;
                 }
             },
@@ -80,7 +80,7 @@ fn menu_routine() -> Result<(), NCurseswError> {
                         format!(
                             "'{}' is not for quit.",
                             result_type_as_widechar.as_char()?
-                        ),
+                        )
                     )?;
                 } else {
                     mvaddstr(
@@ -89,10 +89,10 @@ fn menu_routine() -> Result<(), NCurseswError> {
                             "{:?}, char = {}",
                             result_type,
                             result_type_as_widechar.as_char()?
-                        ),
+                        )
                     )?;
                 }
-            },
+            }
         };
 
         refresh()?;

@@ -91,6 +91,31 @@ impl<'a> TerminalScreen {
         }
     }
 
+    /// its working :)
+    pub fn set_panic_hook(&self) {
+        let alternate = self.alternate;
+        let capture_mouse = self.capture_mouse;
+        std::panic::set_hook(Box::new(move |panic_info| {
+            // if i dont manually bring back the cursor here,
+            // the cursor wont come back
+            let mut stdout = std::io::stdout();
+            let _ = write!(stdout, "{}", crossterm::cursor::Show);
+
+            // ? operator is converting from an error to another
+            if alternate {
+                let _ = execute!(stdout, LeaveAlternateScreen);
+            }
+            if capture_mouse {
+                let _ = execute!(stdout, DisableMouseCapture);
+            }
+            let _ = terminal::disable_raw_mode();
+
+            eprintln!();
+            eprintln!("program panicked with this:");
+            eprintln!("{panic_info:#?}");
+        }));
+    }
+
     pub fn builder() -> TerminalScreenBuilder {
         TerminalScreenBuilder::default()
     }
@@ -130,11 +155,11 @@ impl<'a> TerminalScreen {
         RectangleBuilder::<'a, L>::new(self)
     }
 
-    pub fn get_width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.width as usize
     }
 
-    pub fn get_height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.height as usize
     }
 
@@ -225,27 +250,16 @@ impl<'a> TerminalScreen {
         Ok(self)
     }
 
-    // pub fn draw_rectangle<'a, L: TermLines<'a>>(
-    //     &mut self,
-    //     lines: L
-    // ) -> TerminalScreenResult<&mut Self> {
-    //     let mut index = 0usize;
-    //     let lines = lines.term_lines();
-    //     for line in lines {
-    //         self.print(line, index, 0);
-    //         index += 1;
-    //     }
-    //     self.refresh()?;
-
-    //     Ok(self)
-    // }
-
     pub fn clear(&mut self) -> TerminalScreenResult<&mut Self> {
         let clear_screen = crossterm::terminal::Clear(
             crossterm::terminal::ClearType::All
         );
         execute!(self.stdout, clear_screen)?;
         Ok(self)
+    }
+
+    pub fn stdout_ref(&mut self) -> &mut std::io::Stdout {
+        &mut self.stdout
     }
 
     pub fn print(
@@ -259,6 +273,7 @@ impl<'a> TerminalScreen {
 
         let (move_to_y_x, clear_current_line, hide_cursor) = (
             crossterm::cursor::MoveTo(y, x),
+            // crossterm::cursor::MoveTo(cursor::Moveto),
             crossterm::terminal::Clear(
                 crossterm::terminal::ClearType::CurrentLine
             ),
@@ -266,9 +281,11 @@ impl<'a> TerminalScreen {
         );
         // doesnt work with text, it must be a crossterm Command
         // execute!(&mut stdout, move_to, clear, text).unwrap();
+        // note that execute! does flush the stdout
         write!(
             self.stdout,
             "{}{}{}{}",
+            // "{}{}{}",
             move_to_y_x,
             clear_current_line,
             text,
@@ -276,6 +293,7 @@ impl<'a> TerminalScreen {
             // otherwise it will appear alone without any invocations
             hide_cursor
         )?;
+
         // so you can call refresh after print on the same line
         Ok(self)
     }

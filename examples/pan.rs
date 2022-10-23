@@ -1,13 +1,12 @@
 use pancurses::{
-    initscr,
     endwin,
-    Input,
+    initscr,
     noecho,
+    Input
 };
-
 use rand::{
     thread_rng,
-    Rng,
+    Rng
 };
 
 fn main() {
@@ -29,7 +28,7 @@ fn main() {
             Some(input) => {
                 window.addstr(&format!("{:?}", input));
             },
-            None => (),
+            None => ()
         }
     }
     endwin();

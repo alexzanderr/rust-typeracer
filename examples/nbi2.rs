@@ -5,9 +5,10 @@ extern crate termion;
 use std::io;
 use std::io::{
     Read,
-    Write,
+    Write
 };
 use std::os::unix::io::AsRawFd;
+
 use termion::raw::IntoRawMode;
 
 /// Waits for a key press timeout milisseconds
@@ -21,7 +22,7 @@ fn inkey(timeout: i32) -> bool {
     let pool = epoll::create(true).unwrap();
     let e = epoll::Event {
         events: epoll::Events::EPOLLIN.bits(),
-        data:   0,
+        data:   0
     };
     epoll::ctl(pool, epoll::ControlOptions::EPOLL_CTL_ADD, fd, e);
     let mut v = [e];

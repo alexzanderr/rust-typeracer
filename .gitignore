@@ -1,2 +1,8 @@
-/target
+
+
+target
+# because its a binary application
 Cargo.lock
+
+*.sublime-*
+python_version

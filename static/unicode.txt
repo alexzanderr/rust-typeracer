@@ -2,7 +2,7 @@
 
 ┌───────────────────────────────────────────────────────────────────┐
 │                                                                   │
-│  string = "andrew is here and he wants to tell you something"     │
+│  string = "alexzanderr is here and he wants to tell you stuff"    │
 │  --->--->--->x = 3↵                                               │
 │  --->--->y = 2↵                                                   │
 │  --->print()↵                                                     │

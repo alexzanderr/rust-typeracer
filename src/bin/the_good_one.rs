@@ -24,7 +24,10 @@ use std::io::{
 };
 
 use crossterm::event::{
-    Event,
+    Event::{
+        self,
+        *
+    },
     KeyCode,
     KeyEvent
 };
@@ -55,7 +58,7 @@ use ansi_term::{
     Style
 };
 use colored::*;
-use core_dev::traits::string_extended::StringExtended;
+use core_dev::traits::StringExtended;
 use rand::thread_rng;
 use rand::Rng;
 
@@ -104,7 +107,6 @@ fn term_print(
         hide_cursor
     )
     .unwrap();
-    stdout.flush().unwrap();
 }
 
 fn print_stats(
@@ -230,30 +232,17 @@ fn main() -> CrosstermResult<()> {
     let mut last_char = ' ';
     let mut total_right_clicks = 0usize;
     loop {
-        write!(
-            stdout,
-            "{}{}",
-            // Clear the screen.
-            // Goto (1,1).
-            termion::cursor::Goto(
-                index as u16 + wrong_index as u16,
-                display_index as u16,
-            ),
-            // Hide the cursor.
-            termion::cursor::Show
-        )
-        .unwrap();
-        // let random_number = thread_rng().gen_range(10..10000);
+        print_stats(
+            &mut stdout,
+            &text,
+            index,
+            wrong_index,
+            display_index,
+            skip,
+            last_char
+        );
+
         if time_to_break {
-            print_stats(
-                &mut stdout,
-                &text,
-                index,
-                wrong_index,
-                display_index,
-                skip,
-                last_char
-            );
             break;
         }
 
@@ -271,6 +260,7 @@ fn main() -> CrosstermResult<()> {
         if event::poll(Duration::from_millis(100))? {
             let e = event::read()?;
             match e {
+                FocusGained | FocusLost | Paste(_) => todo!(),
                 Event::Resize(y, x) => {
                     // dbg!(y, x);
                 },
@@ -295,7 +285,8 @@ fn main() -> CrosstermResult<()> {
                     match kevent {
                         KeyEvent {
                             code: KeyCode::Char('c'),
-                            modifiers: event::KeyModifiers::CONTROL
+                            modifiers: event::KeyModifiers::CONTROL,
+                            ..
                         } => {
                             time_to_break = true;
                             // so its prints on alternate screen
@@ -306,7 +297,8 @@ fn main() -> CrosstermResult<()> {
                         },
                         KeyEvent {
                             code: KeyCode::Backspace,
-                            modifiers: event::KeyModifiers::NONE
+                            modifiers: event::KeyModifiers::NONE,
+                            ..
                         } => {
                             skip = false;
                             if wrong_index > 0 {
@@ -319,7 +311,8 @@ fn main() -> CrosstermResult<()> {
                         },
                         KeyEvent {
                             code: KeyCode::Char(character),
-                            modifiers: event::KeyModifiers::NONE
+                            modifiers: event::KeyModifiers::NONE,
+                            ..
                         } => {
                             skip = false;
                             last_char = character;
@@ -358,28 +351,10 @@ fn main() -> CrosstermResult<()> {
                             );
                         },
                         _ => {}
-                    }
-                }
-            }
-        }
-        // } else {
-        //     // if you dont print anything here
-        //     // the app will freeze
-        //     // println!("");
-
-        //     // its not freezing anymore, what ?
-        // }
-
-        // because i have code here that is running besides the poll
-        print_stats(
-            &mut stdout,
-            &text,
-            index,
-            wrong_index,
-            display_index,
-            skip,
-            last_char
-        );
+                    } // end of match key event
+                } // end of Event
+            } // end of match event
+        } // end of poll
     }
 
     leave_raw_terminal(&mut stdout)

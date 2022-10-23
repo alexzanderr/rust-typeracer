@@ -1,14 +1,15 @@
 [package]
 name = "typeracer"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 default-run = "typeracer"
+authors = [ "alexzanderr <alexzander.dot.dev@gmail.com>" ]
 exclude = [
     "python_version"
 ]
 
 [dependencies.core-dev]
-path = "../../crates/core-dev"
+git = "https://github.com/alexzanderr/rust-core-dev"
 features = [
     "datetime",
     "traits",
@@ -29,3 +30,4 @@ thiserror = "1.0.37"
 assert2 = "0.3.6"
 pad = "0.1.6"
 ansi-parser = "0.8.0"
+pancurses = "0.17.0"

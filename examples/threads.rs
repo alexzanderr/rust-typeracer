@@ -1,3 +1,20 @@
+use std::io::Stdout;
+use std::io::{
+    stdin,
+    stdout,
+    Read,
+    Stdin,
+    Write
+};
+use std::io;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::TryRecvError;
+use std::{
+    thread,
+    time
+};
+
 use termion::color::Color;
 use termion::event::Key;
 use termion::event::Event;
@@ -6,29 +23,11 @@ use termion::input::TermRead;
 use termion::input::MouseTerminal;
 use termion::cursor::{
     self,
-    DetectCursorPos,
+    DetectCursorPos
 };
 use termion::event::*;
 use termion::raw::IntoRawMode;
 use termion::raw::RawTerminal;
-
-use std::io::Stdout;
-use std::io::{
-    stdin,
-    stdout,
-    Stdin,
-    Write,
-    Read,
-};
-
-use std::io;
-use std::sync::mpsc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::TryRecvError;
-use std::{
-    thread,
-    time,
-};
 
 fn main() {
     let stdin_channel = spawn_stdin_channel();
@@ -42,7 +41,7 @@ fn main() {
             },
             Err(TryRecvError::Disconnected) => {
                 panic!("Channel disconnected")
-            },
+            }
         }
         sleep(1000);
     }
@@ -60,7 +59,7 @@ fn spawn_stdin_channel() -> Receiver<String> {
                 Event::Key(Key::Char(character)) => {
                     tx.send(character.to_string()).unwrap()
                 },
-                _ => {},
+                _ => {}
             }
         }
         // let mut buffer = vec![];

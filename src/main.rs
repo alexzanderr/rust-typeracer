@@ -56,7 +56,7 @@ use ansi_term::{
     Style
 };
 use colored::*;
-use core_dev::traits::string_extended::StringExtended;
+use core_dev::traits::StringExtended;
 use rand::thread_rng;
 use rand::Rng;
 
@@ -71,6 +71,7 @@ mod typeracer;
 pub use typeracer::Typeracer;
 mod errors;
 pub use errors::TyperacerResult;
+mod statics;
 
 fn main() -> TyperacerResult<()> {
     let mut term = TerminalScreen::builder()
@@ -79,6 +80,8 @@ fn main() -> TyperacerResult<()> {
         .build()?;
 
     term.enter_raw_terminal()?;
+
+    term.set_panic_hook();
 
     // term.print("hello world", 0, 0)?.refresh()?;
     let multi_line_string = r#"
@@ -111,7 +114,12 @@ print("something22222222")↵
     // term.refresh()?;
 
     let player = Typeracer::from_term(&mut term);
-    player.mainloop();
+
+    if let Err(err) = player.mainloop() {
+        let error = "[error]".red().bold();
+        eprintln!("{error}:");
+        eprintln!("\t{:?}", err);
+    }
 
     term.leave_raw_terminal()?;
 
