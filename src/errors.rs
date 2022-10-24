@@ -5,6 +5,8 @@ use crate::terminal_screen::RectangleBuilderErrors;
 
 #[derive(Debug, ThisError)]
 pub enum TyperacerErrors {
+    #[error("IndexOutOfBounds")]
+    IndexOutOfBounds,
     #[error("BuilderError")]
     BuilderError(#[from] TerminalScreenBuilderError),
     #[error("IoError")]

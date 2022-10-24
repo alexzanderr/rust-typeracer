@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::time::Duration;
 
+use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
 use crossterm::event::{
     Event,
@@ -28,7 +29,11 @@ use crossterm::{
     Result as CrosstermResult
 };
 
-pub use crate::statics::{
+use crate::errors::{
+    TyperacerErrors,
+    TyperacerResult
+};
+use crate::statics::{
     PROMPT_ARROW,
     TERMINAL_CURSOR
 };
@@ -87,10 +92,6 @@ text.len() - 1: {text_length_minus_one}"#
 pub struct Typeracer<'a> {
     term: &'a mut TerminalScreen
 }
-
-use colored::*;
-
-use crate::errors::TyperacerResult;
 
 impl<'a> Typeracer<'a> {
     pub fn from_term(screen: &'a mut TerminalScreen) -> Self {
@@ -170,43 +171,22 @@ impl<'a> Typeracer<'a> {
         Ok(())
     }
 
-    pub fn get_text_colored(
+    pub fn color_format_text(
         &self,
         text: &str,
         index: usize,
-        wrong_index: usize,
-        cursor_on: bool
+        wrong_index: usize
     ) -> String {
-        if cursor_on {
-            // let cursor = "▏".red();
-            // let cursor = "│".red();
-            // let cursor = "|".red();
-            // let cursor = "｜".red();
-            let green =
-                text[..index].green().to_string().replace(" ", "_");
-            let red = text[index..index + wrong_index]
-                .red()
-                .to_string()
-                .replace(" ", "_");
-            let rest = &text[index + wrong_index..];
-
-            let cursor = "❘".yellow();
-            let cursor = "|".yellow();
-            let cursor = "⏐".yellow();
-            let cursor = "𑗅".yellow();
-            // let cursor = "r𑗅ust".red();
-            // format!("'𑗅asd'")
-            format!("{green}{red}{cursor}{rest}")
-        } else {
-            let green =
-                text[..index].green().to_string().replace(" ", "_");
-            let red = text[index..index + wrong_index]
-                .red()
-                .to_string()
-                .replace(" ", "_");
-            let rest = &text[index + wrong_index..];
-            format!("{green}{red}{rest}")
-        }
+        let green = text[..index].green().to_string().replace(" ", "_");
+        let red = text[index..index + wrong_index]
+            .red()
+            .to_string()
+            .replace(" ", "_");
+        let rest = &text[index + wrong_index..];
+        // let cursor = "r𑗅ust".red();
+        // format!("'𑗅asd'")
+        // the cursor only looks like this inside sublime text
+        format!("{green}{red}{rest}")
     }
 
     pub fn draw_ui(
@@ -246,32 +226,29 @@ impl<'a> Typeracer<'a> {
             .build()?
             .draw()?;
 
-        // if dont refresh the terminal every time i draw something
-        // i have flickering
-        // self.term.refresh()?;
-
-        let typeracer_text_colored = self.get_text_colored(
-            typeracer_text,
-            index,
-            wrong_index,
-            false
-        );
+        let typeracer_text_colored =
+            self.color_format_text(typeracer_text, index, wrong_index);
         // let typeracer_text_colored = format!(
         //     "{} {} {}",
         //     "hello".green(),
         //     "wrong".red(),
         //     "nortmrl teast"
         // );
+        // let indexes = (0..typeracer_text.len())
+        //     .into_iter()
+        //     .map(|index| index.to_string())
+        //     .collect::<String>();
 
+        // let typeracer_text_colored =
+        // format!("{typeracer_text_colored}\n{indexes}");
         self.term
             .rectangle()
             .screens_width(true)
             .align_center(false)
             .xy(typeracer_text_x, 0)
-            .text(typeracer_text_colored.as_str())
+            .text(typeracer_text_colored)
             .build()?
             .draw()?;
-        // self.term.refresh()?;
 
         self.term
             .rectangle()
@@ -281,7 +258,6 @@ impl<'a> Typeracer<'a> {
             .text(what_was_typed)
             .build()?
             .draw()?;
-        // self.term.refresh()?;
 
         // if !text_area.is_empty() {
         //     self.term
@@ -300,7 +276,6 @@ impl<'a> Typeracer<'a> {
             user_input_prompt_x,
             0
         )?;
-        // self.term.refresh()?;
 
         {
             let stats = Stats::new(
@@ -310,7 +285,6 @@ impl<'a> Typeracer<'a> {
                 typeracer_text.len()
             );
             self.draw_stats(stats)?;
-            // self.term.refresh()?;
         }
 
         let x = typeracer_text_x as u16 + 1;
@@ -331,11 +305,9 @@ impl<'a> Typeracer<'a> {
             cursor_shape,
             cursor_blink_off
         )?;
-        // self.term.refresh()?;
 
         // write everything to the terminal after
-        self.term.flush()?;
-        // still flickering by putting this above the poll
+        self.term.refresh()?;
         Ok(())
     }
 
@@ -343,7 +315,9 @@ impl<'a> Typeracer<'a> {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
-        let typeracer_text = "asdasdasdasdasdasdasdasd|";
+        let typeracer_text = "asd|";
+        // let typeracer_text = "what | is this ?|";
+        // let typeracer_text = "what|";
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
@@ -382,9 +356,6 @@ impl<'a> Typeracer<'a> {
         let mut time_to_break = false;
         let mut game_finished = false;
 
-        // get_text_colored(&text, index, wrong_index)
-
-        // self.term.flush()?;
         loop {
             self.draw_ui(
                 current_time,
@@ -399,18 +370,16 @@ impl<'a> Typeracer<'a> {
                 wrong_index
             )?;
 
-            if time_to_break {
-                if game_finished {
-                    self.term
-                .print_buffer(
-                    "Congratulations! <press any key to leave game>",
-                    19,
-                    0
-                )?
-                .flush()?;
+            if game_finished {
+                self.term
+                    .print(
+                        "Congratulations! <press any key to leave game>",
+                        19,
+                        0
+                    )?
+                    .flush_stdout()?;
 
-                    event::read()?;
-                }
+                event::read()?;
 
                 break;
             }
@@ -542,27 +511,40 @@ impl<'a> Typeracer<'a> {
                                 modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
                                 ..
                             } => {
+                                self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
 
                                 if character == ' ' {
+
+                                    what_was_typed.push_str(&user_input_prompt);
+                                    // what_was_typed.push(' ');
+
+                                    if what_was_typed.len() >= term_width - 6 {
+                                        what_was_typed.clear();
+                                    }
+
                                     user_input_prompt.clear();
                                 }
 
-                                // typracer game logic
-                                if index == typeracer_text.len() - 1 {
-                                    index += 1;
-                                    time_to_break = true;
-                                    game_finished = true;
-                                    continue;
-                                }
-                                if character == typeracer_text.chars().nth(index).unwrap()
+                                // if index == typeracer_text.len() - 1 {
+                                //     // index += 1;
+                                //     // if
+                                //     time_to_break = true;
+                                //     game_finished = true;
+                                //     continue;
+                                // }
+                                // typeracer game logic
+                                // let err_msg = format!("index out of bounds;\ntyperacer_text: {typeracer_text}\nindex: {index}");
+                                if character == typeracer_text.chars().nth(index).ok_or(TyperacerErrors::IndexOutOfBounds)?
                                     && wrong_index == 0
                                 {
                                     index += 1;
+                                    if index == typeracer_text.len() {
+                                        game_finished = true;
+                                    }
                                 } else if index + wrong_index < typeracer_text.len() {
                                     wrong_index += 1;
                                 }
 
-                                self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
                             },
                             _ => {}
                         } // end of key events

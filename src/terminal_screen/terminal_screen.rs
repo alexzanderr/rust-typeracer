@@ -45,6 +45,7 @@ use crossterm::{
         EnableMouseCapture
     },
     execute,
+    queue,
     style,
     terminal::{
         self,
@@ -128,11 +129,13 @@ impl<'a> TerminalScreen {
         terminal::enable_raw_mode()?;
 
         if self.alternate {
-            execute!(self.stdout, EnterAlternateScreen)?;
+            queue!(self.stdout, EnterAlternateScreen)?;
         }
         if self.capture_mouse {
-            execute!(self.stdout, EnableMouseCapture)?;
+            queue!(self.stdout, EnableMouseCapture)?;
         }
+        self.stdout.flush()?;
+
         Ok(())
     }
 
@@ -143,11 +146,13 @@ impl<'a> TerminalScreen {
 
         // ? operator is converting from an error to another
         if self.alternate {
-            execute!(self.stdout, LeaveAlternateScreen)?;
+            queue!(self.stdout, LeaveAlternateScreen)?;
         }
         if self.capture_mouse {
-            execute!(self.stdout, DisableMouseCapture)?;
+            queue!(self.stdout, DisableMouseCapture)?;
         }
+        self.stdout.flush()?;
+
         terminal::disable_raw_mode()?;
         Ok(())
     }
@@ -202,7 +207,7 @@ impl<'a> TerminalScreen {
 
         let header = format!("┌{}┐", "─".repeat(inside_length));
 
-        self.print_buffer(&header, current_x, y)?;
+        self.print(&header, current_x, y)?;
         current_x += 1;
 
         for line in lines.iter() {
@@ -233,7 +238,7 @@ impl<'a> TerminalScreen {
                 line
             };
             let line = format!("│  {aligned_line}  │");
-            self.print_buffer(&line, current_x, y)?;
+            self.print(&line, current_x, y)?;
             current_x += 1;
 
             // rectangle_lines.push(&line.to_owned());
@@ -241,7 +246,7 @@ impl<'a> TerminalScreen {
 
         let footer = format!("└{}┘", "─".repeat(inside_length));
 
-        self.print_buffer(&footer, current_x, y)?;
+        self.print(&footer, current_x, y)?;
         current_x += 1;
 
         // │
@@ -270,7 +275,7 @@ impl<'a> TerminalScreen {
         &mut self.stdout
     }
 
-    pub fn print_buffer(
+    pub fn print(
         &mut self,
         text: &str,
         x: usize,
@@ -308,52 +313,28 @@ impl<'a> TerminalScreen {
         Ok(self)
     }
 
-    #[deprecated = "use term.print_buffer(&mut self) instead"]
-    pub fn print(
-        &mut self,
-        text: &str,
-        x: usize,
-        y: usize
-    ) -> TerminalScreenResult<&mut Self> {
-        let x = x as u16;
-        let y = y as u16;
-
-        let (move_to_y_x, clear_current_line, hide_cursor) = (
-            crossterm::cursor::MoveTo(y, x),
-            // crossterm::cursor::MoveTo(cursor::Moveto),
-            crossterm::terminal::Clear(
-                crossterm::terminal::ClearType::CurrentLine
-            ),
-            crossterm::cursor::Hide
-        );
-        // doesnt work with text, it must be a crossterm Command
-        // execute!(&mut stdout, move_to, clear, text).unwrap();
-        // note that execute! does flush the stdout
-        write!(
-            self.stdout,
-            "{}{}{}",
-            // "{}{}{}",
-            move_to_y_x,
-            clear_current_line,
-            text,
-            // you need to hide the cursor
-            // otherwise it will appear alone without any invocations
-            // hide_cursor
-        )?;
-
-        // so you can call refresh after print on the same line
-        Ok(self)
+    pub fn contains_backslash_n(&mut self) -> bool {
+        let temp_buffer = self.buffer.clone();
+        let temp_string = String::from_utf8(temp_buffer).unwrap();
+        temp_string.contains("\n")
     }
 
-    #[deprecated = "use term.flush(&mut self) instead"]
-    pub fn refresh(&mut self) -> TerminalScreenResult<&mut Self> {
+    pub fn flush_stdout(&mut self) -> TerminalScreenResult<&mut Self> {
+        self.stdout.write_all(self.buffer.as_slice())?;
+        self.buffer.clear();
         self.stdout.flush()?;
         Ok(self)
     }
 
-    pub fn flush(&mut self) -> TerminalScreenResult<&mut Self> {
+    pub fn refresh(&mut self) -> TerminalScreenResult<&mut Self> {
+        // write!(self.stdout, "{}", self.buffer.as_slice())?;
+
+        // asta da flush fara sa dea flush
+        // how is this possible ?
         self.stdout.write_all(self.buffer.as_slice())?;
         self.buffer.clear();
+
+        // self.stdout.flush()?;
         Ok(self)
     }
 }

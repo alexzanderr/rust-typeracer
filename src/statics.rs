@@ -1,2 +1,10 @@
 pub const TERMINAL_CURSOR: &str = "▏";
 pub const PROMPT_ARROW: &str = "❱";
+// let cursor = "▏".red();
+// let cursor = "│".red();
+// let cursor = "|".red();
+// let cursor = "｜".red();
+// let cursor = "⏐".yellow();
+// let cursor = "❘".yellow();
+// let cursor = "|".yellow();
+// let cursor = "𑗅".yellow();
