@@ -17,17 +17,37 @@ features = [
 ]
 
 [dev-dependencies]
-assert2 = "0.3.6"
+assert2 = { workspace = true }
+
 
 [dependencies]
 ansi_term = "0.12.1"
 termion = "1.5.6"
-crossterm = "0.25.0"
 rand = "0.8.5"
 colored = "2.0.0"
 derive_builder = "0.11.2"
 thiserror = "1.0.37"
-assert2 = "0.3.6"
+
 pad = "0.1.6"
 ansi-parser = "0.8.0"
 pancurses = "0.17.0"
+
+assert2 = { workspace = true }
+crossterm = { workspace = true }
+
+
+[workspace]
+members = [
+    "dev-ideas"
+]
+
+
+# https://github.com/rust-lang/rust/blob/master/RELEASES.md#cargo
+# https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-dependencies-table
+[workspace.dependencies]
+# the good part is that i have the same version of crossterm for the entire workspace
+# and if i manually change the version here its propagated to the entire workspace
+# instead of manually changing the version of crossterm for every member of the workspace
+# cool
+crossterm = "0.25.0"
+assert2 = "0.3.6"

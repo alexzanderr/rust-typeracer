@@ -66,6 +66,8 @@ pub struct TerminalScreen {
     /// Precede your struct (or field) with #[builder(pattern = "owned")] to opt into this pattern. Builders generated with this pattern do not automatically derive Clone, which allows builders to be generated for structs with fields that do not derive Clone.
     #[builder(default = "std::io::stdout()")]
     stdout:        std::io::Stdout,
+    #[builder(default = "vec![]")]
+    buffer:        Vec<u8>,
     alternate:     bool,
     capture_mouse: bool,
     #[builder(default = "crossterm::terminal::size().unwrap().0")]
@@ -81,9 +83,11 @@ impl<'a> TerminalScreen {
     ) -> Self {
         let mut stdout = std::io::stdout();
         let (width, height) = crossterm::terminal::size().unwrap();
+        let buffer = Vec::<u8>::new();
 
         Self {
             stdout,
+            buffer,
             alternate,
             capture_mouse,
             width,
@@ -198,7 +202,7 @@ impl<'a> TerminalScreen {
 
         let header = format!("┌{}┐", "─".repeat(inside_length));
 
-        self.print(&header, current_x, y)?;
+        self.print_buffer(&header, current_x, y)?;
         current_x += 1;
 
         for line in lines.iter() {
@@ -229,7 +233,7 @@ impl<'a> TerminalScreen {
                 line
             };
             let line = format!("│  {aligned_line}  │");
-            self.print(&line, current_x, y)?;
+            self.print_buffer(&line, current_x, y)?;
             current_x += 1;
 
             // rectangle_lines.push(&line.to_owned());
@@ -237,7 +241,7 @@ impl<'a> TerminalScreen {
 
         let footer = format!("└{}┘", "─".repeat(inside_length));
 
-        self.print(&footer, current_x, y)?;
+        self.print_buffer(&footer, current_x, y)?;
         current_x += 1;
 
         // │
@@ -250,6 +254,10 @@ impl<'a> TerminalScreen {
         Ok(self)
     }
 
+    pub fn buffer_ref_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.buffer
+    }
+
     pub fn clear(&mut self) -> TerminalScreenResult<&mut Self> {
         let clear_screen = crossterm::terminal::Clear(
             crossterm::terminal::ClearType::All
@@ -258,10 +266,49 @@ impl<'a> TerminalScreen {
         Ok(self)
     }
 
-    pub fn stdout_ref(&mut self) -> &mut std::io::Stdout {
+    pub fn stdout_ref_mut(&mut self) -> &mut std::io::Stdout {
         &mut self.stdout
     }
 
+    pub fn print_buffer(
+        &mut self,
+        text: &str,
+        x: usize,
+        y: usize
+    ) -> TerminalScreenResult<&mut Self> {
+        let x = x as u16;
+        let y = y as u16;
+
+        let (move_to_y_x, clear_current_line, hide_cursor) = (
+            crossterm::cursor::MoveTo(y, x),
+            // crossterm::cursor::MoveTo(cursor::Moveto),
+            crossterm::terminal::Clear(
+                crossterm::terminal::ClearType::CurrentLine
+            ),
+            crossterm::cursor::Hide
+        );
+        // doesnt work with text, it must be a crossterm Command
+        // execute!(&mut stdout, move_to, clear, text).unwrap();
+        // note that execute! does flush the stdout
+
+        // write! doesnt flush the stdout automatically, except
+        // when it contains '\n'
+        write!(
+            self.buffer,
+            "{}{}{}",
+            // "{}{}{}",
+            move_to_y_x,
+            // clear_current_line,
+            text,
+            // you need to hide the cursor
+            // otherwise it will appear alone without any invocations
+            hide_cursor
+        )?;
+
+        Ok(self)
+    }
+
+    #[deprecated = "use term.print_buffer(&mut self) instead"]
     pub fn print(
         &mut self,
         text: &str,
@@ -284,22 +331,29 @@ impl<'a> TerminalScreen {
         // note that execute! does flush the stdout
         write!(
             self.stdout,
-            "{}{}{}{}",
+            "{}{}{}",
             // "{}{}{}",
             move_to_y_x,
             clear_current_line,
             text,
             // you need to hide the cursor
             // otherwise it will appear alone without any invocations
-            hide_cursor
+            // hide_cursor
         )?;
 
         // so you can call refresh after print on the same line
         Ok(self)
     }
 
+    #[deprecated = "use term.flush(&mut self) instead"]
     pub fn refresh(&mut self) -> TerminalScreenResult<&mut Self> {
         self.stdout.flush()?;
+        Ok(self)
+    }
+
+    pub fn flush(&mut self) -> TerminalScreenResult<&mut Self> {
+        self.stdout.write_all(self.buffer.as_slice())?;
+        self.buffer.clear();
         Ok(self)
     }
 }

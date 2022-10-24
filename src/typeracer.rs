@@ -105,11 +105,11 @@ impl<'a> Typeracer<'a> {
         x: usize,
         y: usize
     ) -> TyperacerResult<&mut Self> {
-        let input_icon = PROMPT_ARROW.yellow().bold();
         // let red_cursor = "_".red().bold();
         // let red_cursor = "│".red().bold();
+        let prompt_arrow = PROMPT_ARROW.yellow().bold();
         let red_cursor = TERMINAL_CURSOR.red().bold();
-        let text = format!("{input_icon}  {user_input}{red_cursor}");
+        let text = format!("{prompt_arrow}  {user_input}{red_cursor}");
         let text = text.as_str();
         self.term
             .rectangle()
@@ -119,8 +119,6 @@ impl<'a> Typeracer<'a> {
             .align_center(false)
             .build()?
             .draw()?;
-
-        self.term.refresh()?;
 
         Ok(self)
     }
@@ -167,7 +165,8 @@ impl<'a> Typeracer<'a> {
             .build()?
             .draw()?;
 
-        self.term.refresh()?;
+        // self.term.refresh()?;
+        // self.term.flush()?;
         Ok(())
     }
 
@@ -249,7 +248,7 @@ impl<'a> Typeracer<'a> {
 
         // if dont refresh the terminal every time i draw something
         // i have flickering
-        self.term.refresh()?;
+        // self.term.refresh()?;
 
         let typeracer_text_colored = self.get_text_colored(
             typeracer_text,
@@ -272,7 +271,7 @@ impl<'a> Typeracer<'a> {
             .text(typeracer_text_colored.as_str())
             .build()?
             .draw()?;
-        self.term.refresh()?;
+        // self.term.refresh()?;
 
         self.term
             .rectangle()
@@ -282,7 +281,7 @@ impl<'a> Typeracer<'a> {
             .text(what_was_typed)
             .build()?
             .draw()?;
-        self.term.refresh()?;
+        // self.term.refresh()?;
 
         // if !text_area.is_empty() {
         //     self.term
@@ -301,7 +300,7 @@ impl<'a> Typeracer<'a> {
             user_input_prompt_x,
             0
         )?;
-        self.term.refresh()?;
+        // self.term.refresh()?;
 
         {
             let stats = Stats::new(
@@ -311,13 +310,13 @@ impl<'a> Typeracer<'a> {
                 typeracer_text.len()
             );
             self.draw_stats(stats)?;
-            self.term.refresh()?;
+            // self.term.refresh()?;
         }
 
         let x = typeracer_text_x as u16 + 1;
         let y = (index + wrong_index) as u16 + 3;
-        let move_to = cursor::MoveTo(y, x);
 
+        let move_to = cursor::MoveTo(y, x);
         let show_cursor = cursor::Show;
         let cursor_shape =
             cursor::SetCursorShape(cursor::CursorShape::Line);
@@ -325,15 +324,17 @@ impl<'a> Typeracer<'a> {
 
         // if i show the cursor is blinking really fast
         // meaning the cursor is flickering
-        write!(
-            self.term.stdout_ref(),
-            "{}{}{}{}",
+        execute!(
+            self.term.buffer_ref_mut(),
             move_to,
             show_cursor,
             cursor_shape,
             cursor_blink_off
         )?;
-        self.term.refresh()?;
+        // self.term.refresh()?;
+
+        // write everything to the terminal after
+        self.term.flush()?;
         // still flickering by putting this above the poll
         Ok(())
     }
@@ -342,23 +343,22 @@ impl<'a> Typeracer<'a> {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
+        let typeracer_text = "asdasdasdasdasdasdasdasd|";
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
 
         let show_cursor = cursor::Show;
-
         let cursor_shape =
-            cursor::SetCursorShape(cursor::CursorShape::UnderScore);
+            cursor::SetCursorShape(cursor::CursorShape::Line);
         let cursor_blink_off = cursor::DisableBlinking;
 
         execute!(
-            self.term.stdout_ref(),
+            self.term.buffer_ref_mut(),
             show_cursor,
             cursor_shape,
             cursor_blink_off
         )?;
-        self.term.refresh()?;
 
         // let input_bar_x = self.term.height() - 3;
         let user_input_prompt_x = 3;
@@ -384,6 +384,7 @@ impl<'a> Typeracer<'a> {
 
         // get_text_colored(&text, index, wrong_index)
 
+        // self.term.flush()?;
         loop {
             self.draw_ui(
                 current_time,
@@ -401,12 +402,12 @@ impl<'a> Typeracer<'a> {
             if time_to_break {
                 if game_finished {
                     self.term
-                .print(
+                .print_buffer(
                     "Congratulations! <press any key to leave game>",
                     19,
                     0
                 )?
-                .refresh()?;
+                .flush()?;
 
                     event::read()?;
                 }
@@ -428,8 +429,8 @@ impl<'a> Typeracer<'a> {
                     Event::Paste(string_from_ctrl_v) => {},
                     Event::Resize(y, x) => {
                         // dbg!(y, x);
-                        self.term.clear()?;
-                        self.term.refresh()?;
+                        // self.term.clear()?;
+                        // self.term.refresh()?;
                     },
                     Event::Mouse(mevent) => {
                         // dbg!(mevent);
@@ -457,7 +458,7 @@ impl<'a> Typeracer<'a> {
                         //     .build()?
                         //     .draw()?;
 
-                        self.term.refresh()?;
+                        // self.term.refresh()?;
 
                         match kevent {
                             KeyEvent {
@@ -573,8 +574,6 @@ impl<'a> Typeracer<'a> {
             }
 
             text_area.clear();
-
-            self.term.refresh()?;
         } // end of loop
 
         Ok(())
@@ -602,29 +601,29 @@ impl<'a> Typeracer<'a> {
             what_was_typed.clear();
         }
 
-        text_area.push(user_input_prompt.clone());
+        // text_area.push(user_input_prompt.clone());
 
         let term_height = self.term.height();
-        if text_area.len() == term_height - text_area_x - 1 {
-            text_area.clear();
-            text_area.push(user_input_prompt.clone());
+        // if text_area.len() == term_height - text_area_x - 1 {
+        //     text_area.clear();
+        //     text_area.push(user_input_prompt.clone());
 
-            let clear_current_line =
-                terminal::Clear(terminal::ClearType::CurrentLine);
+        //     let clear_current_line =
+        //         terminal::Clear(terminal::ClearType::CurrentLine);
 
-            let hide_cursor = cursor::Hide;
-            for index in text_area_x..term_height {
-                let move_to = cursor::MoveTo(0, index as u16);
-                write!(
-                    self.term.stdout_ref(),
-                    "{}{}{}",
-                    move_to,
-                    clear_current_line,
-                    hide_cursor
-                )?;
-            }
-            self.term.refresh()?;
-        }
+        //     let hide_cursor = cursor::Hide;
+        //     for index in text_area_x..term_height {
+        //         let move_to = cursor::MoveTo(0, index as u16);
+        //         write!(
+        //             self.term.stdout_ref(),
+        //             "{}{}{}",
+        //             move_to,
+        //             clear_current_line,
+        //             hide_cursor
+        //         )?;
+        //     }
+        //     self.term.refresh()?;
+        // }
         user_input_prompt.clear();
 
         // maybe this one makes flickering
