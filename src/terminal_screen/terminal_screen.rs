@@ -1,25 +1,3 @@
-// ╭───────────────────────────╮
-// │                           │
-// │                           │
-// ╰───────────────────────────╯
-
-// ┌───────────────────────────────────────────────────────────────────┐
-// │                                                                   │
-// │  string = "andrew is here and he wants to tell you something"     │
-// │  --->--->--->x = 3↵                                               │
-// │  --->--->y = 2↵                                                   │
-// │  --->print()↵                                                     │
-// │  from core.json__ import *↵                                       │
-// │  --->print("hello world")↵                                        │
-// │  ↵                                                                │
-// │  ↵                                                                │
-// │  for i in range(100):↵                                            │
-// │  --->x = 3↵                                                       │
-// │  --->y = 2↵                                                       │
-// │  ↵                                                                │
-// │  print("something22222222")↵                                      │
-// └───────────────────────────────────────────────────────────────────┘
-
 use std::io::Write;
 
 use ansi_parser::{
@@ -284,14 +262,13 @@ impl<'a> TerminalScreen {
         let x = x as u16;
         let y = y as u16;
 
-        let (move_to_y_x, clear_current_line, hide_cursor) = (
-            crossterm::cursor::MoveTo(y, x),
-            // crossterm::cursor::MoveTo(cursor::Moveto),
-            crossterm::terminal::Clear(
-                crossterm::terminal::ClearType::CurrentLine
-            ),
-            crossterm::cursor::Hide
-        );
+        let move_to_y_x = crossterm::cursor::MoveTo(y, x);
+        // let clear_current_line = crossterm::terminal::Clear(
+        //     crossterm::terminal::ClearType::CurrentLine
+        // );
+
+        // poate cu show nu mai cursorul flickering
+        let hide_cursor = crossterm::cursor::Hide;
         // doesnt work with text, it must be a crossterm Command
         // execute!(&mut stdout, move_to, clear, text).unwrap();
         // note that execute! does flush the stdout

@@ -1,0 +1,15 @@
+def calculate_wpm(self):
+    try:
+        time_diff = abs(time() - self.start_time)
+        time_diff_2 = fixed_set_precision_float(time_diff, 2)
+        self.screen.print_text(
+            15, 0, str(time_diff)
+        )
+        if time_diff_2 == 0:
+            return round(time_diff / 1000)
+        time_diff = float(time_diff)
+        self.wpm = (
+            60 * len(self.total_correct_typed_chars) / 5) / time_diff
+        return round(self.wpm)
+    except AttributeError:
+        return 0
