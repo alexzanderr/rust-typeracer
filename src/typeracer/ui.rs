@@ -242,6 +242,7 @@ impl<'a> TyperacerUI<'a> {
         Ok(self)
     }
 
+    #[deprecated = "use ui.draw_from_app_state"]
     pub fn draw(
         &mut self,
         current_time: std::time::Instant,

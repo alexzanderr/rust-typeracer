@@ -37,7 +37,7 @@ fn main() -> TyperacerResult<()> {
     term.enter_raw_terminal()?;
     term.set_panic_hook();
 
-    let player = Typeracer::from_term(&mut term);
+    let mut player = Typeracer::from_term(&mut term);
 
     let game_result = player.mainloop();
 

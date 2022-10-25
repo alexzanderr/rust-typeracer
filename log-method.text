@@ -1,8 +1,8 @@
 AppState {
     stopwatch: RefCell {
         value: Instant {
-            tv_sec: 17875,
-            tv_nsec: 457854380,
+            tv_sec: 19407,
+            tv_nsec: 893960022,
         },
     },
     typeracer_text: RefCell {

@@ -16,4 +16,5 @@ pub enum BorderType {
     Square
 }
 ```
-- [ ] add multi-line typeracring (hardest one)
+- [ ] add multi-line typeracing (hardest one)
+- [ ] migrate to some TUI framework
