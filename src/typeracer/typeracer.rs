@@ -29,6 +29,7 @@ use crossterm::{
     Result as CrosstermResult
 };
 
+use super::AppState;
 use super::errors::{
     IndexOutOfBoundsError,
     SpanError,
@@ -42,6 +43,13 @@ use crate::statics::{
 use crate::terminal_screen::TerminalScreen;
 use super::Stats;
 use super::TyperacerUI;
+
+pub enum LoopActions {
+    TimeToBreak,
+    TimeToContinue,
+    GameFinished,
+    LoopDoesntQuit
+}
 
 #[derive(Debug)]
 pub struct Typeracer<'a> {
@@ -85,308 +93,500 @@ impl<'a> Typeracer<'a> {
         //     "rust is the best language ever and the hardest\n\
         //      rust is the best language ever and the hardest";
 
-        let typeracer_text_lines = "rust best asd\n\
-             rust best\n\
-             second one long";
+        // let typeracer_text_lines = "rust best asd\n\
+        // rust best\n\
+        // second one long";
         // let typeracer_text = "asd|";
         // let typeracer_text = "what | is this ?|";
         // let typeracer_text = "what|";
-        let current_time = std::time::Instant::now();
+        // let stopwatch = std::time::Instant::now();
 
-        let typeracer_lines =
-            typeracer_text_lines.split("\n").collect::<Vec<&str>>();
+        // let typeracer_lines =
+        //     typeracer_text_lines.split("\n").collect::<Vec<&str>>();
 
-        let mut typeracer_visual_lines = typeracer_lines
-            .clone()
-            .into_iter()
-            .map(|item| item[..5].green().to_string() + &item[5..])
-            .collect::<Vec<String>>();
+        // let mut typeracer_visual_lines = typeracer_lines
+        //     .clone()
+        //     .into_iter()
+        //     .map(|item| item[..5].green().to_string() + &item[5..])
+        //     .collect::<Vec<String>>();
 
         // for pair in typeracer_lines.into_iter().enumerate() {
         // let (row_index, line) = pair;
         // game
 
         // let typeracer_text = line;
-        let typeracer_text_x = 6;
-        let typeracer_text =
-            "rust is the best language ever and the hardest";
+        // let typeracer_text_x = 6;
+        // let typeracer_text =
+        //     "rust is the best language ever and the hardest";
 
-        let mut what_was_typed = String::from("");
-        let mut what_was_typed_x = 9;
+        // let mut what_was_typed = String::from("");
+        // let mut what_was_typed_x = 9;
 
-        let user_input_prompt_x = 3;
+        // let user_input_prompt_x = 3;
 
-        let mut user_input_prompt = String::from("");
-        let mut total_spaces = 0usize;
+        // let mut user_input_prompt = String::from("");
+        // let mut total_spaces = 0usize;
 
-        let text_area_x = 6;
-        let mut text_area = Vec::new();
+        // let mut keyboard_input = String::from("");
+        // let term_height = self.ui.term_height();
+        // let term_width = self.ui.term_width();
 
-        let mut keyboard_input = String::from("");
-        let term_height = self.ui.term_height();
-        let term_width = self.ui.term_width();
+        // let mut index = 0;
+        // let mut wrong_index = 0;
+        // let mut time_to_break = false;
+        // let mut game_finished = false;
+        // let mut cursor_x = typeracer_text_x + 1;
 
-        let mut index = 0;
-        let mut wrong_index = 0;
-        let mut time_to_break = false;
-        let mut game_finished = false;
-        let mut cursor_x = typeracer_text_x + 1;
-
+        let app_state = AppState::init();
         loop {
-            // self.ui.draw(&mut app_state)?;
+            self.ui.draw_from_app_state(&app_state)?;
 
-            self.ui.draw(
-                current_time,
-                typeracer_text,
-                typeracer_text_x,
-                &mut what_was_typed,
-                what_was_typed_x,
-                &mut user_input_prompt,
-                user_input_prompt_x,
-                &mut keyboard_input,
-                index,
-                wrong_index,
-                cursor_x
-            )?;
-
-            if game_finished {
-                self.ui
-                    .print(
-                        "Congratulations! <press any key to leave game>",
-                        19,
-                        0
-                    )?
-                    .flush_stdout()?;
-
-                event::read()?;
-
-                break;
-            }
-
-            // let got_event = event::poll(Duration::from_millis(100))?;
-            // if got_event {
-            //     let e = event::read()?;
-            // }
-
-            if event::poll(Duration::from_millis(100))? {
+            if event::poll(Duration::from_millis(1000))? {
                 let e = event::read()?;
 
-                match e {
-                    Event::FocusGained => {
-                        todo!("do something if terminal focus is gained")
-                    },
-                    Event::FocusLost => {
-                        todo!("do something if terminal focus is LOST")
-                    },
+                let loop_action = self.handle_event(e, &app_state)?.1;
+                match loop_action {
+                    LoopActions::TimeToBreak => break,
+                    LoopActions::TimeToContinue => continue,
+                    LoopActions::GameFinished => continue,
+                    LoopActions::LoopDoesntQuit => {}
+                }
 
-                    Event::Paste(string_from_ctrl_v) => {},
-                    Event::Resize(y, x) => {
-                        // dbg!(y, x);
-                        // self.term.clear()?;
-                        // self.term.refresh()?;
-                    },
-                    Event::Mouse(mevent) => {
-                        // dbg!(mevent);
-                        let mouse_kind = mevent.kind;
-                        match mouse_kind {
-                            event::MouseEventKind::Down(
-                                event::MouseButton::Right
-                            ) => {},
-                            _ => {}
+                let app_state = format!("{app_state:#?}");
+                let mut handler = std::fs::File::options()
+                    // .append(true)
+                    .create(true)
+                    .truncate(true)
+                    .write(true)
+                    .open("log-from-loop.text")?;
+                write!(handler, "{}\n\n", app_state)?;
+            }
+
+            // self.ui.draw(
+            //     stopwatch,
+            //     typeracer_text,
+            //     typeracer_text_x,
+            //     &mut what_was_typed,
+            //     what_was_typed_x,
+            //     &mut user_input_prompt,
+            //     user_input_prompt_x,
+            //     &mut keyboard_input,
+            //     index,
+            //     wrong_index,
+            //     cursor_x
+            // )?;
+
+            // if *game_finished {
+            //     self.ui
+            //         .print(
+            //             "Congratulations! <press any key to leave game>",
+            //             19,
+            //             0
+            //         )?
+            //         .flush_stdout()?;
+
+            //     event::read()?;
+
+            //     break;
+            // }
+        }
+        //     match e {
+        //         Event::FocusGained => {
+        //             todo!("do something if terminal focus is gained")
+        //         },
+        //         Event::FocusLost => {
+        //             todo!("do something if terminal focus is LOST")
+        //         },
+
+        //         Event::Paste(string_from_ctrl_v) => {},
+        //         Event::Resize(y, x) => {
+        //             // dbg!(y, x);
+        //             // self.term.clear()?;
+        //             // self.term.refresh()?;
+        //         },
+        //         Event::Mouse(mevent) => {
+        //             // dbg!(mevent);
+        //             let mouse_kind = mevent.kind;
+        //             match mouse_kind {
+        //                 event::MouseEventKind::Down(
+        //                     event::MouseButton::Right
+        //                 ) => {},
+        //                 _ => {}
+        //             }
+        //         },
+        //         Event::Key(kevent) => {
+        //             keyboard_input =
+        //                 format!("{:?}", kevent.code.clone());
+        //             keyboard_input =
+        //                 keyboard_input.yellow().to_string();
+
+        //             match kevent {
+        //                     KeyEvent {
+        //                         code: KeyCode::Enter,
+        //                         modifiers: event::KeyModifiers::CONTROL,
+        //                         ..
+        //                     } => {
+        //                     },
+        //                     // clear the entire user_input_bar
+        //                     // and append the text to the text area
+        //                     // enter or space into the user_input_prompt
+        //                     KeyEvent {
+        //                         code: KeyCode::Enter,
+        //                         modifiers: event::KeyModifiers::NONE,
+        //                         ..
+        //                     } => {
+        //                         //typeracer logic
+        //                         let error_span = SpanError::new(file!(), line!() + 1, column!());
+        //                         let index_error = IndexOutOfBoundsError::new(
+        //                             index,
+        //                             typeracer_text.to_string(),
+        //                             error_span
+        //                         );
+        //                         if '\n' == typeracer_text.chars().nth(index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+        //                             && wrong_index == 0
+        //                         {
+        //                             index += 1;
+        //                             // cursor_x += 1;
+        //                             // // let move_to = cursor::
+        //                             // execute!(
+        //                             //     self.ui.term_buffer_ref_mut(),
+        //                             //     show_cursor,
+        //                             //     cursor_shape,
+        //                             //     cursor_blink_off
+        //                             // )?;
+        //                             if index == typeracer_text.len() {
+        //                                 game_finished = true;
+        //                             }
+        //                         } else if index + wrong_index < typeracer_text.len() {
+        //                             wrong_index += 1;
+        //                         }
+
+        //                         // ui logic
+        //                         let time_to_continue = self.handle_enter_key(
+        //                             &mut what_was_typed,
+        //                             &mut user_input_prompt,
+        //                             user_input_prompt_x,
+        //                             )?;
+
+        //                         if time_to_continue {
+        //                             continue
+        //                         }
+        //                     },
+        //                     KeyEvent {
+        //                         code: KeyCode::Char('c'),
+        //                         modifiers: event::KeyModifiers::CONTROL,
+        //                         ..
+        //                     }
+        //                     | KeyEvent {
+        //                         code: KeyCode::Char('d'),
+        //                         modifiers: event::KeyModifiers::CONTROL,
+        //                         ..
+        //                     } => break,
+        //                     // backspace
+        //                     // delete one char backward
+        //                     KeyEvent {
+        //                         code: KeyCode::Backspace,
+        //                         modifiers: event::KeyModifiers::NONE,
+        //                         ..
+        //                     } => {
+        //                         // ui logic
+        //                         let _ = user_input_prompt.pop();
+
+        //                         // logic for the typeracer game
+        //                         if wrong_index > 0 {
+        //                             wrong_index -= 1
+        //                         } else {
+        //                             if index > 0 {
+        //                                 index -= 1;
+        //                             }
+        //                         }
+        //                     },
+        //                     // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
+        //                     // but ctrl + h works, cuz linux
+        //                     //
+        //                     // delete the entire word backwards
+        //                     KeyEvent {
+        //                         code: KeyCode::Char('h'),
+        //                         modifiers: event::KeyModifiers::CONTROL,
+        //                         ..
+        //                     }
+        //                     // and also for the same branch alt + backspace
+        //                     | KeyEvent {
+        //                         code: KeyCode::Backspace,
+        //                         modifiers: KeyModifiers::ALT,
+        //                         ..
+        //                         // kind: KeyEventKind::Repeat | KeyEventKind::Release,
+        //                         // state: KeyEventState::NONE
+        //                     } => {
+        //                         self.handle_ctrl_backspace(&mut user_input_prompt)
+        //                     },
+        //                     // user pressed a char key on keyboard
+        //                     // append it to the prompt
+        //                     KeyEvent {
+        //                         code: KeyCode::Char(character),
+        //                         modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
+        //                         ..
+        //                     } => {
+        //                         self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
+
+        //                         if character == ' ' {
+
+        //                             what_was_typed.push_str(&user_input_prompt);
+        //                             // what_was_typed.push(' ');
+
+        //                             if what_was_typed.len() >= term_width - 6 {
+        //                                 what_was_typed.clear();
+        //                             }
+
+        //                             user_input_prompt.clear();
+        //                         }
+
+        //                         // if index == typeracer_text.len() - 1 {
+        //                         //     // index += 1;
+        //                         //     // if
+        //                         //     time_to_break = true;
+        //                         //     game_finished = true;
+        //                         //     continue;
+        //                         // }
+        //                         // typeracer game logic
+        //                         // let err_msg = format!("index out of bounds;\ntyperacer_text: {typeracer_text}\nindex: {index}");
+        //                         let error_span = SpanError::new(file!(), line!() + 1, column!());
+        //                         let index_error = IndexOutOfBoundsError::new(
+        //                             index,
+        //                             typeracer_text.to_string(),
+        //                             error_span
+        //                         );
+        //                         if character == typeracer_text.chars().nth(index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+        //                             && wrong_index == 0
+        //                         {
+        //                             index += 1;
+        //                             // if index == typeracer_text.len() {
+        //                             //     game_finished = true;
+        //                             // }
+        //                         } else if index + wrong_index < typeracer_text.len() {
+        //                             wrong_index += 1;
+        //                         }
+
+        //                     },
+        //                     _ => {}
+        //                 } // end of key events
+        //         } // end of key events from match
+        //     } // end of match
+        // }
+        // // end of poll
+        // else {
+        // }
+        // end of loop
+        // }
+        Ok(())
+    }
+
+    fn handle_event(
+        &mut self,
+        event: Event,
+        app_state: &AppState
+    ) -> TyperacerResult<(&mut Self, LoopActions)> {
+        // pointers to AppState fields
+        let mut keyboard_input = app_state.keyboard_input_ref_mut();
+        let mut index = app_state.index_ref_mut();
+        let mut wrong_index = app_state.wrong_index_ref_mut();
+        let mut typeracer_text = app_state.typeracer_text_ref_mut();
+        let mut game_finished = app_state.game_finished_ref_mut();
+        let mut user_input_prompt = app_state.user_input_prompt_ref_mut();
+        let mut what_was_typed = app_state.what_was_typed_ref_mut();
+        let mut user_input_prompt_x =
+            app_state.user_input_prompt_x_ref_mut();
+        let term_width = self.ui.term_width();
+
+        match event {
+            Event::FocusGained => {
+                todo!("do something if terminal focus is gained")
+            },
+            Event::FocusLost => {
+                todo!("do something if terminal focus is LOST")
+            },
+            Event::Paste(string_from_ctrl_v) => {},
+            Event::Resize(y, x) => {},
+            Event::Mouse(mevent) => {
+                // dbg!(mevent);
+                let mouse_kind = mevent.kind;
+                match mouse_kind {
+                    event::MouseEventKind::Down(
+                        event::MouseButton::Right
+                    ) => {},
+                    _ => {}
+                }
+            },
+            Event::Key(kevent) => {
+                let event_clone = format!("{:?}", kevent.code.clone());
+                *keyboard_input = event_clone.yellow().to_string();
+
+                match kevent {
+                    // clear the entire user_input_bar
+                    // and append the text to the text area
+                    // enter or space into the user_input_prompt
+                    KeyEvent {
+                        code: KeyCode::Enter,
+                        modifiers: event::KeyModifiers::NONE,
+                        ..
+                    } => {
+                        // return Ok((self, LoopActions::TimeToContinue));
+                        //typeracer logic
+
+                        let error_span = SpanError::new(file!(), line!() + 1, column!());
+                        let index_error = IndexOutOfBoundsError::new(
+                            index.clone(),
+                            typeracer_text.to_string(),
+                            error_span
+                        );
+                        if '\n' == typeracer_text.chars().nth(index.clone()).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+                            && *wrong_index == 0
+                        {
+                            *index += 1;
+                            // cursor_x += 1;
+                            // // let move_to = cursor::
+                            // execute!(
+                            //     self.ui.term_buffer_ref_mut(),
+                            //     show_cursor,
+                            //     cursor_shape,
+                            //     cursor_blink_off
+                            // )?;
+                            if *index == typeracer_text.len() {
+                                *game_finished = true;
+                            }
+                        } else if *index + *wrong_index < typeracer_text.len() {
+                            *wrong_index += 1;
+                        }
+
+                        // // ui logic
+                        let time_to_continue = self.handle_enter_key(
+                            &mut what_was_typed,
+                            &mut user_input_prompt,
+                            user_input_prompt_x.clone())?;
+
+                        if time_to_continue {
+                            return Ok((self, LoopActions::TimeToContinue))
                         }
                     },
-                    Event::Key(kevent) => {
-                        keyboard_input =
-                            format!("{:?}", kevent.code.clone());
-                        keyboard_input =
-                            keyboard_input.yellow().to_string();
+                    KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: event::KeyModifiers::CONTROL,
+                        ..
+                    }
+                    | KeyEvent {
+                        code: KeyCode::Char('d'),
+                        modifiers: event::KeyModifiers::CONTROL,
+                        ..
+                    } => {
+                        return Ok((self, LoopActions::TimeToBreak))
+                    },
+                    // backspace
+                    // delete one char backward
+                    KeyEvent {
+                        code: KeyCode::Backspace,
+                        modifiers: event::KeyModifiers::NONE,
+                        ..
+                    } => {
 
-                        // debug the current key in a separate rectangle
-                        // self.term
-                        //     .rectangle()
-                        //     .screens_width(true)
-                        //     .align_center(false)
-                        //     .xy(term_height - 8 - 3, 0)
-                        //     .text(keyboard_input.as_str())
-                        //     .build()?
-                        //     .draw()?;
+                        // ui logic
+                        let _ = user_input_prompt.pop();
 
-                        // self.term.refresh()?;
+                        // logic for the typeracer game
+                        if *wrong_index > 0 {
+                            *wrong_index -= 1
+                        } else {
+                            if *index > 0 {
+                                *index -= 1;
+                            }
+                        }
+                    },
+                    // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
+                    // but ctrl + h works, cuz linux
+                    //
+                    // delete the entire word backwards
+                    KeyEvent {
+                        code: KeyCode::Char('h'),
+                        modifiers: event::KeyModifiers::CONTROL,
+                        ..
+                    }
+                    // and also for the same branch alt + backspace
+                    | KeyEvent {
+                        code: KeyCode::Backspace,
+                        modifiers: KeyModifiers::ALT,
+                        ..
+                        // kind: KeyEventKind::Repeat | KeyEventKind::Release,
+                        // state: KeyEventState::NONE
+                    } => {
+                        self.handle_ctrl_backspace(&mut user_input_prompt)
+                    },
+                    // user pressed a char key on keyboard
+                    // append it to the prompt
+                    KeyEvent {
+                        code: KeyCode::Char(character),
+                        modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
+                        ..
+                    } => {
 
-                        match kevent {
-                                KeyEvent {
-                                    code: KeyCode::Enter,
-                                    modifiers: event::KeyModifiers::CONTROL,
-                                    ..
-                                } => {
-                                },
-                                // clear the entire user_input_bar
-                                // and append the text to the text area
-                                // enter or space into the user_input_prompt
-                                KeyEvent {
-                                    code: KeyCode::Enter,
-                                    modifiers: event::KeyModifiers::NONE,
-                                    ..
-                                } => {
-                                    //typeracer logic
-                                    let error_span = SpanError::new(file!(), line!() + 1, column!());
-                                    let index_error = IndexOutOfBoundsError::new(
-                                        index,
-                                        typeracer_text.to_string(),
-                                        error_span
-                                    );
-                                    if '\n' == typeracer_text.chars().nth(index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
-                                        && wrong_index == 0
-                                    {
-                                        index += 1;
-                                        // cursor_x += 1;
-                                        // // let move_to = cursor::
-                                        // execute!(
-                                        //     self.ui.term_buffer_ref_mut(),
-                                        //     show_cursor,
-                                        //     cursor_shape,
-                                        //     cursor_blink_off
-                                        // )?;
-                                        if index == typeracer_text.len() {
-                                            game_finished = true;
-                                        }
-                                    } else if index + wrong_index < typeracer_text.len() {
-                                        wrong_index += 1;
-                                    }
+                        self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
 
+                        if character == ' ' {
+                            what_was_typed.push_str(&user_input_prompt);
+                            // what_was_typed.push(' ');
+                            if what_was_typed.len() >= term_width - 6 {
+                                what_was_typed.clear();
+                            }
+                            user_input_prompt.clear();
+                        }
 
-                                    // ui logic
-                                    let time_to_continue = self.handle_enter_key(
-                                        user_input_prompt_x,
-                                        text_area_x,
-                                        &mut text_area,
-                                        &mut what_was_typed,
-                                        &mut user_input_prompt)?;
+                        if *index == typeracer_text.len() - 1 {
+                            // index += 1;
+                            // if
+                            // time_to_break = true;
+                            *game_finished = true;
+                            return Ok((self, LoopActions::GameFinished))
+                            // continue;
+                        }
+                        // typeracer game logic
+                        let err_msg = format!("index out of bounds;\ntyperacer_text: {typeracer_text}\nindex: {index}");
+                        let error_span = SpanError::new(file!(), line!() + 1, column!());
+                        let index_error = IndexOutOfBoundsError::new(
+                            index.clone(),
+                            typeracer_text.to_string(),
+                            error_span
+                        );
+                        if character == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+                            && *wrong_index == 0
+                        {
+                            *index += 1;
+                            if *index == typeracer_text.len() {
+                                *game_finished = true;
+                            }
+                        } else if *index + *wrong_index < typeracer_text.len() {
+                            *wrong_index += 1;
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            _ => {}
+        }
+        let app_state = format!("{app_state:#?}");
+        let mut handler = std::fs::File::options()
+            // .append(true)
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open("log-method.text")?;
+        write!(handler, "{}\n\n", app_state)?;
 
-                                    if time_to_continue {
-                                        continue
-                                    }
-                                },
-                                KeyEvent {
-                                    code: KeyCode::Char('c'),
-                                    modifiers: event::KeyModifiers::CONTROL,
-                                    ..
-                                }
-                                | KeyEvent {
-                                    code: KeyCode::Char('d'),
-                                    modifiers: event::KeyModifiers::CONTROL,
-                                    ..
-                                } => break,
-                                // backspace
-                                // delete one char backward
-                                KeyEvent {
-                                    code: KeyCode::Backspace,
-                                    modifiers: event::KeyModifiers::NONE,
-                                    ..
-                                } => {
-                                    // ui logic
-                                    let _ = user_input_prompt.pop();
-
-
-                                    // logic for the typeracer game
-                                    if wrong_index > 0 {
-                                        wrong_index -= 1
-                                    } else {
-                                        if index > 0 {
-                                            index -= 1;
-                                        }
-                                    }
-                                },
-                                // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
-                                // but ctrl + h works, cuz linux
-                                //
-                                // delete the entire word backwards
-                                KeyEvent {
-                                    code: KeyCode::Char('h'),
-                                    modifiers: event::KeyModifiers::CONTROL,
-                                    ..
-                                }
-                                // and also for the same branch alt + backspace
-                                | KeyEvent {
-                                    code: KeyCode::Backspace,
-                                    modifiers: KeyModifiers::ALT,
-                                    ..
-                                    // kind: KeyEventKind::Repeat | KeyEventKind::Release,
-                                    // state: KeyEventState::NONE
-                                } => {
-                                    self.handle_ctrl_backspace(&mut user_input_prompt)
-                                },
-                                // user pressed a char key on keyboard
-                                // append it to the prompt
-                                KeyEvent {
-                                    code: KeyCode::Char(character),
-                                    modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
-                                    ..
-                                } => {
-                                    self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
-
-                                    if character == ' ' {
-
-                                        what_was_typed.push_str(&user_input_prompt);
-                                        // what_was_typed.push(' ');
-
-                                        if what_was_typed.len() >= term_width - 6 {
-                                            what_was_typed.clear();
-                                        }
-
-                                        user_input_prompt.clear();
-                                    }
-
-                                    // if index == typeracer_text.len() - 1 {
-                                    //     // index += 1;
-                                    //     // if
-                                    //     time_to_break = true;
-                                    //     game_finished = true;
-                                    //     continue;
-                                    // }
-                                    // typeracer game logic
-                                    // let err_msg = format!("index out of bounds;\ntyperacer_text: {typeracer_text}\nindex: {index}");
-                                    let error_span = SpanError::new(file!(), line!() + 1, column!());
-                                    let index_error = IndexOutOfBoundsError::new(
-                                        index,
-                                        typeracer_text.to_string(),
-                                        error_span
-                                    );
-                                    if character == typeracer_text.chars().nth(index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
-                                        && wrong_index == 0
-                                    {
-                                        index += 1;
-                                        // if index == typeracer_text.len() {
-                                        //     game_finished = true;
-                                        // }
-                                    } else if index + wrong_index < typeracer_text.len() {
-                                        wrong_index += 1;
-                                    }
-
-                                },
-                                _ => {}
-                            } // end of key events
-                    } // end of key events from match
-                } // end of match
-            }
-            // end of poll
-            else {
-            }
-
-            text_area.clear();
-        } // end of loop
-          // }
-
-        Ok(())
+        Ok((self, LoopActions::LoopDoesntQuit))
     }
 
     fn handle_enter_key(
         &mut self,
-        input_bar_x: usize,
-        text_area_x: usize,
-        text_area: &mut Vec<String>,
         what_was_typed: &mut String,
-        user_input_prompt: &mut String
+        user_input_prompt: &mut String,
+        user_input_prompt_x: usize
     ) -> TyperacerResult<bool> {
         let term_height = self.ui.term_height();
         let term_width = self.ui.term_width();

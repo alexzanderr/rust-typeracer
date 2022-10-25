@@ -1,3 +1,5 @@
+use std::backtrace::Backtrace;
+
 use thiserror::Error as ThisError;
 use colored::*;
 
@@ -78,8 +80,15 @@ r#"{}: IndexOutOfBounds
     #[error("BuilderError")]
     BuilderError(#[from] TerminalScreenBuilderError),
 
-    #[error("IoError")]
-    IoError(#[from] std::io::Error),
+    #[error(
+r#"{}: IoError
+    message: {source}"#,
+    "[error]".red().bold()
+    )]
+    IoError {
+        #[from]
+        source: std::io::Error // backtrace: Backtrace
+    },
 
     #[error("TerminalScreenError")]
     TerminalScreenError(

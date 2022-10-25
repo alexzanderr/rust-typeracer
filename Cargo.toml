@@ -34,6 +34,7 @@ pancurses = "0.17.0"
 
 assert2 = { workspace = true }
 crossterm = { workspace = true }
+getset = "0.1.2"
 
 
 [workspace]

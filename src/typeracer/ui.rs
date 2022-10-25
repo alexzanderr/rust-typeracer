@@ -28,6 +28,7 @@ use crossterm::{
     Result as CrosstermResult
 };
 
+use super::AppState;
 use crate::{
     TerminalScreen,
     TerminalScreenResult
@@ -147,6 +148,100 @@ impl<'a> TyperacerUI<'a> {
         Ok(self)
     }
 
+    pub fn draw_from_app_state(
+        &mut self,
+        app_state: &AppState
+    ) -> TyperacerResult<&mut Self> {
+        let stopwatch = app_state.stopwatch_ref();
+        let mut keyboard_input = app_state.keyboard_input_ref_mut();
+        let mut index = app_state.index_ref_mut();
+        let mut wrong_index = app_state.wrong_index_ref_mut();
+        let mut typeracer_text = app_state.typeracer_text_ref_mut();
+        let mut typeracer_text_x = app_state.typeracer_text_x_ref_mut();
+        let mut game_finished = app_state.game_finished_ref_mut();
+        let mut user_input_prompt = app_state.user_input_prompt_ref_mut();
+        let mut what_was_typed = app_state.what_was_typed_ref_mut();
+        let mut user_input_prompt_x =
+            app_state.user_input_prompt_x_ref_mut();
+
+        let yellow_left_bracket = "[".yellow();
+        let yellow_right_bracket = "]".yellow();
+        let lb = yellow_left_bracket;
+        let rb = yellow_right_bracket;
+
+        let elapsed_time = stopwatch.elapsed();
+
+        let header_x = 0usize;
+        // let elapsed_repr = format!("{:.2?}", elapsed_time);
+        let current_date_time = get_current_datetime();
+        let header = format!(
+                "{lb}Date-time: {current_date_time}{rb} {lb}Elapsed-time: {elapsed_time:.2?}{rb}",
+            );
+
+        self.term
+            .rectangle()
+            .screens_width(true)
+            // TODO: ansi parser algo doesnt work in align_center == true
+            .align_center(false)
+            .text(header)
+            .xy(header_x, 0)
+            .build()?
+            .draw()?;
+
+        let typeracer_text_colored =
+            self.color_format_text(&typeracer_text, *index, *wrong_index);
+
+        self.term
+            .rectangle()
+            .screens_width(true)
+            .align_center(false)
+            .xy(*typeracer_text_x, 0)
+            .text(typeracer_text_colored)
+            .build()?
+            .draw()?;
+
+        self.draw_user_input_prompt(
+            &user_input_prompt,
+            *user_input_prompt_x,
+            0
+        )?;
+
+        {
+            let stats = Stats::new(
+                typeracer_text.as_str(),
+                &keyboard_input,
+                *index,
+                *wrong_index,
+                typeracer_text.len()
+            );
+            self.draw_stats(stats)?;
+        }
+
+        let y = (*index + *wrong_index) as u16 + 3;
+
+        let x = *typeracer_text_x as u16 + 1;
+        let move_to = cursor::MoveTo(y, x);
+        let show_cursor = cursor::Show;
+        let cursor_shape =
+            cursor::SetCursorShape(cursor::CursorShape::Line);
+        let cursor_blink_off = cursor::DisableBlinking;
+
+        // if i show the cursor is blinking really fast
+        // meaning the cursor is flickering
+        execute!(
+            self.term.buffer_ref_mut(),
+            move_to,
+            show_cursor,
+            cursor_shape,
+            cursor_blink_off
+        )?;
+
+        // write everything to the terminal after
+        self.term.refresh()?;
+
+        Ok(self)
+    }
+
     pub fn draw(
         &mut self,
         current_time: std::time::Instant,
@@ -160,8 +255,7 @@ impl<'a> TyperacerUI<'a> {
         index: usize,
         wrong_index: usize,
         cursor_x: usize
-    ) -> TyperacerResult<()> {
-        let current_date_time = get_current_datetime();
+    ) -> TyperacerResult<&mut Self> {
         let yellow_left_bracket = "[".yellow();
         let yellow_right_bracket = "]".yellow();
         let lb = yellow_left_bracket;
@@ -171,6 +265,7 @@ impl<'a> TyperacerUI<'a> {
 
         let header_x = 0usize;
         // let elapsed_repr = format!("{:.2?}", elapsed_time);
+        let current_date_time = get_current_datetime();
         let header = format!(
                 "{lb}Date-time: {current_date_time}{rb} {lb}Elapsed-time: {elapsed_time:.2?}{rb}",
             );
@@ -272,6 +367,7 @@ impl<'a> TyperacerUI<'a> {
 
         // write everything to the terminal after
         self.term.refresh()?;
-        Ok(())
+
+        Ok(self)
     }
 }

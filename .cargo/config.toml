@@ -18,3 +18,6 @@ verbose = false        # whether cargo provides verbose output
 color = 'auto'         # whether cargo colorizes output
 progress.when = 'auto' # whether cargo shows progress bar
 progress.width = 80    # width of progress bar
+
+[env]
+RUST_BACKTRACE = "full"
