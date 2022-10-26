@@ -3,6 +3,10 @@ use std::backtrace::Backtrace;
 use thiserror::Error as ThisError;
 use colored::*;
 use lazy_static::lazy_static;
+use core_dev::audio::{
+    MusicPlayerError,
+    MusicPlayerResult
+};
 
 use crate::terminal_screen::TerminalScreenBuilderError;
 use crate::terminal_screen::RectangleBuilderErrors;
@@ -109,7 +113,13 @@ r#"{}: IoError
     #[error("RectangleBuilderError")]
     RectangleBuilderErrors(
         #[from] crate::terminal_screen::RectangleBuilderErrors
-    )
+    ),
+
+    #[error("MusicPlayerError: {:?}", mpe)]
+    MusicPlayerError {
+        #[from]
+        mpe: MusicPlayerError
+    }
 }
 
 pub type TyperacerResult<T> = core::result::Result<T, TyperacerErrors>;

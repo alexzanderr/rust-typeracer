@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::time::Duration;
 
+use core_dev::audio::MusicPlayer;
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
 use crossterm::event::{
@@ -116,7 +117,21 @@ impl<'a> Typeracer<'a> {
         //     *self.state.typeracer_text_ref_mut() = line.to_string();
         // }
 
+        let path = "static/audio/undertale-megalovania-soundtrack.mp3";
+        let path = "static/audio/davai_hardbass.wav";
+        let path2 = "static/audio/play_cs16.wav";
+
+        let mut player = MusicPlayer::new()?;
+        player.load_file(path2)?;
+        player.play_music(true, Some(100));
+
+        player.load_file(path)?;
+        player.play_music(false, None);
+
         loop {
+            if player.is_done_playing() {
+                player.play_music(false, None);
+            }
             // render ui
             self.ui.draw(&self.state)?;
 
@@ -170,27 +185,16 @@ impl<'a> Typeracer<'a> {
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {
-        self.game_loop(None)?;
+        // player.pause_playing();
 
-        // if self.state.typeracer_text_ref_mut().contains("\n") {
-        //     let lines = self.state.typeracer_text_ref_mut().clone();
-        //     let lines = lines.split("\n");
-        //     for line in lines {
-        //         let line = Some(line);
-        //         let loop_actions = self.game_loop(line)?;
-        //         match loop_actions {
-        //             LoopActions::QuitGame => return Ok(()),
-        //             _ => {}
-        //         }
-        //     }
-        // } else {
-        //     let loop_actions = self.game_loop(None)?;
-        //     match loop_actions {
-        //         LoopActions::QuitGame => return Ok(()),
-        //         _ => {}
-        //     }
+        // while player.is_playing() {
+        //     // calls to play are non-blocking, so we put the thread to sleep
+        //     // player.pause_playing();
+        //     std::thread::sleep(std::time::Duration::from_millis(1000));
+        //     // player.continue_playing();
+        //     std::thread::sleep(std::time::Duration::from_millis(1000));
         // }
-
+        self.game_loop(None)?;
         Ok(())
     }
 

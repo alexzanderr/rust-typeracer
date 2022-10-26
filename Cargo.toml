@@ -13,7 +13,8 @@ git = "https://github.com/alexzanderr/rust-core-dev"
 features = [
     "datetime",
     "traits",
-    "terminal"
+    "terminal",
+    "audio"
 ]
 
 [dev-dependencies]
