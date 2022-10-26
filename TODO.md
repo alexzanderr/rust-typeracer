@@ -17,4 +17,8 @@ pub enum BorderType {
 }
 ```
 - [ ] add multi-line typeracing (hardest one)
+- [ ] calculate WPM and print it on the screen
 - [ ] migrate to some TUI framework
+- [ ] add music + download the default music from yt using yt-dlp api in rust
+- [ ] check this https://github.com/kraanzu/termtyper
+

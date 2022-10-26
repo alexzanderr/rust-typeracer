@@ -87,7 +87,7 @@ r#"{}: IoError
     )]
     IoError {
         #[from]
-        source: std::io::Error // backtrace: Backtrace
+        source: std::io::Error
     },
 
     #[error("TerminalScreenError")]

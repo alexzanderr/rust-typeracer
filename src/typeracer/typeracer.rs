@@ -48,7 +48,9 @@ pub enum LoopActions {
     TimeToBreak,
     TimeToContinue,
     GameFinished,
-    LoopDoesntQuit
+    LoopDoesntQuit,
+    PauseGame,
+    ContinueGame
 }
 
 #[derive(Debug)]
@@ -121,6 +123,9 @@ impl<'a> Typeracer<'a> {
                     LoopActions::GameFinished => continue,
                     LoopActions::LoopDoesntQuit => {
                         // do nothing, just continues (not continue from programming)
+                    },
+                    _ => {
+                        // the rest are not implemented
                     }
                 }
 
