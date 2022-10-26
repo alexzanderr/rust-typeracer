@@ -30,6 +30,8 @@ fn main() -> TyperacerResult<()> {
             println!("{}: {}", key, value);
         }
     }
+
+
     // let TMUX_ALIASES_FILE = env!("DEBUG_MODE");
     // println!("{}", TMUX_ALIASES_FILE);
     // std::thread::sleep(::std::time::Duration::from_secs(10));

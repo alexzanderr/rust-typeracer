@@ -45,6 +45,12 @@ run: $(TBIN)
 debug:
 	ugdb ./target/debug/typeracer --layout "(3s-1c)|(3t)" --gdb=rust-gdb
 
+first_attempt:
+	@cargo run --quiet --bin first_attempt
+
+td:
+	@cargo run --quiet --package dev-ideas --bin td
+
 
 
 

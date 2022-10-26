@@ -6,6 +6,8 @@ use std::cell::{
     RefMut
 };
 
+type rusize = RefCell<usize>;
+
 use getset::{
     CopyGetters,
     Getters,
@@ -21,28 +23,45 @@ pub struct AppState {
     typeracer_text_lines: Option<RefCell<Vec<String>>>,
 
     // #[getset(skip)]
-    pub typeracer_text_x: RefCell<usize>,
-    what_was_typed:       RefCell<String>,
+    typeracer_text_x: RefCell<usize>,
+    what_was_typed:   RefCell<String>,
 
     // #[getset(skip)]
-    pub what_was_typed_x: RefCell<usize>,
-    user_input_prompt:    RefCell<String>,
+    what_was_typed_x:  RefCell<usize>,
+    user_input_prompt: RefCell<String>,
+
+    index:               RefCell<usize>,
+    // #[getset(skip)]
+    user_input_prompt_x: RefCell<usize>,
+    keyboard_input:      RefCell<String>,
 
     // #[getset(skip)]
-    pub user_input_prompt_x: RefCell<usize>,
-    keyboard_input:          RefCell<String>,
+    // #[getset(skip)]
+    wrong_index:   RefCell<usize>,
+    // #[getset(skip)]
+    game_finished: RefCell<bool>,
 
-    // #[getset(skip)]
-    pub index:         RefCell<usize>,
-    // #[getset(skip)]
-    pub wrong_index:   RefCell<usize>,
-    // #[getset(skip)]
-    pub game_finished: RefCell<bool>,
+    cursor_x: RefCell<usize>,
+    cursor_y: RefCell<usize>,
 
-    pub cursor_x: RefCell<usize> // #[getset(skip)]
+    index_shadow:       RefCell<usize>,
+    wrong_index_shadow: RefCell<usize>,
+    current_line:       RefCell<usize>
 }
 
 impl AppState {
+    pub fn current_line_ref_mut(&self) -> RefMut<'_, usize> {
+        self.current_line.borrow_mut()
+    }
+
+    pub fn cursor_x_ref_mut(&self) -> RefMut<'_, usize> {
+        self.cursor_x.borrow_mut()
+    }
+
+    pub fn cursor_y_ref_mut(&self) -> RefMut<'_, usize> {
+        self.cursor_y.borrow_mut()
+    }
+
     pub fn stopwatch_ref(&self) -> Ref<'_, Instant> {
         self.stopwatch.borrow()
     }
@@ -83,6 +102,14 @@ impl AppState {
         self.user_input_prompt_x.borrow_mut()
     }
 
+    pub fn index_shadow_ref_mut(&self) -> RefMut<'_, usize> {
+        self.index_shadow.borrow_mut()
+    }
+
+    pub fn wrong_index_shadow_ref_mut(&self) -> RefMut<'_, usize> {
+        self.wrong_index_shadow.borrow_mut()
+    }
+
     pub fn typeracer_text_lines_ref_mut(
         &self
     ) -> Option<RefMut<'_, Vec<String>>> {
@@ -112,9 +139,10 @@ impl AppState {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
-        let typeracer_text = r#"rust best asd
-rust best
-second one long"#;
+        let typeracer_text = r#"hello rustaceans
+this is multi-line text
+inside a cli typeracer app
+which works like a charm"#;
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
@@ -134,6 +162,10 @@ second one long"#;
         let mut game_finished = false;
         let mut cursor_x = typeracer_text_x + 1;
 
+        let mut index_shadow = index;
+        let mut wrong_index_shadow = wrong_index;
+        let mut cursor_y = index_shadow + wrong_index_shadow;
+
         let typeracer_text_lines = if typeracer_text.contains("\n") {
             let lines = typeracer_text
                 .split("\n")
@@ -146,7 +178,6 @@ second one long"#;
         };
 
         let typeracer_text = typeracer_text.to_string();
-
         let stopwatch = RefCell::new(stopwatch);
         let typeracer_text = RefCell::new(typeracer_text);
         let typeracer_text_x = RefCell::new(typeracer_text_x);
@@ -159,6 +190,11 @@ second one long"#;
         let wrong_index = RefCell::new(wrong_index);
         let cursor_x = RefCell::new(cursor_x);
         let game_finished = RefCell::new(game_finished);
+
+        let index_shadow = RefCell::new(0usize);
+        let wrong_index_shadow = RefCell::new(0usize);
+        let cursor_y = RefCell::new(0usize);
+        let current_line = RefCell::new(0usize);
 
         Self {
             stopwatch,
@@ -173,7 +209,11 @@ second one long"#;
             index,
             wrong_index,
             cursor_x,
-            game_finished
+            cursor_y,
+            game_finished,
+            index_shadow,
+            wrong_index_shadow,
+            current_line
         }
     }
 }

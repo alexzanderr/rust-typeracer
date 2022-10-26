@@ -118,7 +118,7 @@ impl<'a> Typeracer<'a> {
 
         loop {
             // render ui
-            self.ui.draw_from_app_state(&self.state)?;
+            self.ui.draw(&self.state)?;
 
             if *self.state.game_finished_ref_mut() {
                 self.ui
@@ -211,6 +211,13 @@ impl<'a> Typeracer<'a> {
             app_state.user_input_prompt_x_ref_mut();
         let term_width = self.ui.term_width();
 
+        let mut cursor_x = app_state.cursor_x_ref_mut();
+        let mut cursor_y = app_state.cursor_y_ref_mut();
+        let mut index_shadow = app_state.index_shadow_ref_mut();
+        let mut wrong_index_shadow =
+            app_state.wrong_index_shadow_ref_mut();
+        let mut current_line = app_state.current_line_ref_mut();
+
         match event {
             Event::FocusGained => {
                 todo!("do something if terminal focus is gained")
@@ -250,45 +257,46 @@ impl<'a> Typeracer<'a> {
                             error_span
                         );
 
-                        let lines = self.state.typeracer_text_lines_ref_mut();
-                        if let Some(lines) = lines {
-                        if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
-                            && *wrong_index == 0
-                            {
-                                // return Ok((self, LoopActions::TimeToContinue))
-                            }
-                        }
-                        // return Ok((self, LoopActions::TimeToContinue));
+
                         //typeracer logic
 
-                        if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+                        if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
                             && *wrong_index == 0
                         {
                             *index += 1;
-                            // cursor_x += 1;
-                            // // let move_to = cursor::
-                            // execute!(
-                            //     self.ui.term_buffer_ref_mut(),
-                            //     show_cursor,
-                            //     cursor_shape,
-                            //     cursor_blink_off
-                            // )?;
+                            *cursor_x += 1;
+                            *current_line += 1;
+                            *cursor_y = 0;
+                            *index_shadow = 0;
+                            *wrong_index_shadow = 0;
+
                             if *index == typeracer_text.len() {
                                 *game_finished = true;
                             }
                         } else if *index + *wrong_index < typeracer_text.len() {
+                            let current_index = *index + *wrong_index;
+
+                            // if the cursor is at the end of the line
+                            // but everything is wrong
+                            // you cannot continue to next line
+                            if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))? {
+                                return Ok((self, LoopActions::TimeToContinue))
+                            }
+                            // dbg!("herer");
                             *wrong_index += 1;
+                            *wrong_index_shadow += 1;
                         }
 
+                        // TODO: recomment this
                         // // ui logic
-                        let time_to_continue = self.handle_enter_key(
-                            &mut what_was_typed,
-                            &mut user_input_prompt,
-                            user_input_prompt_x.clone())?;
+                        // let time_to_continue = self.handle_enter_key(
+                        //     &mut what_was_typed,
+                        //     &mut user_input_prompt,
+                        //     user_input_prompt_x.clone())?;
 
-                        if time_to_continue {
-                            return Ok((self, LoopActions::TimeToContinue))
-                        }
+                        // if time_to_continue {
+                        //     return Ok((self, LoopActions::TimeToContinue))
+                        // }
                     },
                     KeyEvent {
                         code: KeyCode::Char('c'),
@@ -309,16 +317,42 @@ impl<'a> Typeracer<'a> {
                         modifiers: event::KeyModifiers::NONE,
                         ..
                     } => {
+                        let error_span = SpanError::new(file!(), line!() + 1, column!());
+                        let index_error = IndexOutOfBoundsError::new(
+                            index.clone(),
+                            typeracer_text.to_string(),
+                            error_span
+                        );
+
+                        // if you are at the begginning of a line
+                        // but that line is not the first line
+                        // you cannot go back on the previous
+                        // this behavious also happens in typing.io
+                        if *current_line > 0 {
+                            // one char backwards
+                            let current_index = *index + *wrong_index - 1;
+                            if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
+                            {
+                                return Ok((self, LoopActions::TimeToContinue))
+                            }
+                        }
 
                         // ui logic
                         let _ = user_input_prompt.pop();
 
                         // logic for the typeracer game
                         if *wrong_index > 0 {
-                            *wrong_index -= 1
+                            *wrong_index -= 1;
+                            if *wrong_index_shadow > 0 {
+                                *wrong_index_shadow -= 1;
+                            }
                         } else {
                             if *index > 0 {
                                 *index -= 1;
+                                if *index_shadow > 0 {
+                                    *index_shadow -= 1;
+
+                                }
                             }
                         }
                     },
@@ -348,8 +382,17 @@ impl<'a> Typeracer<'a> {
                         modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
                         ..
                     } => {
+                        let error_span = SpanError::new(file!(), line!() + 1, column!());
+                        let index_error = IndexOutOfBoundsError::new(
+                            index.clone(),
+                            typeracer_text.to_string(),
+                            error_span
+                        );
 
-                        self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
+                        let current_index = *index + *wrong_index;
+                        if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))? {
+                            return Ok((self, LoopActions::TimeToContinue))
+                        }
 
                         if character == ' ' {
                             what_was_typed.push_str(&user_input_prompt);
@@ -360,29 +403,29 @@ impl<'a> Typeracer<'a> {
                             user_input_prompt.clear();
                         }
 
+                        self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
+
                         if *index == typeracer_text.len() - 1 {
                             *index += 1;
+                            *index_shadow += 1;
+
                             *game_finished = true;
                             return Ok((self, LoopActions::GameFinished))
                         }
 
                         // typeracer game logic
-
-                        let error_span = SpanError::new(file!(), line!() + 1, column!());
-                        let index_error = IndexOutOfBoundsError::new(
-                            index.clone(),
-                            typeracer_text.to_string(),
-                            error_span
-                        );
                         if character == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
                             && *wrong_index == 0
                         {
                             *index += 1;
+                            *index_shadow += 1;
+
                             if *index == typeracer_text.len() {
                                 *game_finished = true;
                             }
                         } else if *index + *wrong_index < typeracer_text.len() {
                             *wrong_index += 1;
+                            *wrong_index_shadow += 1;
                         }
                     },
                     _ => {},
@@ -390,6 +433,8 @@ impl<'a> Typeracer<'a> {
             },
             _ => {}
         }
+
+        *cursor_y = *index_shadow + *wrong_index_shadow;
 
         Ok((self, LoopActions::LoopDoesntQuit))
     }

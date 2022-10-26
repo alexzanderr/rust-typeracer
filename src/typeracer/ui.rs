@@ -146,6 +146,7 @@ impl<'a> TyperacerUI<'a> {
         self.term.width()
     }
 
+    /// uses `self.term.print(text, x, y)?`
     pub fn print(
         &mut self,
         text: &str,
@@ -153,7 +154,6 @@ impl<'a> TyperacerUI<'a> {
         y: usize
     ) -> TerminalScreenResult<&mut Self> {
         self.term.print(text, x, y)?;
-
         Ok(self)
     }
 
@@ -162,7 +162,7 @@ impl<'a> TyperacerUI<'a> {
         Ok(self)
     }
 
-    pub fn draw_from_app_state(
+    pub fn draw(
         &mut self,
         app_state: &AppState
     ) -> TyperacerResult<&mut Self> {
@@ -231,140 +231,18 @@ impl<'a> TyperacerUI<'a> {
             self.draw_stats(stats)?;
         }
 
-        let y = (*index + *wrong_index) as u16 + 3;
+        let cursor_x = app_state.cursor_x_ref_mut();
+        let cursor_y = app_state.cursor_y_ref_mut();
 
-        let x = *typeracer_text_x as u16 + 1;
+        // let y = (*index_shadow + *wrong_index_shadow) as u16 + 3;
+        // let x = *typeracer_text_x as u16 + 1;
+
+        let x = *cursor_x as u16;
+        
+        // 3 is the gap diff between text and ui margins
+        let y = *cursor_y as u16 + 3;
+
         let move_to = cursor::MoveTo(y, x);
-        let show_cursor = cursor::Show;
-        let cursor_shape =
-            cursor::SetCursorShape(cursor::CursorShape::Line);
-        let cursor_blink_off = cursor::DisableBlinking;
-
-        // if i show the cursor is blinking really fast
-        // meaning the cursor is flickering
-        execute!(
-            self.term.buffer_ref_mut(),
-            move_to,
-            show_cursor,
-            cursor_shape,
-            cursor_blink_off
-        )?;
-
-        // write everything to the terminal after
-        self.term.refresh()?;
-
-        Ok(self)
-    }
-
-    #[deprecated = "use ui.draw_from_app_state"]
-    pub fn draw(
-        &mut self,
-        current_time: std::time::Instant,
-        typeracer_text: &str,
-        typeracer_text_x: usize,
-        what_was_typed: &str,
-        what_was_typed_x: usize,
-        user_input_prompt: &mut String,
-        user_input_prompt_x: usize,
-        keyboard_input: &mut String,
-        index: usize,
-        wrong_index: usize,
-        cursor_x: usize
-    ) -> TyperacerResult<&mut Self> {
-        let yellow_left_bracket = "[".yellow();
-        let yellow_right_bracket = "]".yellow();
-        let lb = yellow_left_bracket;
-        let rb = yellow_right_bracket;
-
-        let elapsed_time = current_time.elapsed();
-
-        let header_x = 0usize;
-        // let elapsed_repr = format!("{:.2?}", elapsed_time);
-        let current_date_time = get_current_datetime();
-        let header = format!(
-                "{lb}Date-time: {current_date_time}{rb} {lb}Elapsed-time: {elapsed_time:.2?}{rb}",
-            );
-
-        self.term
-            .rectangle()
-            .screens_width(true)
-            // TODO: ansi parser algo doesnt work in align_center == true
-            .align_center(false)
-            .text(header)
-            .xy(header_x, 0)
-            .build()?
-            .draw()?;
-
-        let typeracer_text_colored =
-            self.color_format_text(typeracer_text, index, wrong_index);
-        // let typeracer_text_colored = format!(
-        //     "{} {} {}",
-        //     "hello".green(),
-        //     "wrong".red(),
-        //     "nortmrl teast"
-        // );
-        // let indexes = (0..typeracer_text.len())
-        //     .into_iter()
-        //     .map(|index| index.to_string())
-        //     .collect::<String>();
-
-        // let typeracer_text_colored =
-        // format!("{typeracer_text_colored}\n{indexes}");
-        self.term
-            .rectangle()
-            .screens_width(true)
-            .align_center(false)
-            .xy(typeracer_text_x, 0)
-            .text(typeracer_text_colored)
-            .build()?
-            .draw()?;
-
-        // self.term
-        //     .rectangle()
-        //     .screens_width(true)
-        //     .align_center(false)
-        //     .xy(what_was_typed_x, 0)
-        //     .text(what_was_typed)
-        //     .build()?
-        //     .draw()?;
-
-        // if !text_area.is_empty() {
-        //     self.term
-        //         .rectangle()
-        //         .screens_width(true)
-        //         .align_center(false)
-        //         .xy(text_area_x, 0)
-        //         .text(text_area.as_slice())
-        //         .build()?
-        //         .draw()?;
-        //     self.term.refresh()?;
-        // }
-
-        self.draw_user_input_prompt(
-            &user_input_prompt,
-            user_input_prompt_x,
-            0
-        )?;
-
-        {
-            let stats = Stats::new(
-                typeracer_text,
-                &keyboard_input,
-                index,
-                wrong_index,
-                typeracer_text.len()
-            );
-            self.draw_stats(stats)?;
-        }
-
-        let y = (index + wrong_index) as u16 + 3;
-
-        let index_shadow = index;
-        let wrong_index_shadow = wrong_index;
-        // let cursor_x = false;
-        // let cursor_y = false;
-
-        let move_to = cursor::MoveTo(y, cursor_x as u16);
         let show_cursor = cursor::Show;
         let cursor_shape =
             cursor::SetCursorShape(cursor::CursorShape::Line);
