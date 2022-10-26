@@ -16,8 +16,9 @@ use getset::{
 // #[derive(Getters, MutGetters, Debug)]
 // #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
-    stopwatch:      RefCell<Instant>,
-    typeracer_text: RefCell<String>,
+    stopwatch:            RefCell<Instant>,
+    typeracer_text:       RefCell<String>,
+    typeracer_text_lines: Option<RefCell<Vec<String>>>,
 
     // #[getset(skip)]
     pub typeracer_text_x: RefCell<usize>,
@@ -82,6 +83,18 @@ impl AppState {
         self.user_input_prompt_x.borrow_mut()
     }
 
+    pub fn typeracer_text_lines_ref_mut(
+        &self
+    ) -> Option<RefMut<'_, Vec<String>>> {
+        if let Some(typeracer_text_lines) =
+            self.typeracer_text_lines.as_ref()
+        {
+            Some(typeracer_text_lines.borrow_mut())
+        } else {
+            None
+        }
+    }
+
     pub fn init() -> Self {
         let typeracer_text_lines = "rust best asd\n\
              rust best\n\
@@ -99,6 +112,9 @@ impl AppState {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
+        let typeracer_text = r#"rust best asd
+rust best
+second one long"#;
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
@@ -117,6 +133,17 @@ impl AppState {
         let mut time_to_break = false;
         let mut game_finished = false;
         let mut cursor_x = typeracer_text_x + 1;
+
+        let typeracer_text_lines = if typeracer_text.contains("\n") {
+            let lines = typeracer_text
+                .split("\n")
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>();
+
+            Some(RefCell::new(lines))
+        } else {
+            None
+        };
 
         let typeracer_text = typeracer_text.to_string();
 
@@ -137,6 +164,7 @@ impl AppState {
             stopwatch,
             typeracer_text,
             typeracer_text_x,
+            typeracer_text_lines,
             what_was_typed,
             what_was_typed_x,
             user_input_prompt,

@@ -1,18 +1,18 @@
 
 
 
-BIN = main
-SOURCE = main.c
+# BIN = main
+# SOURCE = main.c
 
 
 # aici trebuie sa fie numele binary-ului (main) ca doar atunci cand $(SOURCE) este modified $(SOURCE) sa fie recompilat sa rezulte $(BIN)
-$(BIN): $(SOURCE)
-	gcc $(SOURCE) -o $(BIN)
+# $(BIN): $(SOURCE)
+# 	gcc $(SOURCE) -o $(BIN)
 
 # aici este wrapper pentru $(BIN)
 # ca doar nu vrei sa scrii in terminal: `> make main` (e aiurea)
 # asa ca scrii `> make debug`
-debug: $(BIN)
+# debug: $(BIN)
 
 
 # aici doar rulezi binary: $(BIN)
@@ -25,7 +25,7 @@ debug: $(BIN)
 # note: daca rulezi `> make compile_and_run`
 # o sa-ti compileze doar o singura data daca codul s-a modificat
 # daca codul nu s-a modificat doar ruleaza $(BIN)
-compile_and_run: $(BIN) run
+# compile_and_run: $(BIN) run
 # note: schimba tu numele cum vrei, e doar ca exemplu
 # note: acesta este un make target compus din mai multe make targets
 
@@ -41,6 +41,9 @@ $(TBIN): $(SRC_FOLDER)
 	@cargo run -q
 
 run: $(TBIN)
+
+debug:
+	ugdb ./target/debug/typeracer --layout "(3s-1c)|(3t)" --gdb=rust-gdb
 
 
 

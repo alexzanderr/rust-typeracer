@@ -3,7 +3,14 @@ name = "dev-ideas"
 version = "0.0.1"
 edition = "2021"
 
+[[bin]]
+name = "td"
+path = "src/bin/try_debug_draw_rectangle/main.rs"
 
 # https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-dependencies-table
 [dependencies]
 crossterm = { workspace = true }
+typeracer = { path = ".."}
+colored = { workspace = true }
+dotenv = { workspace = true }
+

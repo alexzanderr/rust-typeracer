@@ -50,7 +50,8 @@ pub enum LoopActions {
     GameFinished,
     LoopDoesntQuit,
     PauseGame,
-    ContinueGame
+    ContinueGame,
+    QuitGame
 }
 
 #[derive(Debug)]
@@ -60,6 +61,20 @@ pub struct Typeracer<'a> {
 }
 
 impl<'a> Typeracer<'a> {
+    // pub fn default() -> TyperacerResult<Self> {
+    //     let mut term = TerminalScreen::builder()
+    //         .alternate(true)
+    //         .capture_mouse(false)
+    //         .build()?;
+
+    //     term.enter_raw_terminal()?;
+    //     term.set_panic_hook();
+
+    //     let _self = Self::from_term(&mut term);
+
+    //     Ok(_self)
+    // }
+
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let ui = TyperacerUI::from_term(term);
         let state = AppState::init();
@@ -93,7 +108,14 @@ impl<'a> Typeracer<'a> {
         }
     }
 
-    pub fn mainloop(mut self) -> TyperacerResult<()> {
+    fn game_loop(
+        &mut self,
+        typeracer_line: Option<&str>
+    ) -> TyperacerResult<LoopActions> {
+        // if let Some(line) = typeracer_line {
+        //     *self.state.typeracer_text_ref_mut() = line.to_string();
+        // }
+
         loop {
             // render ui
             self.ui.draw_from_app_state(&self.state)?;
@@ -108,7 +130,7 @@ impl<'a> Typeracer<'a> {
                     .flush_stdout()?;
 
                 event::read()?;
-                break;
+                return Ok(LoopActions::TimeToBreak);
             }
 
             // handle keyboard input
@@ -118,11 +140,16 @@ impl<'a> Typeracer<'a> {
                 // handle key particurarly
                 let loop_action = self.handle_event(event, &self.state)?.1;
                 match loop_action {
-                    LoopActions::TimeToBreak => break,
+                    LoopActions::TimeToBreak => {
+                        return Ok(LoopActions::TimeToBreak)
+                    },
                     LoopActions::TimeToContinue => continue,
                     LoopActions::GameFinished => continue,
                     LoopActions::LoopDoesntQuit => {
                         // do nothing, just continues (not continue from programming)
+                    },
+                    LoopActions::QuitGame => {
+                        return Ok(LoopActions::QuitGame)
                     },
                     _ => {
                         // the rest are not implemented
@@ -136,10 +163,33 @@ impl<'a> Typeracer<'a> {
                     .create(true)
                     .truncate(true)
                     .write(true)
-                    .open("log-from-loop.text")?;
+                    .open("logs/log-from-loop.text")?;
                 write!(handler, "{}\n\n", app_state)?;
             }
         }
+    }
+
+    pub fn mainloop(mut self) -> TyperacerResult<()> {
+        self.game_loop(None)?;
+
+        // if self.state.typeracer_text_ref_mut().contains("\n") {
+        //     let lines = self.state.typeracer_text_ref_mut().clone();
+        //     let lines = lines.split("\n");
+        //     for line in lines {
+        //         let line = Some(line);
+        //         let loop_actions = self.game_loop(line)?;
+        //         match loop_actions {
+        //             LoopActions::QuitGame => return Ok(()),
+        //             _ => {}
+        //         }
+        //     }
+        // } else {
+        //     let loop_actions = self.game_loop(None)?;
+        //     match loop_actions {
+        //         LoopActions::QuitGame => return Ok(()),
+        //         _ => {}
+        //     }
+        // }
 
         Ok(())
     }
@@ -193,15 +243,24 @@ impl<'a> Typeracer<'a> {
                         modifiers: event::KeyModifiers::NONE,
                         ..
                     } => {
-                        // return Ok((self, LoopActions::TimeToContinue));
-                        //typeracer logic
-
                         let error_span = SpanError::new(file!(), line!() + 1, column!());
                         let index_error = IndexOutOfBoundsError::new(
                             index.clone(),
                             typeracer_text.to_string(),
                             error_span
                         );
+
+                        let lines = self.state.typeracer_text_lines_ref_mut();
+                        if let Some(lines) = lines {
+                        if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
+                            && *wrong_index == 0
+                            {
+                                // return Ok((self, LoopActions::TimeToContinue))
+                            }
+                        }
+                        // return Ok((self, LoopActions::TimeToContinue));
+                        //typeracer logic
+
                         if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
                             && *wrong_index == 0
                         {
@@ -241,7 +300,7 @@ impl<'a> Typeracer<'a> {
                         modifiers: event::KeyModifiers::CONTROL,
                         ..
                     } => {
-                        return Ok((self, LoopActions::TimeToBreak))
+                        return Ok((self, LoopActions::QuitGame))
                     },
                     // backspace
                     // delete one char backward
@@ -332,16 +391,6 @@ impl<'a> Typeracer<'a> {
             _ => {}
         }
 
-        // logger
-        let app_state = format!("{app_state:#?}");
-        let mut handler = std::fs::File::options()
-            // .append(true)
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open("log-method.text")?;
-        write!(handler, "{}\n\n", app_state)?;
-
         Ok((self, LoopActions::LoopDoesntQuit))
     }
 
@@ -364,34 +413,8 @@ impl<'a> Typeracer<'a> {
         if what_was_typed.len() >= term_width - 6 {
             what_was_typed.clear();
         }
-
-        // text_area.push(user_input_prompt.clone());
-
-        // if text_area.len() == term_height - text_area_x - 1 {
-        //     text_area.clear();
-        //     text_area.push(user_input_prompt.clone());
-
-        //     let clear_current_line =
-        //         terminal::Clear(terminal::ClearType::CurrentLine);
-
-        //     let hide_cursor = cursor::Hide;
-        //     for index in text_area_x..term_height {
-        //         let move_to = cursor::MoveTo(0, index as u16);
-        //         write!(
-        //             self.term.stdout_ref(),
-        //             "{}{}{}",
-        //             move_to,
-        //             clear_current_line,
-        //             hide_cursor
-        //         )?;
-        //     }
-        //     self.term.refresh()?;
-        // }
         user_input_prompt.clear();
 
-        // maybe this one makes flickering
-        // era de la clear problema cu flickering
-        // self.term.clear()?;
         Ok(false)
     }
 

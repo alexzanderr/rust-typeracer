@@ -36,7 +36,10 @@ use crate::{
 use super::TyperacerResult;
 use super::Stats;
 use crate::statics::{
+    ENDC,
+    GREEN,
     PROMPT_ARROW,
+    RED,
     TERMINAL_CURSOR
 };
 
@@ -112,15 +115,26 @@ impl<'a> TyperacerUI<'a> {
         index: usize,
         wrong_index: usize
     ) -> String {
-        let green = text[..index].green().to_string().replace(" ", "_");
+        // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
+        let mut green =
+            text[..index].green().to_string().replace(" ", "_");
+        let green = if green.contains("\n") {
+            let pat = format!("{ENDC}\n{GREEN}");
+            green.replace("\n", &pat)
+        } else {
+            green
+        };
         let red = text[index..index + wrong_index]
             .red()
             .to_string()
             .replace(" ", "_");
+        let red = if red.contains("\n") {
+            let pat = format!("{ENDC}\n{RED}");
+            red.replace("\n", &pat)
+        } else {
+            red
+        };
         let rest = &text[index + wrong_index..];
-        // let cursor = "r𑗅ust".red();
-        // format!("'𑗅asd'")
-        // the cursor only looks like this inside sublime text
         format!("{green}{red}{rest}")
     }
 

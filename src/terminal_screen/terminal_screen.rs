@@ -1,4 +1,8 @@
 use std::io::Write;
+use std::io::{
+    BufRead,
+    BufReader
+};
 
 use ansi_parser::{
     AnsiParser,
@@ -164,12 +168,40 @@ impl<'a> TerminalScreen {
         screens_width: bool,
         align_center: bool
     ) -> TerminalScreenResult<&'a mut Self> {
+        let DEBUG_MODE = std::env::var("DEBUG_MODE")?.eq("on");
+        let mut handler = std::fs::File::options()
+            .create(true)
+            // .truncate(true)
+            .write(true)
+            .append(true)
+            .open("logs/terminal_screen::draw_rectangle.log")?;
+
+        if DEBUG_MODE {
+            write!(handler, "{:?}\n\n", lines)?;
+        }
+
         let mut current_x = x;
+
         let lines = lines.term_lines();
-        let mut lines = Vec::from_iter(lines);
+        let mut lines: Vec<String> =
+            lines.into_iter().map(|s| s.to_string()).collect();
+        // let mut lines = Vec::from(lines);
+
+        // let ENDC = "\u{1b}[0m";
+        // for line in lines.iter_mut() {
+        //     *line = format!("{line}{}", "\u{1b}[0m");
+        // }
+
+        if DEBUG_MODE {
+            write!(handler, "{:?}\n\n", lines)?;
+        }
+        // HERE
+        // thats why we do have a bug in visual represenation of the text inside the rectangle
+        // colored text doesnt have ENDC before line ending
+        // ["\u{1b}[32mrust_best_asd", "r\u{1b}[0m\u{1b}[31m\u{1b}[0must best", "second one long"]
 
         let max_length = if screens_width {
-            let (w, h) = crossterm::terminal::size()?;
+            let (w, h) = (self.width, self.height);
             w as usize - 6
         } else {
             let mut max_length = 0usize;
@@ -215,6 +247,9 @@ impl<'a> TerminalScreen {
                     line.pad(pad_length, ' ', Alignment::Left, true);
                 line
             };
+            // let aligned_line = aligned_line + ENDC;
+            // write!(handler, "{:?}\n\n", aligned_line)?;
+
             let line = format!("│  {aligned_line}  │");
             self.print(&line, current_x, y)?;
             current_x += 1;

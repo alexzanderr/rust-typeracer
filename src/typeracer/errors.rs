@@ -2,11 +2,20 @@ use std::backtrace::Backtrace;
 
 use thiserror::Error as ThisError;
 use colored::*;
+use lazy_static::lazy_static;
 
 use crate::terminal_screen::TerminalScreenBuilderError;
 use crate::terminal_screen::RectangleBuilderErrors;
 
-#[derive(Debug)]
+// thread_local! {
+//     pub static RED_ERROR: ColoredString = "[error]".red().bold();
+// }
+
+lazy_static! {
+    pub static ref RED_ERROR: ColoredString = "[error]".red().bold();
+}
+
+#[derive(Debug, Clone)]
 pub struct SpanError {
     file:   String,
     line:   u32,
@@ -40,7 +49,7 @@ impl core::fmt::Display for SpanError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IndexOutOfBoundsError {
     index: usize,
     text:  String,
@@ -69,7 +78,7 @@ r#"{}: IndexOutOfBounds
     index: {}
     text.len(): {}
     span: {}"#,
-    "[error]".red().bold(),
+    RED_ERROR.to_string(),
     .0.text.yellow().bold().to_string(),
     .0.index.to_string().yellow().bold(),
     .0.text.len().to_string().yellow().bold(),
@@ -82,12 +91,14 @@ r#"{}: IndexOutOfBounds
 
     #[error(
 r#"{}: IoError
-    message: {source}"#,
-    "[error]".red().bold()
+    message: {source}
+"#,
+    RED_ERROR.to_string()
     )]
     IoError {
         #[from]
-        source: std::io::Error
+        source:    std::io::Error,
+        backtrace: Backtrace
     },
 
     #[error("TerminalScreenError")]

@@ -8,9 +8,23 @@
     redundant_semicolons
 )]
 
-use colored::*;
-use dotenv::dotenv;
-use typeracer::*;
+pub enum LoopActions {
+    TimeToBreak,
+    TimeToContinue,
+    GameFinished,
+    LoopDoesntQuit,
+    PauseGame,
+    ContinueGame,
+    QuitGame
+}
+
+mod imports;
+use imports::*;
+
+mod handle_key;
+pub use handle_key::*;
+mod ui;
+pub use ui::*;
 
 fn main() -> TyperacerResult<()> {
     // this exists so i can override the DEBUG_MODE from the command line with
@@ -42,20 +56,36 @@ fn main() -> TyperacerResult<()> {
     term.enter_raw_terminal()?;
     term.set_panic_hook();
 
-    let mut player = Typeracer::from_term(&mut term);
+    // let mut player = Typeracer::from_term(&mut term);
 
-    let game_result = player.mainloop();
+    // let game_result = player.mainloop();
+    let app_state = AppState::init();
+    loop {
+        // render ui
+        draw_ui(&mut term, &app_state);
 
-    term.leave_raw_terminal()?;
-
-    match game_result {
-        Ok(_) => {
-            println!("game ended successfully, no errors.");
-        },
-        Err(game_error) => {
-            eprintln!("{}", game_error);
+        // handle keyboard input
+        if event::poll(Duration::from_millis(100))? {
+            let event = event::read()?;
+            // handle key particurarly
+            let loop_action =
+                handle_event(&mut term, event, &app_state)?.1;
+            match loop_action {
+                LoopActions::TimeToBreak => break,
+                LoopActions::TimeToContinue => continue,
+                LoopActions::GameFinished => continue,
+                LoopActions::LoopDoesntQuit => {
+                    // do nothing, just continues (not continue from programming)
+                },
+                LoopActions::QuitGame => break,
+                _ => {
+                    // the rest are not implemented
+                }
+            }
         }
     }
+
+    term.leave_raw_terminal()?;
 
     Ok(())
 }
