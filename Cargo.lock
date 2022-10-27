@@ -508,6 +508,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "music"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "soloud",
+]
+
+[[package]]
 name = "ncurses"
 version = "5.101.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -955,6 +963,7 @@ dependencies = [
  "pad",
  "pancurses",
  "rand",
+ "soloud",
  "termion",
  "thiserror",
 ]

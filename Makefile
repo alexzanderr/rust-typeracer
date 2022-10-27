@@ -51,7 +51,15 @@ first_attempt:
 td:
 	@cargo run --quiet --package dev-ideas --bin td
 
+mp:
+	@cargo run --quiet --package dev-ideas --bin mp
 
+
+
+check:
+	@cargo check --quiet
+
+c: check
 
 
 

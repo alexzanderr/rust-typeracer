@@ -119,6 +119,7 @@ impl<'a> Typeracer<'a> {
 
         let path = "static/audio/undertale-megalovania-soundtrack.mp3";
         let path = "static/audio/davai_hardbass.wav";
+        let path = "static/audio/skeler-telaviv.mp3";
         let path2 = "static/audio/play_cs16.wav";
 
         let mut player = MusicPlayer::new()?;
