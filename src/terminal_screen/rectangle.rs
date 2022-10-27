@@ -138,12 +138,10 @@ where
         let terminal_screen = self.terminal_screen.as_mut().unwrap();
         let screens_width = self
             .screens_width
-            .clone()
             .ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
 
         let align_center = self
             .align_center
-            .clone()
             .ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
 
         let text = self
@@ -151,15 +149,11 @@ where
             .clone()
             .ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
 
-        let x = self
-            .x
-            .clone()
-            .ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
+        let x =
+            self.x.ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
 
-        let y = self
-            .y
-            .clone()
-            .ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
+        let y =
+            self.y.ok_or(RectangleBuilderErrors::FailedToBuildFields)?;
 
         let rectangle = Rectangle {
             terminal_screen,

@@ -15,9 +15,13 @@
     - `pause_playing`
     - `is_playing`
 
+- [ ] improve project quality by adding a better readme, import from other rust projects, by adding CI, by adding tests for individual methods or functions
+
 - [ ] improve performance of the code
 
-- [ ] fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
+
+- [ ] right now cant use unicode inside the текст
+    fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
     maybe with:
         - unicode segmentation

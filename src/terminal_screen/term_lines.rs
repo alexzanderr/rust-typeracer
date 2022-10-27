@@ -35,14 +35,15 @@ impl<'a> TermLines<'a> for String {
 impl<'a> TermLines<'a> for &'a [&'a str] {
     type IteratorItem = &'a str;
     // type OutputIterator = core::slice::Iter<'a, &'a str>;
-    type OutputIterator = core::iter::Map<
-        std::slice::Iter<'a, &'a str>,
-        impl FnMut(&'a &'a str) -> &'a str
-    >;
+    // type OutputIterator = core::iter::Map<
+    //     std::slice::Iter<'a, &'a str>,
+    //     impl FnMut(&'a &'a str) -> &'a str
+    // >;
+    type OutputIterator = std::iter::Copied<std::slice::Iter<'a, &'a str>>;
 
     fn term_lines(&'a self) -> Self::OutputIterator {
         let _self = *self;
-        _self.into_iter().map(|s| *s)
+        _self.iter().copied()
     }
 }
 
@@ -56,7 +57,7 @@ impl<'a> TermLines<'a> for &[String] {
 
     fn term_lines(&'a self) -> Self::OutputIterator {
         let _self = *self;
-        _self.into_iter().map(|s: &'a String| s.as_str())
+        _self.iter().map(|s: &'a String| s.as_str())
     }
 }
 
@@ -64,12 +65,12 @@ impl<'a> TermLines<'a> for &[String] {
 impl<'a, const N: usize> TermLines<'a> for [&'a str; N] {
     type IteratorItem = &'a str;
     // type OutputIterator = std::slice::Iter<'a, &'a str>;
-    type OutputIterator = std::array::IntoIter<&'a str, N>;
+    type OutputIterator = std::iter::Copied<std::slice::Iter<'a, &'a str>>;
 
     /// "hello\nworld\nfrom\ncommand-line"
     fn term_lines(&'a self) -> Self::OutputIterator {
-        let _self = *self;
-        _self.into_iter()
+        // let _self = *self;
+        self.iter().copied()
     }
 }
 
@@ -85,7 +86,7 @@ impl<'a, const N: usize> TermLines<'a> for [String; N] {
     /// "hello\nworld\nfrom\ncommand-line"
     fn term_lines(&'a self) -> Self::OutputIterator {
         let _self = self;
-        _self.into_iter().map(|s: &'a String| s.as_str())
+        _self.iter().map(|s: &'a String| s.as_str())
     }
 }
 
@@ -93,15 +94,16 @@ impl<'a, const N: usize> TermLines<'a> for [String; N] {
 impl<'a> TermLines<'a> for Vec<&str> {
     type IteratorItem = &'a str;
     // type OutputIterator = std::slice::Iter<'a, &'a str>;
-    type OutputIterator = core::iter::Map<
-        std::slice::Iter<'a, &'a str>,
-        impl FnMut(&'a &'a str) -> &'a str
-    >;
+    // type OutputIterator = core::iter::Map<
+    //     std::slice::Iter<'a, &'a str>,
+    //     impl FnMut(&'a &'a str) -> &'a str
+    // >;
+    type OutputIterator = std::iter::Copied<std::slice::Iter<'a, &'a str>>;
 
     /// "hello\nworld\nfrom\ncommand-line"
     fn term_lines(&'a self) -> Self::OutputIterator {
         let _self = self;
-        _self.into_iter().map(|s| *s)
+        _self.iter().copied()
     }
 }
 
@@ -115,6 +117,6 @@ impl<'a> TermLines<'a> for Vec<String> {
 
     /// "hello\nworld\nfrom\ncommand-line"
     fn term_lines(&'a self) -> Self::OutputIterator {
-        self.into_iter().map(|s: &String| s.as_str())
+        self.iter().map(|s: &String| s.as_str())
     }
 }

@@ -113,13 +113,10 @@ impl AppState {
     pub fn typeracer_text_lines_ref_mut(
         &self
     ) -> Option<RefMut<'_, Vec<String>>> {
-        if let Some(typeracer_text_lines) =
-            self.typeracer_text_lines.as_ref()
-        {
-            Some(typeracer_text_lines.borrow_mut())
-        } else {
-            None
-        }
+        // https://rust-lang.github.io/rust-clippy/master/index.html#manual_map
+        self.typeracer_text_lines
+            .as_ref()
+            .map(|typeracer_text_lines| typeracer_text_lines.borrow_mut())
     }
 
     pub fn init() -> Self {
@@ -172,9 +169,9 @@ many classes of bugs at compile-time."#;
         let mut wrong_index_shadow = wrong_index;
         let mut cursor_y = index_shadow + wrong_index_shadow;
 
-        let typeracer_text_lines = if typeracer_text.contains("\n") {
+        let typeracer_text_lines = if typeracer_text.contains('\n') {
             let lines = typeracer_text
-                .split("\n")
+                .split('\n')
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>();
 

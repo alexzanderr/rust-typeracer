@@ -13,20 +13,20 @@ pub fn color_format_text(
     let ENDC = "\u{1b}[0m";
 
     // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
-    let mut green = text[..index].green().to_string().replace(" ", "_");
-    let green = if green.contains("\n") {
+    let mut green = text[..index].green().to_string().replace(' ', '_');
+    let green = if green.contains('\n') {
         let pat = format!("{ENDC}\n{GREEN}");
-        green.replace("\n", &pat)
+        green.replace('\n', &pat)
     } else {
         green
     };
     let red = text[index..index + wrong_index]
         .red()
         .to_string()
-        .replace(" ", "_");
-    let red = if red.contains("\n") {
+        .replace(' ', '_');
+    let red = if red.contains('\n') {
         let pat = format!("{ENDC}\n{RED}");
-        red.replace("\n", &pat)
+        red.replace('\n', &pat)
     } else {
         red
     };

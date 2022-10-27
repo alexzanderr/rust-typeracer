@@ -30,9 +30,11 @@ impl MusicPlayer {
         songs_aliases: &[&str],
         songs_paths: &[P]
     ) -> MusicPlayerResult<()> {
-        let mut songs = HashMap::new();
+        debug_assert!(songs_aliases.len() == songs_paths.len());
 
-        for pair in songs_paths.into_iter().zip(songs_aliases) {
+        let mut songs = HashMap::with_capacity(songs_aliases.len());
+
+        for pair in songs_paths.iter().zip(songs_aliases) {
             let (song_path, song_alias) = pair;
             let song_path = song_path.as_ref();
 
@@ -56,7 +58,7 @@ impl MusicPlayer {
         song_alias: &str,
         song_bytes: &[u8]
     ) -> MusicPlayerResult<()> {
-        let mut songs = HashMap::new();
+        let mut songs = HashMap::with_capacity(1);
 
         let mut wav = Wav::default();
         wav.load_mem(song_bytes)?;
@@ -74,18 +76,24 @@ impl MusicPlayer {
 
     pub fn load_songs_from_mem(
         &mut self,
-        aliases: &[&str],
-        bytes_matrix: &[&[u8]]
+        songs_aliases: &[&str],
+        songs_bytes_matrix: &[&[u8]]
     ) -> MusicPlayerResult<()> {
-        let mut songs = HashMap::new();
+        debug_assert!(songs_aliases.len() == songs_bytes_matrix.len());
+        let mut songs = HashMap::with_capacity(songs_bytes_matrix.len());
 
-        for pair in bytes_matrix.into_iter().zip(aliases) {
+        for pair in songs_bytes_matrix.iter().zip(songs_aliases) {
             let (song_bytes, song_alias) = pair;
             let mut wav = Wav::default();
-            wav.load_mem(*song_bytes)?;
+            wav.load_mem(song_bytes)?;
             songs.insert(song_alias.to_string(), wav);
         }
-        self.songs = Some(songs);
+
+        if let Some(ref mut self_songs) = self.songs {
+            self_songs.extend(songs);
+        } else {
+            self.songs = Some(songs);
+        }
         Ok(())
     }
 

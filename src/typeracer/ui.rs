@@ -78,7 +78,7 @@ impl<'a> TyperacerUI<'a> {
     }
 
     pub fn term_ref_mut(&'a mut self) -> &'a mut TerminalScreen {
-        &mut self.term
+        self.term
     }
 
     pub fn term_buffer_ref_mut(&mut self) -> &mut Vec<u8> {
@@ -117,20 +117,20 @@ impl<'a> TyperacerUI<'a> {
     ) -> String {
         // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
         let mut green =
-            text[..index].green().to_string().replace(" ", "_");
-        let green = if green.contains("\n") {
+            text[..index].green().to_string().replace(' ', "_");
+        let green = if green.contains('\n') {
             let pat = format!("{ENDC}\n{GREEN}");
-            green.replace("\n", &pat)
+            green.replace('\n', &pat)
         } else {
             green
         };
         let red = text[index..index + wrong_index]
             .red()
             .to_string()
-            .replace(" ", "_");
-        let red = if red.contains("\n") {
+            .replace(' ', "_");
+        let red = if red.contains('\n') {
             let pat = format!("{ENDC}\n{RED}");
-            red.replace("\n", &pat)
+            red.replace('\n', &pat)
         } else {
             red
         };
@@ -238,7 +238,7 @@ impl<'a> TyperacerUI<'a> {
         // let x = *typeracer_text_x as u16 + 1;
 
         let x = *cursor_x as u16;
-        
+
         // 3 is the gap diff between text and ui margins
         let y = *cursor_y as u16 + 3;
 

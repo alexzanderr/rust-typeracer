@@ -13,6 +13,7 @@
     redundant_semicolons,
     unused_macros
 )]
+#![allow(clippy::all)]
 
 use std::time::Duration;
 use std::io::Stdout;
@@ -292,120 +293,113 @@ fn main() -> CrosstermResult<()> {
 
         if event::poll(Duration::from_millis(100))? {
             let e = event::read()?;
-            match e {
-                Event::Key(kevent) => {
-                    match kevent {
-                        KeyEvent {
-                            code: KeyCode::Char('c'),
-                            modifiers: event::KeyModifiers::CONTROL,
-                            ..
-                        } => {
-                            time_to_break = true;
-                            continue 'mainloop;
-                        },
-                        KeyEvent {
-                            code: KeyCode::Backspace,
-                            modifiers: event::KeyModifiers::NONE,
-                            ..
-                        } => {
-                            if 0 < current_line {
-                                let current_index = index + wrong_index - 1;
+            if let Event::Key(kevent) = e {
+                match kevent {
+                    KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: event::KeyModifiers::CONTROL,
+                        ..
+                    } => {
+                        time_to_break = true;
+                        continue 'mainloop;
+                    },
+                    KeyEvent {
+                        code: KeyCode::Backspace,
+                        modifiers: event::KeyModifiers::NONE,
+                        ..
+                    } => {
+                        if 0 < current_line {
+                            let current_index = index + wrong_index - 1;
+                            if text.chars().nth(current_index).unwrap()
+                                == '\n'
+                            {
+                                dbg!("da");
+                                continue 'mainloop;
+                            }
+                        }
+
+                        if wrong_index > 0 {
+                            wrong_index -= 1;
+                            wrong_index_shadow -= 1;
+                        } else {
+                            if index > 0 {
+                                index -= 1;
+                                if index_shadow > 0 {
+                                    index_shadow -= 1;
+                                }
+                            }
+                        }
+                    },
+                    KeyEvent {
+                        code,
+                        modifiers: event::KeyModifiers::NONE,
+                        ..
+                    } => match code {
+                        KeyCode::Char(character) => {
+                            if wrong_index > 0 {
+                                let current_index = index + wrong_index;
                                 if text.chars().nth(current_index).unwrap()
                                     == '\n'
                                 {
-                                    dbg!("da");
                                     continue 'mainloop;
                                 }
                             }
+                            last_char = character;
 
-                            if wrong_index > 0 {
-                                wrong_index -= 1;
-                                wrong_index_shadow -= 1;
+                            term_print(
+                                &mut stdout,
+                                character.to_string().as_str(),
+                                25,
+                                1
+                            );
+
+                            if index == text.len() - 1 {
+                                index += 1;
+                                index_shadow += 1;
+                                time_to_break = true;
+                                continue;
+                            }
+                            if character == text.get_char(index).unwrap()
+                                && wrong_index == 0
+                            {
+                                index += 1;
+                                index_shadow += 1;
                             } else {
-                                if index > 0 {
-                                    index -= 1;
-                                    if index_shadow > 0 {
-                                        index_shadow -= 1;
-                                    }
+                                if index + wrong_index < text.len() {
+                                    wrong_index += 1;
+                                    wrong_index_shadow += 1;
                                 }
                             }
                         },
-                        KeyEvent {
-                            code,
-                            modifiers: event::KeyModifiers::NONE,
-                            ..
-                        } => match code {
-                            KeyCode::Char(character) => {
-                                if wrong_index > 0 {
-                                    let current_index =
-                                        index + wrong_index;
-                                    if text
-                                        .chars()
-                                        .nth(current_index)
-                                        .unwrap()
-                                        == '\n'
-                                    {
-                                        continue 'mainloop;
-                                    }
-                                }
-                                last_char = character;
+                        KeyCode::Enter => {
+                            last_char = '\n';
+                            cursor_x += 1;
+                            current_line += 1;
 
-                                term_print(
-                                    &mut stdout,
-                                    character.to_string().as_str(),
-                                    25,
-                                    1
-                                );
-
-                                if index == text.len() - 1 {
-                                    index += 1;
-                                    index_shadow += 1;
-                                    time_to_break = true;
-                                    continue;
+                            if index == text.len() - 1 {
+                                index += 1;
+                                time_to_break = true;
+                                continue;
+                            }
+                            if '\n' == text.get_char(index).unwrap()
+                                && wrong_index == 0
+                            {
+                                index_shadow = 0;
+                                wrong_index_shadow = 0;
+                                index += 1;
+                            } else {
+                                if index + wrong_index < text.len() {
+                                    wrong_index += 1;
                                 }
-                                if character
-                                    == text.get_char(index).unwrap()
-                                    && wrong_index == 0
-                                {
-                                    index += 1;
-                                    index_shadow += 1;
-                                } else {
-                                    if index + wrong_index < text.len() {
-                                        wrong_index += 1;
-                                        wrong_index_shadow += 1;
-                                    }
-                                }
-                            },
-                            KeyCode::Enter => {
-                                last_char = '\n';
-                                cursor_x += 1;
-                                current_line += 1;
-
-                                if index == text.len() - 1 {
-                                    index += 1;
-                                    time_to_break = true;
-                                    continue;
-                                }
-                                if '\n' == text.get_char(index).unwrap()
-                                    && wrong_index == 0
-                                {
-                                    index_shadow = 0;
-                                    wrong_index_shadow = 0;
-                                    index += 1;
-                                } else {
-                                    if index + wrong_index < text.len() {
-                                        wrong_index += 1;
-                                    }
-                                }
-                            },
-                            _ => {}
+                            }
                         },
                         _ => {}
-                    } // end of match key event
-                }, // end of Event,
-                _ => {}
+                    },
+                    _ => {}
+                }
             } // end of match event
-        } // end of poll
+              // end of pol
+        }
     }
 
     leave_raw_terminal(&mut stdout)

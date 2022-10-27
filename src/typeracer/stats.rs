@@ -45,12 +45,12 @@ impl<'a> std::fmt::Display for Stats<'a> {
         let next_char = if index != text_length {
             let next_char =
                 self.text.chars().nth(index).ok_or(std::fmt::Error)?;
-            let next_char = if next_char == '\n' {
+
+            if next_char == '\n' {
                 "\\n".to_string()
             } else {
                 next_char.to_string()
-            };
-            next_char
+            }
         } else {
             "no next char".into()
         };

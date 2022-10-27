@@ -10,7 +10,10 @@ use crossterm::event::{
     KeyEvent,
     KeyEventKind,
     KeyEventState,
-    KeyModifiers
+    KeyModifiers,
+    MouseButton,
+    MouseEvent,
+    MouseEventKind
 };
 use crossterm::{
     cursor,
@@ -109,14 +112,7 @@ impl<'a> Typeracer<'a> {
         }
     }
 
-    fn game_loop(
-        &mut self,
-        typeracer_line: Option<&str>
-    ) -> TyperacerResult<LoopActions> {
-        // if let Some(line) = typeracer_line {
-        //     *self.state.typeracer_text_ref_mut() = line.to_string();
-        // }
-
+    fn game_loop(&mut self) -> TyperacerResult<LoopActions> {
         let path = "static/audio/undertale-megalovania-soundtrack.mp3";
         let path = "static/audio/davai_hardbass.wav";
         let path = "static/audio/skeler-telaviv.mp3";
@@ -186,16 +182,7 @@ impl<'a> Typeracer<'a> {
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {
-        // player.pause_playing();
-
-        // while player.is_playing() {
-        //     // calls to play are non-blocking, so we put the thread to sleep
-        //     // player.pause_playing();
-        //     std::thread::sleep(std::time::Duration::from_millis(1000));
-        //     // player.continue_playing();
-        //     std::thread::sleep(std::time::Duration::from_millis(1000));
-        // }
-        self.game_loop(None)?;
+        self.game_loop()?;
         Ok(())
     }
 
@@ -236,9 +223,8 @@ impl<'a> Typeracer<'a> {
                 // dbg!(mevent);
                 let mouse_kind = mevent.kind;
                 match mouse_kind {
-                    event::MouseEventKind::Down(
-                        event::MouseButton::Right
-                    ) => {},
+                    MouseEventKind::Down(MouseButton::Right) => {},
+                    MouseEventKind::Up(MouseButton::Right) => {},
                     _ => {}
                 }
             },
@@ -257,7 +243,7 @@ impl<'a> Typeracer<'a> {
                     } => {
                         let error_span = SpanError::new(file!(), line!() + 1, column!());
                         let index_error = IndexOutOfBoundsError::new(
-                            index.clone(),
+                            *index,
                             typeracer_text.to_string(),
                             error_span
                         );
@@ -265,7 +251,7 @@ impl<'a> Typeracer<'a> {
 
                         //typeracer logic
 
-                        if '\n' == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
+                        if '\n' == typeracer_text.chars().nth(*index).ok_or_else(|| TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
                             && *wrong_index == 0
                         {
                             *index += 1;
@@ -284,7 +270,7 @@ impl<'a> Typeracer<'a> {
                             // if the cursor is at the end of the line
                             // but everything is wrong
                             // you cannot continue to next line
-                            if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))? {
+                            if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| {TyperacerErrors::IndexOutOfBounds(index_error.clone())})? {
                                 return Ok((self, LoopActions::TimeToContinue))
                             }
                             // dbg!("herer");
@@ -324,7 +310,7 @@ impl<'a> Typeracer<'a> {
                     } => {
                         let error_span = SpanError::new(file!(), line!() + 1, column!());
                         let index_error = IndexOutOfBoundsError::new(
-                            index.clone(),
+                            *index,
                             typeracer_text.to_string(),
                             error_span
                         );
@@ -336,7 +322,8 @@ impl<'a> Typeracer<'a> {
                         if *current_line > 0 {
                             // one char backwards
                             let current_index = *index + *wrong_index - 1;
-                            if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
+                            if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| {TyperacerErrors::IndexOutOfBounds(index_error.clone())
+                            })?
                             {
                                 return Ok((self, LoopActions::TimeToContinue))
                             }
@@ -351,15 +338,14 @@ impl<'a> Typeracer<'a> {
                             if *wrong_index_shadow > 0 {
                                 *wrong_index_shadow -= 1;
                             }
-                        } else {
-                            if *index > 0 {
-                                *index -= 1;
-                                if *index_shadow > 0 {
-                                    *index_shadow -= 1;
+                        } else if *index > 0 {
+                            *index -= 1;
+                            if *index_shadow > 0 {
+                                *index_shadow -= 1;
 
-                                }
                             }
                         }
+
                     },
                     // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
                     // but ctrl + h works, cuz linux
@@ -389,13 +375,16 @@ impl<'a> Typeracer<'a> {
                     } => {
                         let error_span = SpanError::new(file!(), line!() + 1, column!());
                         let index_error = IndexOutOfBoundsError::new(
-                            index.clone(),
+                            *index,
                             typeracer_text.to_string(),
                             error_span
                         );
 
                         let current_index = *index + *wrong_index;
-                        if '\n' == typeracer_text.chars().nth(current_index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error.clone()))? {
+                        if '\n' == typeracer_text.chars().nth(current_index)
+                            .ok_or_else( || {
+                            TyperacerErrors::IndexOutOfBounds(index_error.clone())
+                         })? {
                             return Ok((self, LoopActions::TimeToContinue))
                         }
 
@@ -457,7 +446,7 @@ impl<'a> Typeracer<'a> {
             return Ok(true);
         }
 
-        what_was_typed.push_str(&user_input_prompt);
+        what_was_typed.push_str(user_input_prompt);
         what_was_typed.push(' ');
 
         if what_was_typed.len() >= term_width - 6 {

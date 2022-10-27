@@ -237,7 +237,7 @@ pub fn handle_ctrl_backspace(user_input_prompt: &mut String) {
             }
         }
         user_input_prompt
-            .replace_range(last_space_index..user_input_prompt.len(), "")
+            .replace_range(last_space_index..user_input_prompt.len(), '')
     } else {
         user_input_prompt.clear();
     }

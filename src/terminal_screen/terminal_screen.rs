@@ -37,13 +37,14 @@ use crossterm::{
     tty,
     Result as CrosstermResult
 };
+use derive_builder::Builder as DeriveBuilder;
 
 use super::TerminalScreenResult;
 use super::TermLines;
 use super::RectangleBuilder;
 use super::Rectangle;
 
-#[derive(Debug, derive_builder::Builder)]
+#[derive(Debug, DeriveBuilder)]
 #[builder(pattern = "owned")]
 pub struct TerminalScreen {
     /// Precede your struct (or field) with #[builder(pattern = "owned")] to opt into this pattern. Builders generated with this pattern do not automatically derive Clone, which allows builders to be generated for structs with fields that do not derive Clone.
@@ -328,7 +329,7 @@ impl<'a> TerminalScreen {
     pub fn contains_backslash_n(&mut self) -> bool {
         let temp_buffer = self.buffer.clone();
         let temp_string = String::from_utf8(temp_buffer).unwrap();
-        temp_string.contains("\n")
+        temp_string.contains('\n')
     }
 
     pub fn flush_stdout(&mut self) -> TerminalScreenResult<&mut Self> {
