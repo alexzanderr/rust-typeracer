@@ -10,7 +10,9 @@
 
 - [x] add music
 
-- [ ] improve music player with methods like
+- [ ] you can bench the MusicPlayer load time, if its so slow
+
+- [x] improve music player with methods like
     - `stop_playing`
     - `pause_playing`
     - `is_playing`
@@ -28,6 +30,8 @@
         - unicode crates stuff
 
 - [ ] add option from cli and config to show invisibles like `tab` or `\n`
+
+- [ ] fix typeracer game logic inside the match block, some things are redundant
 
 - [ ] add option for the border type
 ```rs

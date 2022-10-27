@@ -3,13 +3,15 @@ use std::backtrace::Backtrace;
 use thiserror::Error as ThisError;
 use colored::*;
 use lazy_static::lazy_static;
-use core_dev::audio::{
-    MusicPlayerError,
+
+use crate::terminal_screen::{
+    RectangleBuilderErrors,
+    TerminalScreenBuilderError
+};
+use crate::{
+    MusicPlayerErrors,
     MusicPlayerResult
 };
-
-use crate::terminal_screen::TerminalScreenBuilderError;
-use crate::terminal_screen::RectangleBuilderErrors;
 
 // thread_local! {
 //     pub static RED_ERROR: ColoredString = "[error]".red().bold();
@@ -118,7 +120,7 @@ r#"{}: IoError
     #[error("MusicPlayerError: {:?}", mpe)]
     MusicPlayerError {
         #[from]
-        mpe: MusicPlayerError
+        mpe: MusicPlayerErrors
     }
 }
 

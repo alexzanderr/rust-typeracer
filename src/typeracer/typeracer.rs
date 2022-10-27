@@ -1,7 +1,11 @@
 use std::io::Write;
 use std::time::Duration;
+use std::sync::{
+    Arc,
+    Mutex
+};
+use std::cell::RefCell;
 
-use core_dev::audio::MusicPlayer;
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
 use crossterm::event::{
@@ -33,6 +37,7 @@ use crossterm::{
     Result as CrosstermResult
 };
 
+use crate::MusicPlayer;
 use super::AppState;
 use super::errors::{
     IndexOutOfBoundsError,
@@ -41,7 +46,9 @@ use super::errors::{
     TyperacerResult
 };
 use crate::statics::{
+    PLAY_CS16_SOUND,
     PROMPT_ARROW,
+    SKELER_TELATIV_SONG,
     TERMINAL_CURSOR
 };
 use crate::terminal_screen::TerminalScreen;
@@ -113,22 +120,24 @@ impl<'a> Typeracer<'a> {
     }
 
     fn game_loop(&mut self) -> TyperacerResult<LoopActions> {
-        let path = "static/audio/undertale-megalovania-soundtrack.mp3";
-        let path = "static/audio/davai_hardbass.wav";
-        let path = "static/audio/skeler-telaviv.mp3";
-        let path2 = "static/audio/play_cs16.wav";
+        let mut player = MusicPlayer::from_volume(0.5)?;
 
-        let mut player = MusicPlayer::new()?;
-        player.load_file(path2)?;
-        player.play_music(true, Some(100));
+        // this read operating slows the startup
+        // TODO: still after putting the songs inside binary
+        // load_from_mem is slow too
+        // i need to to this operation async, or on another thread
+        player.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
+        player.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
+        player.play_all_songs_one_by_one();
 
-        player.load_file(path)?;
-        player.play_music(false, None);
+        // there is one thing i can do
+        // make a thread for music only, and only share on that thread AppSgstate
+        // and stop the music from that thread while playing using AppState
 
         loop {
-            if player.is_done_playing() {
-                player.play_music(false, None);
-            }
+            // if player.is_done_playing() {
+            //     player.play_music(false, None);
+            // }
             // render ui
             self.ui.draw(&self.state)?;
 
@@ -179,6 +188,7 @@ impl<'a> Typeracer<'a> {
                 write!(handler, "{}\n\n", app_state)?;
             }
         }
+        player.stop_all();
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {

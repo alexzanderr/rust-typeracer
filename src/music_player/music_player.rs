@@ -25,6 +25,30 @@ pub struct MusicPlayer {
 }
 
 impl MusicPlayer {
+    pub fn stop_all(&mut self) {
+        self.player.stop_all();
+    }
+
+    // BUG: this plays all the songs at the same time
+    pub fn play_all_songs_one_by_one(&mut self) {
+        if let Some(ref mut songs) = self.songs {
+            for pair in songs.iter() {
+                let (song_alias, song_wav) = pair;
+
+                let handle = self.player.play(song_wav);
+                let mut handles = HashMap::with_capacity(1);
+                handles.insert(song_alias.clone(), handle);
+
+                if let Some(ref mut self_handles) = self.handles {
+                    self_handles.extend(handles);
+                } else {
+                    self.handles = Some(handles);
+                }
+                // cant put loop here because will block the main thread
+            }
+        }
+    }
+
     pub fn load_songs_from_paths<P: AsRef<Path>>(
         &mut self,
         songs_aliases: &[&str],
@@ -55,8 +79,8 @@ impl MusicPlayer {
 
     pub fn load_song_from_mem(
         &mut self,
+        song_bytes: &[u8],
         song_alias: &str,
-        song_bytes: &[u8]
     ) -> MusicPlayerResult<()> {
         let mut songs = HashMap::with_capacity(1);
 
@@ -225,12 +249,23 @@ impl MusicPlayer {
         }
     }
 
-    fn load_song_from_path<P: AsRef<Path>>(
-        &self,
+    pub fn load_song_from_path<P: AsRef<Path>>(
+        &mut self,
         song_path: P,
         song_alias: &str
     ) -> MusicPlayerResult<()> {
-        todo!();
+        let mut songs = HashMap::with_capacity(1);
+
+        let mut wav = Wav::default();
+        wav.load(song_path.as_ref())?;
+
+        songs.insert(song_alias.to_string(), wav);
+
+        if let Some(ref mut self_songs) = self.songs {
+            self_songs.extend(songs);
+        } else {
+            self.songs = Some(songs);
+        }
 
         Ok(())
     }
@@ -254,6 +289,7 @@ impl MusicPlayer {
     }
 }
 
+#[test]
 fn design_music_player() -> MusicPlayerResult<()> {
     let player = MusicPlayer::from_volume(0.5)?;
 

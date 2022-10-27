@@ -10,3 +10,5 @@
 
 - useful usage of soloud inside threads
 https://github.com/MoAlyousef/soloud-rs/issues/25#issuecomment-1121688791
+
+- https://www.reddit.com/r/learnrust/comments/tuu3rc/how_to_read_and_write_files_with_options_async/

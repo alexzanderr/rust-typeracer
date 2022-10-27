@@ -1,3 +1,7 @@
+# note that this is unstable in this version of cargo
+# 1.65.0-nightly (4ed54cecc 2022-08-27)
+cargo-features = ["profile-rustflags"]
+
 [package]
 name = "typeracer"
 version = "0.0.1"
@@ -64,3 +68,21 @@ members = [
     "dev-ideas",
     "examples/music"
 ]
+
+
+# ultra specs
+[profile.release]
+# https://github.com/johnthagen/min-sized-rust
+# compilation takes longer here
+lto = true
+# compilation takes longer here too
+codegen-units = 1
+# optimize for speed
+opt-level = 's'
+# when it will panic, it will segfaults, why?
+panic = "abort"
+# its like strip all
+strip = true  # Automatically strip symbols from the binary.
+# for this you need cargo feature `cargo-features = ["profile-rustflags"]` at the top of Cargo.toml
+rustflags = ["-C", "target-cpu=native"]
+
