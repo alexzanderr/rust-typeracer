@@ -61,5 +61,10 @@ check:
 
 c: check
 
+code_stats:
+	tokei -C -s code
+
+cc: code_stats
+
 
 

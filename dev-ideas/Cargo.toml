@@ -18,4 +18,5 @@ crossterm = { workspace = true }
 typeracer = { path = ".."}
 colored = { workspace = true }
 dotenv = { workspace = true }
+rand = { workspace = true }
 

@@ -320,6 +320,7 @@ dependencies = [
  "colored",
  "crossterm",
  "dotenv",
+ "rand",
  "typeracer",
 ]
 

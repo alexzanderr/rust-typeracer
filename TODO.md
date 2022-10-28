@@ -10,7 +10,29 @@
 
 - [x] add music
 
+- [ ] use another linker and more stuff from that article to improve compile time speed
+
 - [ ] you can bench the MusicPlayer load time, if its so slow
+
+- [ ] handle screen resize, just update the term height and width inside the TyperacerUI
+
+- [ ] if you want to have mutliple threads you can use channels/crossbeam-channels to send data and to tell the music thread to stop the music completely or to pause the music
+    resources:
+        - https://www.reddit.com/r/rust/comments/7um395/dynamic_load_at_compile_time/
+
+    why do i want a thread for music?
+    1. well, the load time for the music is very slow and we need to do that on a separate thread while printing the UI instantly and start playing
+    2. also you cant send the Music player between thread cuz Soloud (`*mut *mut c_void`) cannot ne sent between threads safely, so it doesnt implement `Send` `Sync` traits
+
+    idea: add music state which is represented by an enum
+    ```rs
+    pub enum MusicState {
+        Stopped,
+        Paused,
+        Playing
+    }
+    ```
+    another cool idea: add this music state as field to AppState
 
 - [x] improve music player with methods like
     - `stop_playing`
