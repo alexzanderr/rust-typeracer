@@ -1,4 +1,8 @@
 use std::backtrace::Backtrace;
+use std::sync::{
+    MutexGuard,
+    PoisonError
+};
 
 use thiserror::Error as ThisError;
 use colored::*;
@@ -9,6 +13,7 @@ use crate::terminal_screen::{
     TerminalScreenBuilderError
 };
 use crate::{
+    AppState,
     MusicPlayerErrors,
     MusicPlayerResult
 };
@@ -121,7 +126,10 @@ r#"{}: IoError
     MusicPlayerError {
         #[from]
         mpe: MusicPlayerErrors
-    }
+    },
+
+    #[error("PoisonError")]
+    PoisonError
 }
 
 pub type TyperacerResult<T> = core::result::Result<T, TyperacerErrors>;

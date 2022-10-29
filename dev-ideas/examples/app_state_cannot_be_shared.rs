@@ -1,4 +1,4 @@
-#[allow(unused, dead_code)]
+#![allow(unused, dead_code)]
 use std::time::Instant;
 // use getset::{
 //     CopyGetters,
@@ -87,9 +87,10 @@ impl MusicState {
 // #[derive(Getters, MutGetters, Debug)]
 // #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
-    text:        RefCell<String>,
-    index:       RefCell<usize>,
-    music_state: RefCell<MusicState>
+    text:         RefCell<String>,
+    index:        RefCell<usize>,
+    music_state:  RefCell<MusicState>,
+    not_sharable: RefCell<Vec<String>>
 }
 
 use typeracer::{
@@ -98,6 +99,10 @@ use typeracer::{
 };
 
 impl AppState {
+    pub fn not_sharable_ref_mut(&self) -> RefMut<'_, Vec<String>> {
+        self.not_sharable.borrow_mut()
+    }
+
     pub fn text_ref_mut(&self) -> RefMut<'_, String> {
         self.text.borrow_mut()
     }
@@ -114,10 +119,12 @@ impl AppState {
         let text = RefCell::new(String::from("rust"));
         let index = RefCell::new(0);
         let is_music_playing = RefCell::new(MusicState::new_stopped());
+        let not_sharable = RefCell::new(vec![String::from("asd")]);
         Self {
             text,
             index,
-            music_state: is_music_playing
+            music_state: is_music_playing,
+            not_sharable
         }
     }
 }
@@ -168,7 +175,7 @@ fn main() {
                 let mut app_state_lock = app_state_arc_clone.try_lock();
 
                 match app_state_lock {
-                    Ok(app_state_lock) => {
+                    Ok(app_state_mutex) => {
                         // here you will be trying to determine the music state
                         // using this enum
                         //
@@ -179,7 +186,8 @@ fn main() {
                         // }
                         // and do this accordingly
                         let mut music_state =
-                            app_state_lock.music_state_ref_mut();
+                            app_state_mutex.music_state_ref_mut();
+                        let ns = app_state_mutex.not_sharable_ref_mut();
 
                         // TODO: 1. how about music_player.do_based_on_state()
                         // 2. how about the music_player to contain the state?
@@ -219,6 +227,7 @@ fn main() {
             // and it will be updated instantly and the music will pause
             let app_state_lock = app_state_arc.lock().unwrap();
             let mut music_state = app_state_lock.music_state_ref_mut();
+            let ns = app_state_lock.not_sharable_ref_mut();
 
             music_state.pause();
             // *music_state = MusicState::Paused;

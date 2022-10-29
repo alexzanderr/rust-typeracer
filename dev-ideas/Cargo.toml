@@ -19,4 +19,5 @@ typeracer = { path = ".."}
 colored = { workspace = true }
 dotenv = { workspace = true }
 rand = { workspace = true }
+crossbeam-channel = "0.5.6"
 

@@ -37,6 +37,7 @@ pub use typeracer::{
     Stats,
     Typeracer,
     TyperacerResult,
+    TyperacerErrors,
     TyperacerUI
 };
 mod statics;
@@ -45,5 +46,6 @@ mod music_player;
 pub use music_player::{
     MusicPlayer,
     MusicPlayerErrors,
-    MusicPlayerResult
+    MusicPlayerResult,
+    MusicState
 };

@@ -68,6 +68,8 @@ members = [
     "dev-ideas",
     "examples/music"
 ]
+exclude = [
+]
 
 
 # ultra specs

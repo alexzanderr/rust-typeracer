@@ -67,4 +67,8 @@ code_stats:
 cc: code_stats
 
 
+show_threads:
+	ps Haux | rg typeracer
+
+st: show_threads
 

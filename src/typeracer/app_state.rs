@@ -6,14 +6,17 @@ use std::cell::{
     RefMut
 };
 
-type rusize = RefCell<usize>;
-
 use getset::{
     CopyGetters,
     Getters,
     MutGetters,
     Setters
 };
+
+use crate::MusicState;
+
+type rusize = RefCell<usize>;
+
 #[derive(Debug)]
 // #[derive(Getters, MutGetters, Debug)]
 // #[getset(get = "pub", get_mut = "pub")]
@@ -46,10 +49,16 @@ pub struct AppState {
 
     index_shadow:       RefCell<usize>,
     wrong_index_shadow: RefCell<usize>,
-    current_line:       RefCell<usize>
+    current_line:       RefCell<usize>,
+
+    music_state: RefCell<MusicState>
 }
 
 impl AppState {
+    pub fn music_state_ref_mut(&self) -> RefMut<'_, MusicState> {
+        self.music_state.borrow_mut()
+    }
+
     pub fn current_line_ref_mut(&self) -> RefMut<'_, usize> {
         self.current_line.borrow_mut()
     }
@@ -199,6 +208,8 @@ many classes of bugs at compile-time."#;
         let cursor_y = RefCell::new(0usize);
         let current_line = RefCell::new(0usize);
 
+        let music_state = RefCell::new(MusicState::new_stopped());
+
         Self {
             stopwatch,
             typeracer_text,
@@ -216,7 +227,8 @@ many classes of bugs at compile-time."#;
             game_finished,
             index_shadow,
             wrong_index_shadow,
-            current_line
+            current_line,
+            music_state
         }
     }
 }

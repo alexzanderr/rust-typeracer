@@ -10,13 +10,15 @@
 
 - [x] add music
 
+- [ ] add progress bar for showing how much text is left to type
+
 - [ ] use another linker and more stuff from that article to improve compile time speed
 
 - [ ] you can bench the MusicPlayer load time, if its so slow
 
 - [ ] handle screen resize, just update the term height and width inside the TyperacerUI
 
-- [ ] if you want to have mutliple threads you can use channels/crossbeam-channels to send data and to tell the music thread to stop the music completely or to pause the music
+- [ ] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutexAppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
     resources:
         - https://www.reddit.com/r/rust/comments/7um395/dynamic_load_at_compile_time/
 
@@ -34,6 +36,8 @@
     ```
     another cool idea: add this music state as field to AppState
 
+- [ ] remove the arc.clone() every time you pass app state to Typeracer methods
+
 - [x] improve music player with methods like
     - `stop_playing`
     - `pause_playing`
@@ -41,7 +45,32 @@
 
 - [ ] improve project quality by adding a better readme, import from other rust projects, by adding CI, by adding tests for individual methods or functions
 
+- [ ] load the music files using rayon crate for parallelism
+
 - [ ] improve performance of the code
+
+- [ ] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe some users dont want to see WPM at all
+
+- [x] add option to pause the song in the middle of the game
+- [ ] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
+
+- [ ] add auto detection of window lostfocus and then the game should pause automatically
+
+- [ ] add a stopwatch that is on a separate thread which can be paused for when i pause the game
+
+- [ ] to solve this error:
+
+    error[E0277]: `RefCell<usize>` cannot be shared between threads safely
+    EDIT (29.10.2022-17:39):
+        - this error originates from the usage of `Arc<Mutex<&AppState>>`; notice: the &reference;
+        - the problem is that even im using a reference to app state, and that reference cant be sync;
+        - removing the `&` solves the problem
+
+
+    2 options:
+        1. use Mutex for every field on AppState (EDIT: dont need to, the ref was the problem)
+        2. send MusicState enum as a message between threads to communicate
+            with the music player and to stuff accordingly
 
 
 - [ ] right now cant use unicode inside the текст

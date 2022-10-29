@@ -1,4 +1,9 @@
 use std::io::Write;
+use std::sync::{
+    Arc,
+    Mutex,
+    RwLock
+};
 
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
@@ -31,7 +36,8 @@ use crossterm::{
 use super::AppState;
 use crate::{
     TerminalScreen,
-    TerminalScreenResult
+    TerminalScreenResult,
+    TyperacerErrors
 };
 use super::TyperacerResult;
 use super::Stats;
@@ -164,8 +170,13 @@ impl<'a> TyperacerUI<'a> {
 
     pub fn draw(
         &mut self,
-        app_state: &AppState
+        app_state_arc: Arc<Mutex<AppState>>
     ) -> TyperacerResult<&mut Self> {
+        let app_state = match app_state_arc.lock() {
+            Ok(app_state) => app_state,
+            Err(error) => return Err(TyperacerErrors::PoisonError)
+        };
+
         let stopwatch = app_state.stopwatch_ref();
         let mut keyboard_input = app_state.keyboard_input_ref_mut();
         let mut index = app_state.index_ref_mut();

@@ -2,9 +2,14 @@ use std::io::Write;
 use std::time::Duration;
 use std::sync::{
     Arc,
-    Mutex
+    Mutex,
+    RwLock
 };
 use std::cell::RefCell;
+use std::thread::{
+    Builder as ThreadBuilder,
+    JoinHandle
+};
 
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
@@ -37,7 +42,11 @@ use crossterm::{
     Result as CrosstermResult
 };
 
-use crate::MusicPlayer;
+use crate::{
+    MusicPlayer,
+    MusicPlayerResult,
+    MusicState
+};
 use super::AppState;
 use super::errors::{
     IndexOutOfBoundsError,
@@ -68,7 +77,11 @@ pub enum LoopActions {
 #[derive(Debug)]
 pub struct Typeracer<'a> {
     ui:    TyperacerUI<'a>,
-    state: AppState
+    // IDEA: this pointer is valid as long as the struct is alive
+    // so i dont need to clone every time i need to use it inside the struct
+    // just clone when you move this self.state on the music thread
+    // just use .lock() in the game logic; dont .clone() anymore
+    state: Arc<Mutex<AppState>>
 }
 
 impl<'a> Typeracer<'a> {
@@ -88,7 +101,7 @@ impl<'a> Typeracer<'a> {
 
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let ui = TyperacerUI::from_term(term);
-        let state = AppState::init();
+        let state = Arc::new(Mutex::new(AppState::init()));
         Self {
             ui,
             state
@@ -119,47 +132,110 @@ impl<'a> Typeracer<'a> {
         }
     }
 
-    fn game_loop(&mut self) -> TyperacerResult<LoopActions> {
-        let mut player = MusicPlayer::from_volume(0.5)?;
+    fn create_and_spawn_music_thread(
+        &self
+    ) -> Result<JoinHandle<MusicPlayerResult<()>>, std::io::Error> {
+        let app_state_arc = self.state.clone();
 
-        // this read operating slows the startup
-        // TODO: still after putting the songs inside binary
-        // load_from_mem is slow too
-        // i need to to this operation async, or on another thread
-        player.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
-        player.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
-        player.play_all_songs_one_by_one();
+        let music_thread = ThreadBuilder::new()
+            .name("typeracer-music-thread".to_string())
+            .spawn(move || -> MusicPlayerResult<()> {
+                let mut mp = MusicPlayer::from_volume(0.5)?;
+
+                // this read operating slows the startup
+                // TODO: still after putting the songs inside binary
+                // load_from_mem is slow too
+                // i need to to this operation async, or on another thread
+                mp.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
+                mp.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
+
+                // there inside MusicPLayer I could have
+                // a reference to AppState, to modifiy the Music state automatically
+                // but we'll see
+                mp.play_all_songs_one_by_one();
+                {
+                    let mut app_state_lock = app_state_arc.lock();
+
+                    match app_state_lock {
+                        Ok(app_state_mutex) => {
+                            *app_state_mutex.music_state_ref_mut() =
+                                MusicState::new_playing();
+                        },
+                        Err(_) => {}
+                    }
+                }
+
+                // this loop will pause the current thread
+                // cause player is running in background
+                // and if this finishes, music player is done
+                loop {
+                    let mut app_state_lock = app_state_arc.try_lock();
+
+                    match app_state_lock {
+                        Ok(app_state_mutex) => {
+                            let mut music_state =
+                                app_state_mutex.music_state_ref_mut();
+
+                            // TODO: 1. how about music_player.do_based_on_state()
+                            // 2. how about the music_player to contain the state?
+
+                            music_state.do_based_on_state(&mut mp);
+                        },
+                        Err(_) => {}
+                    }
+
+                    std::thread::sleep(std::time::Duration::from_millis(
+                        10
+                    ));
+                }
+
+                Ok(())
+            })?;
+
+        Ok(music_thread)
+    }
+
+    fn game_loop(mut self) -> TyperacerResult<LoopActions> {
+        // IDEA: I could hold this arc pointer inside Self instead of state: AppState
+        // if i cant hold the reference inside the mutex
+        // let app_state_arc = Arc::new(Mutex::new(self.state));
+        // clones the pointer here
+
+        // arc pointer is in self as field
+        let music_thread = self.create_and_spawn_music_thread();
 
         // there is one thing i can do
         // make a thread for music only, and only share on that thread AppSgstate
         // and stop the music from that thread while playing using AppState
 
         loop {
-            // if player.is_done_playing() {
-            //     player.play_music(false, None);
-            // }
             // render ui
-            self.ui.draw(&self.state)?;
-
-            if *self.state.game_finished_ref_mut() {
-                self.ui
-                    .print(
-                        "Congratulations! <press any key to leave game>",
-                        19,
-                        0
-                    )?
-                    .flush_stdout()?;
-
-                event::read()?;
-                return Ok(LoopActions::TimeToBreak);
+            {
+                let app_state_arc = self.state.clone();
+                self.ui.draw(app_state_arc)?;
             }
+
+            // if *self.state.game_finished_ref_mut() {
+            //     self.ui
+            //         .print(
+            //             "Congratulations! <press any key to leave game>",
+            //             19,
+            //             0
+            //         )?
+            //         .flush_stdout()?;
+
+            //     event::read()?;
+            //     return Ok(LoopActions::TimeToBreak);
+            // }
 
             // handle keyboard input
             if event::poll(Duration::from_millis(100))? {
                 let event = event::read()?;
-
+                let loop_action = {
+                    let app_state_arc = self.state.clone();
+                    self.handle_event(event, app_state_arc)?.1
+                };
                 // handle key particurarly
-                let loop_action = self.handle_event(event, &self.state)?.1;
                 match loop_action {
                     LoopActions::TimeToBreak => {
                         return Ok(LoopActions::TimeToBreak)
@@ -178,17 +254,16 @@ impl<'a> Typeracer<'a> {
                 }
 
                 // logging
-                let app_state = format!("{:#?}", &self.state);
-                let mut handler = std::fs::File::options()
-                    // .append(true)
-                    .create(true)
-                    .truncate(true)
-                    .write(true)
-                    .open("logs/log-from-loop.text")?;
-                write!(handler, "{}\n\n", app_state)?;
+                // let app_state = format!("{:#?}", &self.state);
+                // let mut handler = std::fs::File::options()
+                //     // .append(true)
+                //     .create(true)
+                //     .truncate(true)
+                //     .write(true)
+                //     .open("logs/log-from-loop.text")?;
+                // write!(handler, "{}\n\n", app_state)?;
             }
         }
-        player.stop_all();
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {
@@ -196,11 +271,30 @@ impl<'a> Typeracer<'a> {
         Ok(())
     }
 
+    fn handle_key_event(
+        &self,
+        key_event: Event
+    ) -> TyperacerResult<(&Self, LoopActions)> {
+        let app_state = match self.state.lock() {
+            Ok(app_state) => app_state,
+            Err(error) => return Err(TyperacerErrors::PoisonError)
+        };
+
+        todo!()
+    }
+
     fn handle_event(
         &self,
         event: Event,
-        app_state: &AppState
+        // TODO, remove this
+        // the pointer is inside the struct
+        app_state_arc: Arc<Mutex<AppState>>
     ) -> TyperacerResult<(&Self, LoopActions)> {
+        let app_state = match app_state_arc.lock() {
+            Ok(app_state) => app_state,
+            Err(error) => return Err(TyperacerErrors::PoisonError)
+        };
+
         // pointers to AppState fields
         let mut keyboard_input = app_state.keyboard_input_ref_mut();
         let mut index = app_state.index_ref_mut();
@@ -220,6 +314,8 @@ impl<'a> Typeracer<'a> {
             app_state.wrong_index_shadow_ref_mut();
         let mut current_line = app_state.current_line_ref_mut();
 
+        let mut music_state = app_state.music_state_ref_mut();
+
         match event {
             Event::FocusGained => {
                 todo!("do something if terminal focus is gained")
@@ -238,6 +334,7 @@ impl<'a> Typeracer<'a> {
                     _ => {}
                 }
             },
+            // TODO: add `Self::handle_key_event()` here to make the code more modular and more readable
             Event::Key(kevent) => {
                 let event_clone = format!("{:?}", kevent.code.clone());
                 *keyboard_input = event_clone.yellow().to_string();
@@ -251,6 +348,24 @@ impl<'a> Typeracer<'a> {
                         modifiers: event::KeyModifiers::NONE,
                         ..
                     } => {
+                        // here happens this at the end of the race
+
+
+                        // [error]: IndexOutOfBounds
+                        //     text: "Rust is blazingly fast and memory-efficient:
+                        // with no runtime or garbage collector,
+                        // it can power performance-critical services,
+                        // run on embedded devices,
+                        // and easily integrate with other languages.
+
+                        // Rust's rich type system and ownership model
+                        // guarantee memory-safety and thread-safety
+                        // - enabling you to eliminate
+                        // many classes of bugs at compile-time."
+                        //     index: 347
+                        //     text.len(): 347
+                        //     span: [src/typeracer/typeracer.rs:351:79]
+
                         let error_span = SpanError::new(file!(), line!() + 1, column!());
                         let index_error = IndexOutOfBoundsError::new(
                             *index,
@@ -363,7 +478,7 @@ impl<'a> Typeracer<'a> {
                     // delete the entire word backwards
                     KeyEvent {
                         code: KeyCode::Char('h'),
-                        modifiers: event::KeyModifiers::CONTROL,
+                        modifiers: KeyModifiers::CONTROL,
                         ..
                     }
                     // and also for the same branch alt + backspace
@@ -375,6 +490,19 @@ impl<'a> Typeracer<'a> {
                         // state: KeyEventState::NONE
                     } => {
                         self.handle_ctrl_backspace(&mut user_input_prompt)
+                    },
+                    KeyEvent {
+                        code: KeyCode::Char('s'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
+                    } => {
+                        match *music_state {
+                            MusicState::Stopped => {
+                                music_state.play();
+                            },
+                            MusicState::Paused => music_state.play(),
+                            MusicState::Playing => music_state.pause(),
+                        }
                     },
                     // user pressed a char key on keyboard
                     // append it to the prompt

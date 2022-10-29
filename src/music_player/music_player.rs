@@ -80,7 +80,7 @@ impl MusicPlayer {
     pub fn load_song_from_mem(
         &mut self,
         song_bytes: &[u8],
-        song_alias: &str,
+        song_alias: &str
     ) -> MusicPlayerResult<()> {
         let mut songs = HashMap::with_capacity(1);
 
@@ -170,10 +170,8 @@ impl MusicPlayer {
 
     pub fn pause_playing(&mut self) {
         if let Some(ref mut handles) = self.handles {
-            if handles.len() == 1 {
-                for (song_alias, song_handle) in handles.iter() {
-                    self.player.set_pause(*song_handle, true);
-                }
+            for (song_alias, song_handle) in handles.iter() {
+                self.player.set_pause(*song_handle, true);
             }
         }
     }
@@ -193,10 +191,8 @@ impl MusicPlayer {
 
     pub fn continue_playing(&mut self) {
         if let Some(ref mut handles) = self.handles {
-            if handles.len() == 1 {
-                for (song_alias, song_handle) in handles.iter() {
-                    self.player.set_pause(*song_handle, false);
-                }
+            for (song_alias, song_handle) in handles.iter() {
+                self.player.set_pause(*song_handle, false);
             }
         }
     }
