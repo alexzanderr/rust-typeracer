@@ -6,7 +6,10 @@ use std::sync::{
 };
 
 use colored::*;
-use core_dev::datetime::datetime::get_current_datetime;
+use core_dev::datetime::datetime::{
+    get_current_datetime,
+    get_current_time
+};
 use crossterm::event::{
     Event,
     KeyCode,
@@ -189,19 +192,29 @@ impl<'a> TyperacerUI<'a> {
         let mut user_input_prompt_x =
             app_state.user_input_prompt_x_ref_mut();
 
+        let mut game_state = app_state.game_state_ref_mut();
+        let app_state_elapsed = app_state.elapsed_time_ref_mut();
+
         let yellow_left_bracket = "[".yellow();
         let yellow_right_bracket = "]".yellow();
-        let lb = yellow_left_bracket;
-        let rb = yellow_right_bracket;
+        // let lb = yellow_left_bracket;
+        // let rb = yellow_right_bracket;
 
-        let elapsed_time = stopwatch.elapsed();
+        let elapsed_time = stopwatch.elapsed().as_secs_f32();
 
         let header_x = 0usize;
         // let elapsed_repr = format!("{:.2?}", elapsed_time);
-        let current_date_time = get_current_datetime();
+        let current_time = get_current_time();
         let header = format!(
-                "{lb}Date-time: {current_date_time}{rb} {lb}Elapsed-time: {elapsed_time:.2?}{rb}",
-            );
+            "{lb}Time: {current_time}{rb} \
+                {lb}Elapsed: {elapsed_time:.2?}s{rb} \
+                {lb}Game: {game_state:?}{rb} \
+                {lb}EAS: {app_state_elapsed:.2}s{rb}\
+                ",
+            lb = yellow_left_bracket,
+            rb = yellow_right_bracket,
+            app_state_elapsed = *app_state_elapsed as f32
+        );
 
         self.term
             .rectangle()

@@ -14,6 +14,7 @@ use getset::{
 };
 
 use crate::MusicState;
+use crate::GameState;
 
 type rusize = RefCell<usize>;
 
@@ -51,10 +52,21 @@ pub struct AppState {
     wrong_index_shadow: RefCell<usize>,
     current_line:       RefCell<usize>,
 
-    music_state: RefCell<MusicState>
+    music_state: RefCell<MusicState>,
+
+    elapsed_time: RefCell<usize>,
+    game_state:   RefCell<GameState>
 }
 
 impl AppState {
+    pub fn elapsed_time_ref_mut(&self) -> RefMut<'_, usize> {
+        self.elapsed_time.borrow_mut()
+    }
+
+    pub fn game_state_ref_mut(&self) -> RefMut<'_, GameState> {
+        self.game_state.borrow_mut()
+    }
+
     pub fn music_state_ref_mut(&self) -> RefMut<'_, MusicState> {
         self.music_state.borrow_mut()
     }
@@ -210,6 +222,9 @@ many classes of bugs at compile-time."#;
 
         let music_state = RefCell::new(MusicState::new_stopped());
 
+        let elapsed_time = RefCell::new(0usize);
+        let game_state = RefCell::new(GameState::Playing);
+
         Self {
             stopwatch,
             typeracer_text,
@@ -228,7 +243,9 @@ many classes of bugs at compile-time."#;
             index_shadow,
             wrong_index_shadow,
             current_line,
-            music_state
+            music_state,
+            elapsed_time,
+            game_state
         }
     }
 }

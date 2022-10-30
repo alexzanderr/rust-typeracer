@@ -75,7 +75,7 @@ fn main() {
     let app_state_arc_clone = app_state_arc.clone();
 
     let music_thread = ThreadBuilder::new()
-        .name("music-thread".to_string())
+        .name("stopwatch-thread".to_string())
         .spawn(move || {
             let app_state_arc = app_state_arc_clone;
             loop {
@@ -84,6 +84,8 @@ fn main() {
                     let mut game_state =
                         app_state_mutex.game_state_ref_mut();
                     match *game_state {
+                        // TODO:
+                        // add something to tell the thread to stop itself
                         GameState::Paused => {},
                         GameState::Playing => {
                             let mut elapsed =

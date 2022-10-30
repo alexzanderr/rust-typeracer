@@ -1,6 +1,9 @@
+#![forbid(unsafe_code)]
+// features
 #![feature(error_generic_member_access)]
 #![feature(type_alias_impl_trait)]
 #![feature(provide_any)]
+// allows
 #![allow(
     unused,
     dead_code,
@@ -13,6 +16,7 @@
 // warning: allow(clippy::all) incompatible with previous forbid
 // fix: use `deny` instead of `forbid`
 #![deny(clippy::all)]
+// allows: clippy
 #![allow(
     clippy::module_inception,
     // because i like to see the `&'static str` there
@@ -34,10 +38,11 @@ pub use terminal_screen::{
 mod typeracer;
 pub use typeracer::{
     AppState,
+    GameState,
     Stats,
     Typeracer,
-    TyperacerResult,
     TyperacerErrors,
+    TyperacerResult,
     TyperacerUI
 };
 mod statics;

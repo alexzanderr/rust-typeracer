@@ -42,6 +42,7 @@ use crossterm::{
     Result as CrosstermResult
 };
 
+use super::GameState;
 use crate::{
     MusicPlayer,
     MusicPlayerResult,
@@ -202,7 +203,9 @@ impl<'a> Typeracer<'a> {
         // clones the pointer here
 
         // arc pointer is in self as field
-        let music_thread = self.create_and_spawn_music_thread();
+        let music_thread_handle = self.create_and_spawn_music_thread();
+        let stopwatch_thread_handle =
+            self.create_and_spawn_stopwatch_thread();
 
         // there is one thing i can do
         // make a thread for music only, and only share on that thread AppSgstate
@@ -316,6 +319,9 @@ impl<'a> Typeracer<'a> {
 
         let mut music_state = app_state.music_state_ref_mut();
 
+        let mut game_state = app_state.game_state_ref_mut();
+        let elapsed = app_state.elapsed_time_ref_mut();
+
         match event {
             Event::FocusGained => {
                 todo!("do something if terminal focus is gained")
@@ -340,6 +346,34 @@ impl<'a> Typeracer<'a> {
                 *keyboard_input = event_clone.yellow().to_string();
 
                 match kevent {
+                    // this will pause the game and also pause the music and the stopwatch
+                    KeyEvent { code: KeyCode::Char(' '), modifiers: KeyModifiers::CONTROL, ..} => {
+                        match *game_state {
+                            GameState::Paused => {
+                                *game_state = GameState::Playing;
+                                match *music_state {
+                                    MusicState::Stopped => {
+                                        music_state.play();
+                                    },
+                                    MusicState::Paused => music_state.play(),
+                                    _ => {}
+                                    // MusicState::Playing => music_state.pause(),
+                                }
+                            }
+                            GameState::Playing => {
+                                *game_state = GameState::Paused;
+
+                                match *music_state {
+                                    // MusicState::Stopped => {
+                                    //     music_state.play();
+                                    // },
+                                    // MusicState::Paused => music_state.play(),
+                                    MusicState::Playing => music_state.pause(),
+                                    _ => {}
+                                }
+                            },
+                        }
+                    },
                     // clear the entire user_input_bar
                     // and append the text to the text area
                     // enter or space into the user_input_prompt
@@ -608,5 +642,38 @@ impl<'a> Typeracer<'a> {
         if user_input_prompt.len() == self.ui.term_width() - 11 {
             user_input_prompt.clear();
         }
+    }
+
+    fn create_and_spawn_stopwatch_thread(
+        &self
+    ) -> Result<JoinHandle<MusicPlayerResult<()>>, std::io::Error> {
+        let app_state_arc = self.state.clone();
+
+        let stopwatch_thread = ThreadBuilder::new()
+            .name("stopwatch-thread".to_string())
+            .spawn(move || {
+                // let _ = 123;
+                loop {
+                    if let Ok(mut app_state_mutex) = app_state_arc.lock() {
+                        let mut game_state =
+                            app_state_mutex.game_state_ref_mut();
+
+                        match *game_state {
+                            GameState::Paused => {},
+                            GameState::Playing => {
+                                let mut elapsed =
+                                    app_state_mutex.elapsed_time_ref_mut();
+                                *elapsed += 1;
+                            }
+                        }
+                    }
+
+                    std::thread::sleep(std::time::Duration::from_millis(
+                        1000
+                    ));
+                }
+            })?;
+
+        Ok(stopwatch_thread)
     }
 }

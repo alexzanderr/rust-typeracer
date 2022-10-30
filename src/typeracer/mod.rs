@@ -16,3 +16,6 @@ pub use errors::{
 
 mod app_state;
 pub use app_state::AppState;
+
+mod game_state;
+pub use game_state::GameState;
