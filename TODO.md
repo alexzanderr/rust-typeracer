@@ -18,7 +18,7 @@
 
 - [ ] handle screen resize, just update the term height and width inside the TyperacerUI
 
-- [ ] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutexAppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
+- [ ] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutex<AppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
     resources:
         - https://www.reddit.com/r/rust/comments/7um395/dynamic_load_at_compile_time/
 
@@ -103,3 +103,5 @@ pub enum BorderType {
 - [ ] cand wpm depaseste 50 sau valoare definita de user atunci ruleaza in alt thread unstoppable, sau "blazingly fast" - primeagen + plus sunetul ala de piuuu
 - [ ] download the default music from yt using yt-dlp api in rust (later)
 
+
+- [ ] check this https://github.com/erickt/rust-zmq
