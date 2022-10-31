@@ -79,7 +79,7 @@
     fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
     maybe with:
-        - unicode segmentation
+        - unicode segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
         - unicode crates stuff
 
 - [ ] add option from cli and config to show invisibles like `tab` or `\n`

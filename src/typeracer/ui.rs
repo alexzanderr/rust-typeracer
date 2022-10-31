@@ -5,6 +5,7 @@ use std::sync::{
     RwLock
 };
 
+use unicode_segmentation::UnicodeSegmentation;
 use colored::*;
 use core_dev::datetime::datetime::{
     get_current_datetime,
@@ -124,16 +125,23 @@ impl<'a> TyperacerUI<'a> {
         index: usize,
         wrong_index: usize
     ) -> String {
+
+        let text = UnicodeSegmentation::graphemes(text, true)
+            .collect::<Vec<&str>>();
+
         // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
         let mut green =
-            text[..index].green().to_string().replace(' ', "_");
+            text[..index].join("").green().to_string().replace(' ', "_");
+
         let green = if green.contains('\n') {
             let pat = format!("{ENDC}\n{GREEN}");
             green.replace('\n', &pat)
         } else {
             green
         };
+
         let red = text[index..index + wrong_index]
+            .join("")
             .red()
             .to_string()
             .replace(' ', "_");
@@ -143,7 +151,8 @@ impl<'a> TyperacerUI<'a> {
         } else {
             red
         };
-        let rest = &text[index + wrong_index..];
+
+        let rest = text[index + wrong_index..].join("");
         format!("{green}{red}{rest}")
     }
 

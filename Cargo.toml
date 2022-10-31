@@ -61,6 +61,7 @@ assert2 = { workspace = true }
 crossterm = { workspace = true }
 getset = "0.1.2"
 lazy_static = "1.4.0"
+unicode-segmentation = "1.10.0"
 
 
 [workspace]
