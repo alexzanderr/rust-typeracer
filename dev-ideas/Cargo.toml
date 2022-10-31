@@ -28,5 +28,11 @@ channels = ["dep:crossbeam-channel"]
 
 [[example]]
 name = "chan"
-path = "examples/channels_method.rs"
+path = "examples/channels_method_music.rs"
+required-features = ["channels"]
+
+
+[[example]]
+name = "cm"
+path = "examples/channels_method_music_and_stopwatch.rs"
 required-features = ["channels"]

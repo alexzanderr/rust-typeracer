@@ -10,6 +10,8 @@
 
 - [x] add music
 
+- [ ] start the stopwatch thread only after the first keyboard strike
+
 - [ ] add progress bar for showing how much text is left to type
 
 - [ ] use another linker and more stuff from that article to improve compile time speed
@@ -18,7 +20,7 @@
 
 - [ ] handle screen resize, just update the term height and width inside the TyperacerUI
 
-- [ ] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutex<AppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
+- [x] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutex<AppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
     resources:
         - https://www.reddit.com/r/rust/comments/7um395/dynamic_load_at_compile_time/
 

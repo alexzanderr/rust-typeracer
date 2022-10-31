@@ -58,6 +58,10 @@ mp:
 ch:
 	@cargo run --quiet --package dev-ideas --example chan --features channels
 
+cm:
+	@cargo run --quiet --package dev-ideas --example cm --features channels
+
+
 check:
 	@cargo check --quiet
 

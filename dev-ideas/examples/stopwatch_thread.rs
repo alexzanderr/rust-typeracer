@@ -34,7 +34,7 @@ use std::io::{
     Write
 };
 
-pub enum Actions {
+pub enum GameState {
     Pause,
     Continue
 }
