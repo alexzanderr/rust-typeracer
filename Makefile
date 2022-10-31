@@ -55,6 +55,8 @@ mp:
 	@cargo run --quiet --package dev-ideas --bin mp
 
 
+ch:
+	@cargo run --quiet --package dev-ideas --example chan --features channels
 
 check:
 	@cargo check --quiet
@@ -71,4 +73,5 @@ show_threads:
 	ps Haux | rg typeracer
 
 st: show_threads
+
 

@@ -12,6 +12,8 @@ path = "src/bin/try_debug_draw_rectangle/main.rs"
 name = "mp"
 path = "src/bin/try_music_player/main.rs"
 
+
+
 # https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-dependencies-table
 [dependencies]
 crossterm = { workspace = true }
@@ -19,5 +21,12 @@ typeracer = { path = ".."}
 colored = { workspace = true }
 dotenv = { workspace = true }
 rand = { workspace = true }
-crossbeam-channel = "0.5.6"
+crossbeam-channel = { version = "0.5.6", optional = true }
 
+[features]
+channels = ["dep:crossbeam-channel"]
+
+[[example]]
+name = "chan"
+path = "examples/channels_method.rs"
+required-features = ["channels"]
