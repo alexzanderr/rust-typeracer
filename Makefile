@@ -79,3 +79,31 @@ show_threads:
 st: show_threads
 
 
+# remember this for Makefile
+# you cant have tabs and spaces at the same time
+# i guess this also happens in rust
+
+#  74   │ ␊
+#  75   │ ␊
+#  76   │ show_threads:␊
+#  77   │ ├──┤ps·Haux·|·rg·typeracer␊
+#  78   │ ␊
+#  79   │ st:·show_threads␊
+#  80   │ ␊
+#  81 + │ check_continuous:␊
+#  82 + │ ····@time·cargo·watch·\␊
+#  83 + │ ········--clear·\␊
+#  84 + │ ········--watch="src"·\␊
+#  85 + │ ········--watch="dev-ideas"␊
+#  86   │ ␊
+#  87 + │ cc:·check_continuous␊
+
+check_loop:
+	@time cargo watch \
+		--clear \
+		--watch="src" \
+		--watch="dev-ideas" \
+		--shell="cargo check --quiet" \
+		--delay 1.2
+
+cc: check_loop
