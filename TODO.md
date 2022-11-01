@@ -107,3 +107,5 @@ pub enum BorderType {
 
 
 - [ ] check this https://github.com/erickt/rust-zmq
+
+- [ ] add url printex as text inside TUI to click on it and to go on docs for example

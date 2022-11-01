@@ -5,6 +5,11 @@ target
 # because its a binary application
 # Cargo.lock
 
+# sublime workspace
 *.sublime-*
+
+# intellij
+.idea
+
 python_version
 logs
