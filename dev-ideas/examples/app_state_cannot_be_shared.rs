@@ -146,7 +146,6 @@ fn main() {
     let music_thread = ThreadBuilder::new()
         .name("music-thread".to_string())
         .spawn(move || {
-            // TODO add the music player here
             let x = 123;
             let mut mp = MusicPlayer::from_volume(0.5).unwrap();
 

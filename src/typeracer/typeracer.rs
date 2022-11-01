@@ -1,3 +1,4 @@
+use std::sync::MutexGuard;
 use std::io::Write;
 use std::time::Duration;
 use std::sync::{
@@ -69,23 +70,27 @@ pub enum LoopActions {
     TimeToBreak,
     TimeToContinue,
     GameFinished,
-    LoopDoesntQuit,
+    Noop,
     PauseGame,
     ContinueGame,
-    QuitGame
+    ForceQuitGame
 }
 
 #[derive(Debug)]
+/// Typeracer main handle to the game
 pub struct Typeracer<'a> {
-    ui:    TyperacerUI<'a>,
-    // IDEA: this pointer is valid as long as the struct is alive
-    // so i dont need to clone every time i need to use it inside the struct
-    // just clone when you move this self.state on the music thread
-    // just use .lock() in the game logic; dont .clone() anymore
-    state: Arc<Mutex<AppState>>
+    /// separate UI with specific methods
+    ui:        TyperacerUI<'a>,
+    /// entire app state
+    app_state: Arc<Mutex<AppState>>
 }
 
 impl<'a> Typeracer<'a> {
+    // IDEA: implement Drop trait to disable raw terminal mode when
+    // this entire struct goes away
+    // to simplify the code
+    // to not initialize a terminal every time
+    //
     // pub fn default() -> TyperacerResult<Self> {
     //     let mut term = TerminalScreen::builder()
     //         .alternate(true)
@@ -102,10 +107,10 @@ impl<'a> Typeracer<'a> {
 
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let ui = TyperacerUI::from_term(term);
-        let state = Arc::new(Mutex::new(AppState::init()));
+        let app_state = Arc::new(Mutex::new(AppState::init()));
         Self {
             ui,
-            state
+            app_state
         }
     }
 
@@ -136,7 +141,7 @@ impl<'a> Typeracer<'a> {
     fn create_and_spawn_music_thread(
         &self
     ) -> Result<JoinHandle<MusicPlayerResult<()>>, std::io::Error> {
-        let app_state_arc = self.state.clone();
+        let app_state_arc = self.app_state.clone();
 
         let music_thread = ThreadBuilder::new()
             .name("typeracer-music-thread".to_string())
@@ -196,7 +201,8 @@ impl<'a> Typeracer<'a> {
         Ok(music_thread)
     }
 
-    fn game_loop(mut self) -> TyperacerResult<LoopActions> {
+    // TODO: future: make reusable game as a library
+    fn game_loop(mut self) -> TyperacerResult<()> {
         // IDEA: I could hold this arc pointer inside Self instead of state: AppState
         // if i cant hold the reference inside the mutex
         // let app_state_arc = Arc::new(Mutex::new(self.state));
@@ -214,7 +220,7 @@ impl<'a> Typeracer<'a> {
         loop {
             // render ui
             {
-                let app_state_arc = self.state.clone();
+                let app_state_arc = self.app_state.clone();
                 self.ui.draw(app_state_arc)?;
             }
 
@@ -234,23 +240,20 @@ impl<'a> Typeracer<'a> {
             // handle keyboard input
             if event::poll(Duration::from_millis(100))? {
                 let event = event::read()?;
-                let loop_action = {
-                    let app_state_arc = self.state.clone();
-                    self.handle_event(event, app_state_arc)?.1
-                };
+
+                let loop_action = self.handle_event(event)?.1;
+
                 // handle key particurarly
                 match loop_action {
-                    LoopActions::TimeToBreak => {
-                        return Ok(LoopActions::TimeToBreak)
-                    },
+                    LoopActions::TimeToBreak => break,
                     LoopActions::TimeToContinue => continue,
-                    LoopActions::GameFinished => continue,
-                    LoopActions::LoopDoesntQuit => {
-                        // do nothing, just continues (not continue from programming)
+                    // here we need to render one last time UI before ending the game
+                    LoopActions::GameFinished => break,
+                    LoopActions::Noop => {
+                        // do nothing, just continues the typeracer game
+                        // (not continue from programming)
                     },
-                    LoopActions::QuitGame => {
-                        return Ok(LoopActions::QuitGame)
-                    },
+                    LoopActions::ForceQuitGame => break,
                     _ => {
                         // the rest are not implemented
                     }
@@ -267,6 +270,7 @@ impl<'a> Typeracer<'a> {
                 // write!(handler, "{}\n\n", app_state)?;
             }
         }
+        return Ok(());
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {
@@ -276,34 +280,17 @@ impl<'a> Typeracer<'a> {
 
     fn handle_key_event(
         &self,
-        key_event: Event
+        key_event: KeyEvent,
+        app_state_mutex: &MutexGuard<AppState>
     ) -> TyperacerResult<(&Self, LoopActions)> {
-        let app_state = match self.state.lock() {
-            Ok(app_state) => app_state,
-            Err(error) => return Err(TyperacerErrors::PoisonError)
-        };
+        // let app_state = match self.app_state.lock() {
+        //     Ok(app_state) => app_state,
+        //     Err(error) => return Err(TyperacerErrors::PoisonError)
+        // };
+        let app_state = app_state_mutex;
 
-        todo!()
-    }
-
-    fn handle_event(
-        &self,
-        event: Event,
-        // TODO, remove this
-        // the pointer is inside the struct
-        app_state_arc: Arc<Mutex<AppState>>
-    ) -> TyperacerResult<(&Self, LoopActions)> {
-        let app_state = match app_state_arc.lock() {
-            Ok(app_state) => app_state,
-            Err(error) => return Err(TyperacerErrors::PoisonError)
-        };
-
-        // pointers to AppState fields
-        let mut keyboard_input = app_state.keyboard_input_ref_mut();
-        let mut index = app_state.index_ref_mut();
-        let mut wrong_index = app_state.wrong_index_ref_mut();
-        let mut typeracer_text = app_state.typeracer_text_ref_mut();
         let mut game_finished = app_state.game_finished_ref_mut();
+        let mut typeracer_text = app_state.typeracer_text_ref_mut();
         let mut user_input_prompt = app_state.user_input_prompt_ref_mut();
         let mut what_was_typed = app_state.what_was_typed_ref_mut();
         let mut user_input_prompt_x =
@@ -321,6 +308,284 @@ impl<'a> Typeracer<'a> {
 
         let mut game_state = app_state.game_state_ref_mut();
         let elapsed = app_state.elapsed_time_ref_mut();
+        let mut keyboard_input = app_state.keyboard_input_ref_mut();
+
+        let mut index = app_state.index_ref_mut();
+        let mut wrong_index = app_state.wrong_index_ref_mut();
+
+        let key_event_clone = format!("{:?}", key_event.code.clone());
+        *keyboard_input = key_event_clone.yellow().to_string();
+
+        match key_event {
+            // this will pause the game and also pause the music and the stopwatch
+            KeyEvent {
+                code: KeyCode::Char(' '),
+                modifiers: KeyModifiers::CONTROL,
+                // Release doesnt work, just Press
+                kind: KeyEventKind::Press,
+                // TODO: file an issue about this
+                state: KeyEventState::NONE
+            } => {
+                match *game_state {
+                    GameState::Paused => {
+                        *game_state = GameState::Playing;
+                        match *music_state {
+                            MusicState::Stopped => {
+                                music_state.play();
+                            },
+                            MusicState::Paused => music_state.play(),
+                            _ => {}
+                            // MusicState::Playing => music_state.pause(),
+                        }
+                    }
+                    GameState::Playing => {
+                        *game_state = GameState::Paused;
+
+                        match *music_state {
+                            // MusicState::Stopped => {
+                            //     music_state.play();
+                            // },
+                            // MusicState::Paused => music_state.play(),
+                            MusicState::Playing => music_state.pause(),
+                            _ => {}
+                        }
+                    },
+                }
+            },
+            // clear the entire user_input_bar
+            // and append the text to the text area
+            // enter or space into the user_input_prompt
+            KeyEvent {
+                code: KeyCode::Enter,
+                modifiers: event::KeyModifiers::NONE,
+                ..
+            } => {
+                // here happens this at the end of the race
+
+
+                // [error]: IndexOutOfBounds
+                //     text: "Rust is blazingly fast and memory-efficient:
+                // with no runtime or garbage collector,
+                // it can power performance-critical services,
+                // run on embedded devices,
+                // and easily integrate with other languages.
+
+                // Rust's rich type system and ownership model
+                // guarantee memory-safety and thread-safety
+                // - enabling you to eliminate
+                // many classes of bugs at compile-time."
+                //     index: 347
+                //     text.len(): 347
+                //     span: [src/typeracer/typeracer.rs:351:79]
+
+                let error_span = SpanError::new(file!(), line!() + 1, column!());
+                let index_error = IndexOutOfBoundsError::new(
+                    *index,
+                    typeracer_text.to_string(),
+                    error_span
+                );
+
+
+                //typeracer logic
+
+                if '\n' == typeracer_text.chars().nth(*index).ok_or_else(|| TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
+                    && *wrong_index == 0
+                {
+                    *index += 1;
+                    *cursor_x += 1;
+                    *current_line += 1;
+                    *cursor_y = 0;
+                    *index_shadow = 0;
+                    *wrong_index_shadow = 0;
+
+                    if *index == typeracer_text.len() {
+                        *game_finished = true;
+                    }
+                } else if *index + *wrong_index < typeracer_text.len() {
+                    let current_index = *index + *wrong_index;
+
+                    // if the cursor is at the end of the line
+                    // but everything is wrong
+                    // you cannot continue to next line
+                    if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| { TyperacerErrors::IndexOutOfBounds(index_error.clone()) })? {
+                        return Ok((self, LoopActions::TimeToContinue))
+                    }
+                    // dbg!("herer");
+                    *wrong_index += 1;
+                    *wrong_index_shadow += 1;
+                }
+
+                // TODO: recomment this
+                // // ui logic
+                // let time_to_continue = self.handle_enter_key(
+                //     &mut what_was_typed,
+                //     &mut user_input_prompt,
+                //     user_input_prompt_x.clone())?;
+
+                // if time_to_continue {
+                //     return Ok((self, LoopActions::TimeToContinue))
+                // }
+            },
+            KeyEvent {
+                code: KeyCode::Char('c'),
+                modifiers: event::KeyModifiers::CONTROL,
+                ..
+            }
+            | KeyEvent {
+                code: KeyCode::Char('d'),
+                modifiers: event::KeyModifiers::CONTROL,
+                ..
+            } => {
+                return Ok((self, LoopActions::ForceQuitGame))
+            },
+            // backspace
+            // delete one char backward
+            KeyEvent {
+                code: KeyCode::Backspace,
+                modifiers: event::KeyModifiers::NONE,
+                ..
+            } => {
+                let error_span = SpanError::new(file!(), line!() + 1, column!());
+                let index_error = IndexOutOfBoundsError::new(
+                    *index,
+                    typeracer_text.to_string(),
+                    error_span
+                );
+
+                // if you are at the begginning of a line
+                // but that line is not the first line
+                // you cannot go back on the previous
+                // this behavious also happens in typing.io
+                if *current_line > 0 {
+                    // one char backwards
+                    let current_index = *index + *wrong_index - 1;
+                    if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| {
+                        TyperacerErrors::IndexOutOfBounds(index_error.clone())
+                    })?
+                    {
+                        return Ok((self, LoopActions::TimeToContinue))
+                    }
+                }
+
+                // ui logic
+                let _ = user_input_prompt.pop();
+
+                // logic for the typeracer game
+                if *wrong_index > 0 {
+                    *wrong_index -= 1;
+                    if *wrong_index_shadow > 0 {
+                        *wrong_index_shadow -= 1;
+                    }
+                } else if *index > 0 {
+                    *index -= 1;
+                    if *index_shadow > 0 {
+                        *index_shadow -= 1;
+                    }
+                }
+            },
+            // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
+            // but ctrl + h works, cuz linux
+            //
+            // delete the entire word backwards
+            KeyEvent {
+                code: KeyCode::Char('h'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            }
+            // and also for the same branch alt + backspace
+            | KeyEvent {
+                code: KeyCode::Backspace,
+                modifiers: KeyModifiers::ALT,
+                ..
+                // kind: KeyEventKind::Repeat | KeyEventKind::Release,
+                // state: KeyEventState::NONE
+            } => {
+                self.handle_ctrl_backspace(&mut user_input_prompt)
+            },
+            KeyEvent {
+                code: KeyCode::Char('s'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                match *music_state {
+                    MusicState::Stopped => {
+                        music_state.play();
+                    },
+                    MusicState::Paused => music_state.play(),
+                    MusicState::Playing => music_state.pause(),
+                }
+            },
+            // user pressed a char key on keyboard
+            // append it to the prompt
+            KeyEvent {
+                code: KeyCode::Char(character),
+                modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
+                ..
+            } => {
+                let error_span = SpanError::new(file!(), line!() + 1, column!());
+                let index_error = IndexOutOfBoundsError::new(
+                    *index,
+                    typeracer_text.to_string(),
+                    error_span
+                );
+
+                let current_index = *index + *wrong_index;
+                if '\n' == typeracer_text.chars().nth(current_index)
+                    .ok_or_else(|| {
+                        TyperacerErrors::IndexOutOfBounds(index_error.clone())
+                    })? {
+                    return Ok((self, LoopActions::TimeToContinue))
+                }
+
+                if character == ' ' {
+                    what_was_typed.push_str(&user_input_prompt);
+                    // what_was_typed.push(' ');
+                    if what_was_typed.len() >= term_width - 6 {
+                        what_was_typed.clear();
+                    }
+                    user_input_prompt.clear();
+                }
+
+                self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
+
+                if *index == typeracer_text.len() - 1 {
+                    *index += 1;
+                    *index_shadow += 1;
+
+                    *game_finished = true;
+                    return Ok((self, LoopActions::GameFinished))
+                }
+
+                // typeracer game logic
+                if character == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
+                    && *wrong_index == 0
+                {
+                    *index += 1;
+                    *index_shadow += 1;
+
+                    if *index == typeracer_text.len() {
+                        *game_finished = true;
+                    }
+                } else if *index + *wrong_index < typeracer_text.len() {
+                    *wrong_index += 1;
+                    *wrong_index_shadow += 1;
+                }
+            },
+            _ => {},
+        }
+        *cursor_y = *index_shadow + *wrong_index_shadow;
+
+        Ok((self, LoopActions::Noop))
+    }
+
+    fn handle_event(
+        &self,
+        event: Event
+    ) -> TyperacerResult<(&Self, LoopActions)> {
+        let app_state = match self.app_state.lock() {
+            Ok(app_state) => app_state,
+            Err(error) => return Err(TyperacerErrors::PoisonError)
+        };
 
         match event {
             Event::FocusGained => {
@@ -340,269 +605,20 @@ impl<'a> Typeracer<'a> {
                     _ => {}
                 }
             },
-            // TODO: add `Self::handle_key_event()` here to make the code more modular and more readable
             Event::Key(kevent) => {
-                let event_clone = format!("{:?}", kevent.code.clone());
-                *keyboard_input = event_clone.yellow().to_string();
-
-                match kevent {
-                    // this will pause the game and also pause the music and the stopwatch
-                    KeyEvent { code: KeyCode::Char(' '), modifiers: KeyModifiers::CONTROL, ..} => {
-                        match *game_state {
-                            GameState::Paused => {
-                                *game_state = GameState::Playing;
-                                match *music_state {
-                                    MusicState::Stopped => {
-                                        music_state.play();
-                                    },
-                                    MusicState::Paused => music_state.play(),
-                                    _ => {}
-                                    // MusicState::Playing => music_state.pause(),
-                                }
-                            }
-                            GameState::Playing => {
-                                *game_state = GameState::Paused;
-
-                                match *music_state {
-                                    // MusicState::Stopped => {
-                                    //     music_state.play();
-                                    // },
-                                    // MusicState::Paused => music_state.play(),
-                                    MusicState::Playing => music_state.pause(),
-                                    _ => {}
-                                }
-                            },
-                        }
+                let loop_actions =
+                    self.handle_key_event(kevent, &app_state)?.1;
+                match loop_actions {
+                    LoopActions::Noop => {
+                        // do nothing if everything is from `Self::handle_key_event`
                     },
-                    // clear the entire user_input_bar
-                    // and append the text to the text area
-                    // enter or space into the user_input_prompt
-                    KeyEvent {
-                        code: KeyCode::Enter,
-                        modifiers: event::KeyModifiers::NONE,
-                        ..
-                    } => {
-                        // here happens this at the end of the race
-
-
-                        // [error]: IndexOutOfBounds
-                        //     text: "Rust is blazingly fast and memory-efficient:
-                        // with no runtime or garbage collector,
-                        // it can power performance-critical services,
-                        // run on embedded devices,
-                        // and easily integrate with other languages.
-
-                        // Rust's rich type system and ownership model
-                        // guarantee memory-safety and thread-safety
-                        // - enabling you to eliminate
-                        // many classes of bugs at compile-time."
-                        //     index: 347
-                        //     text.len(): 347
-                        //     span: [src/typeracer/typeracer.rs:351:79]
-
-                        let error_span = SpanError::new(file!(), line!() + 1, column!());
-                        let index_error = IndexOutOfBoundsError::new(
-                            *index,
-                            typeracer_text.to_string(),
-                            error_span
-                        );
-
-
-                        //typeracer logic
-
-                        if '\n' == typeracer_text.chars().nth(*index).ok_or_else(|| TyperacerErrors::IndexOutOfBounds(index_error.clone()))?
-                            && *wrong_index == 0
-                        {
-                            *index += 1;
-                            *cursor_x += 1;
-                            *current_line += 1;
-                            *cursor_y = 0;
-                            *index_shadow = 0;
-                            *wrong_index_shadow = 0;
-
-                            if *index == typeracer_text.len() {
-                                *game_finished = true;
-                            }
-                        } else if *index + *wrong_index < typeracer_text.len() {
-                            let current_index = *index + *wrong_index;
-
-                            // if the cursor is at the end of the line
-                            // but everything is wrong
-                            // you cannot continue to next line
-                            if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| {TyperacerErrors::IndexOutOfBounds(index_error.clone())})? {
-                                return Ok((self, LoopActions::TimeToContinue))
-                            }
-                            // dbg!("herer");
-                            *wrong_index += 1;
-                            *wrong_index_shadow += 1;
-                        }
-
-                        // TODO: recomment this
-                        // // ui logic
-                        // let time_to_continue = self.handle_enter_key(
-                        //     &mut what_was_typed,
-                        //     &mut user_input_prompt,
-                        //     user_input_prompt_x.clone())?;
-
-                        // if time_to_continue {
-                        //     return Ok((self, LoopActions::TimeToContinue))
-                        // }
-                    },
-                    KeyEvent {
-                        code: KeyCode::Char('c'),
-                        modifiers: event::KeyModifiers::CONTROL,
-                        ..
-                    }
-                    | KeyEvent {
-                        code: KeyCode::Char('d'),
-                        modifiers: event::KeyModifiers::CONTROL,
-                        ..
-                    } => {
-                        return Ok((self, LoopActions::QuitGame))
-                    },
-                    // backspace
-                    // delete one char backward
-                    KeyEvent {
-                        code: KeyCode::Backspace,
-                        modifiers: event::KeyModifiers::NONE,
-                        ..
-                    } => {
-                        let error_span = SpanError::new(file!(), line!() + 1, column!());
-                        let index_error = IndexOutOfBoundsError::new(
-                            *index,
-                            typeracer_text.to_string(),
-                            error_span
-                        );
-
-                        // if you are at the begginning of a line
-                        // but that line is not the first line
-                        // you cannot go back on the previous
-                        // this behavious also happens in typing.io
-                        if *current_line > 0 {
-                            // one char backwards
-                            let current_index = *index + *wrong_index - 1;
-                            if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| {TyperacerErrors::IndexOutOfBounds(index_error.clone())
-                            })?
-                            {
-                                return Ok((self, LoopActions::TimeToContinue))
-                            }
-                        }
-
-                        // ui logic
-                        let _ = user_input_prompt.pop();
-
-                        // logic for the typeracer game
-                        if *wrong_index > 0 {
-                            *wrong_index -= 1;
-                            if *wrong_index_shadow > 0 {
-                                *wrong_index_shadow -= 1;
-                            }
-                        } else if *index > 0 {
-                            *index -= 1;
-                            if *index_shadow > 0 {
-                                *index_shadow -= 1;
-
-                            }
-                        }
-
-                    },
-                    // ctrl + backspace, doesnt work, cuz terminal stuff, i am guessing
-                    // but ctrl + h works, cuz linux
-                    //
-                    // delete the entire word backwards
-                    KeyEvent {
-                        code: KeyCode::Char('h'),
-                        modifiers: KeyModifiers::CONTROL,
-                        ..
-                    }
-                    // and also for the same branch alt + backspace
-                    | KeyEvent {
-                        code: KeyCode::Backspace,
-                        modifiers: KeyModifiers::ALT,
-                        ..
-                        // kind: KeyEventKind::Repeat | KeyEventKind::Release,
-                        // state: KeyEventState::NONE
-                    } => {
-                        self.handle_ctrl_backspace(&mut user_input_prompt)
-                    },
-                    KeyEvent {
-                        code: KeyCode::Char('s'),
-                        modifiers: KeyModifiers::CONTROL,
-                        ..
-                    } => {
-                        match *music_state {
-                            MusicState::Stopped => {
-                                music_state.play();
-                            },
-                            MusicState::Paused => music_state.play(),
-                            MusicState::Playing => music_state.pause(),
-                        }
-                    },
-                    // user pressed a char key on keyboard
-                    // append it to the prompt
-                    KeyEvent {
-                        code: KeyCode::Char(character),
-                        modifiers: event::KeyModifiers::NONE | event::KeyModifiers::SHIFT,
-                        ..
-                    } => {
-                        let error_span = SpanError::new(file!(), line!() + 1, column!());
-                        let index_error = IndexOutOfBoundsError::new(
-                            *index,
-                            typeracer_text.to_string(),
-                            error_span
-                        );
-
-                        let current_index = *index + *wrong_index;
-                        if '\n' == typeracer_text.chars().nth(current_index)
-                            .ok_or_else( || {
-                            TyperacerErrors::IndexOutOfBounds(index_error.clone())
-                         })? {
-                            return Ok((self, LoopActions::TimeToContinue))
-                        }
-
-                        if character == ' ' {
-                            what_was_typed.push_str(&user_input_prompt);
-                            // what_was_typed.push(' ');
-                            if what_was_typed.len() >= term_width - 6 {
-                                what_was_typed.clear();
-                            }
-                            user_input_prompt.clear();
-                        }
-
-                        self.handle_any_character(&mut what_was_typed, &mut user_input_prompt, character);
-
-                        if *index == typeracer_text.len() - 1 {
-                            *index += 1;
-                            *index_shadow += 1;
-
-                            *game_finished = true;
-                            return Ok((self, LoopActions::GameFinished))
-                        }
-
-                        // typeracer game logic
-                        if character == typeracer_text.chars().nth(*index).ok_or(TyperacerErrors::IndexOutOfBounds(index_error))?
-                            && *wrong_index == 0
-                        {
-                            *index += 1;
-                            *index_shadow += 1;
-
-                            if *index == typeracer_text.len() {
-                                *game_finished = true;
-                            }
-                        } else if *index + *wrong_index < typeracer_text.len() {
-                            *wrong_index += 1;
-                            *wrong_index_shadow += 1;
-                        }
-                    },
-                    _ => {},
+                    _ => return Ok((self, loop_actions))
                 }
             },
             _ => {}
         }
 
-        *cursor_y = *index_shadow + *wrong_index_shadow;
-
-        Ok((self, LoopActions::LoopDoesntQuit))
+        Ok((self, LoopActions::Noop))
     }
 
     fn handle_enter_key(
@@ -647,7 +663,7 @@ impl<'a> Typeracer<'a> {
     fn create_and_spawn_stopwatch_thread(
         &self
     ) -> Result<JoinHandle<MusicPlayerResult<()>>, std::io::Error> {
-        let app_state_arc = self.state.clone();
+        let app_state_arc = self.app_state.clone();
 
         let stopwatch_thread = ThreadBuilder::new()
             .name("stopwatch-thread".to_string())

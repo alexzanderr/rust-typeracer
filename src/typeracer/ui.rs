@@ -4,6 +4,7 @@ use std::sync::{
     Mutex,
     RwLock
 };
+use std::marker::PhantomData;
 
 use unicode_segmentation::UnicodeSegmentation;
 use colored::*;
@@ -55,13 +56,20 @@ use crate::statics::{
 
 #[derive(Debug)]
 pub struct TyperacerUI<'a> {
-    term: &'a mut TerminalScreen
+    // TODO: mut ref of something its too stupid
+    // use Rc<RefCell<TerminalScreen>
+    term:    &'a mut TerminalScreen,
+    // this practice is very useful when dropping stuff
+    // mostly for the compiler to know
+    _marker: PhantomData<TerminalScreen>
 }
 
 impl<'a> TyperacerUI<'a> {
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
+        let _marker = PhantomData;
         Self {
-            term
+            term,
+            _marker
         }
     }
 
@@ -125,7 +133,6 @@ impl<'a> TyperacerUI<'a> {
         index: usize,
         wrong_index: usize
     ) -> String {
-
         let text = UnicodeSegmentation::graphemes(text, true)
             .collect::<Vec<&str>>();
 
