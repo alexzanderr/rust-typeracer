@@ -38,7 +38,7 @@
     ```
     another cool idea: add this music state as field to AppState
 
-- [ ] remove the arc.clone() every time you pass app state to Typeracer methods
+- [x] remove the arc.clone() every time you pass app state to Typeracer methods
 
 - [x] improve music player with methods like
     - `stop_playing`
@@ -52,15 +52,27 @@
 - [ ] improve performance of the code
 
 - [ ] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe some users dont want to see WPM at all
-
+    ```toml
+        [ui]    
+        # maybe some people will get intimidated while
+        # watching the WPM and playing at the same time
+        # some people just dont want to see `WPM dropping`
+        show_wpm = "true"
+        show_invisibles = "true"
+    ```
 - [x] add option to pause the song in the middle of the game
+
+
 - [ ] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
+    for this we need a music menu to control what will happen with the music
 
 - [ ] add auto detection of window lostfocus and then the game should pause automatically
 
-- [ ] add a stopwatch that is on a separate thread which can be paused for when i pause the game
+- [ ] fix typeracer game logic inside the match block, some things are redundant
 
-- [ ] to solve this error:
+- [x] add a stopwatch that is on a separate thread which can be paused for when i pause the game
+
+- [x] `RefCell<usize>` cannot be shared between threads safely
 
     error[E0277]: `RefCell<usize>` cannot be shared between threads safely
     EDIT (29.10.2022-17:39):
@@ -70,21 +82,29 @@
 
 
     2 options:
-        1. use Mutex for every field on AppState (EDIT: dont need to, the ref was the problem)
+        1. use Mutex for every field on AppState (EDIT: dont need to, the ref to app state (`&AppState`) was the problem)
         2. send MusicState enum as a message between threads to communicate
-            with the music player and to stuff accordingly
+            with the music player and to stuff accordingly (NEAH)
 
 
-- [ ] right now cant use unicode inside the текст
+- [x] added unicode support in #58aa37b
+- 
+    right now cant use unicode inside the `текст`(text in russian)
     fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
     maybe with:
         - unicode segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
         - unicode crates stuff
 
-- [ ] add option from cli and config to show invisibles like `tab` or `\n`
+- [ ] add option from cli and config to show invisibles like `tab`(`⭾`) or `\n`(`↵`)
+    
+    ```toml
+        [ui]
+        show_invisibles = "true"
+    ```
+    this would be at `~/.config/typeracer/config.toml`
+    we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(binary name)
 
-- [ ] fix typeracer game logic inside the match block, some things are redundant
 
 - [ ] add option for the border type
 ```rs
