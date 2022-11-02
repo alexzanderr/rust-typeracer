@@ -209,9 +209,9 @@ impl<'a> Typeracer<'a> {
         // clones the pointer here
 
         // arc pointer is in self as field
-        let music_thread_handle = self.create_and_spawn_music_thread();
+        let music_thread_handle = self.create_and_spawn_music_thread()?;
         let stopwatch_thread_handle =
-            self.create_and_spawn_stopwatch_thread();
+            self.create_and_spawn_stopwatch_thread()?;
 
         // there is one thing i can do
         // make a thread for music only, and only share on that thread AppSgstate
@@ -286,6 +286,8 @@ impl<'a> Typeracer<'a> {
         let app_state = app_state_mutex_ref;
         // at first keyboard press, the game has started
         let mut game_state = app_state.game_state_ref_mut();
+        // BUG: this is not good
+        // this line needs to be ran just once
         *game_state = GameState::Playing;
 
         let mut game_finished = app_state.game_finished_ref_mut();

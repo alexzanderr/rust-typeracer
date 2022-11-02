@@ -98,7 +98,7 @@
         - unicode crates stuff
 
 - [ ] add option from cli and config to show invisibles like `tab`(`⭾`) or `\n`(`↵`)
-    
+
     ```toml
         [ui]
         show_invisibles = "true"
