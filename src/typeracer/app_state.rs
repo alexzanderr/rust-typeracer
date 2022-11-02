@@ -157,7 +157,7 @@ impl AppState {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
-        let typeracer_text = r#"Rust's is blazingly fast and memory-efficient:
+        let typeracer_text = "\tRust's is blazingly fast and memory-efficient:
 with no runtime or garbage collector,
 it can power performance-critical services,
 run on embedded devices,
@@ -166,7 +166,7 @@ and easily integrate with other languages.
 Rust’s rich type system and ownership model
 guarantee memory-safety and thread-safety
 - enabling you to eliminate
-many classes of bugs at compile-time."#;
+many classes of bugs at compile-time.";
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;

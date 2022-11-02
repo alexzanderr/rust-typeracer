@@ -3,6 +3,7 @@ use std::io::{
     BufRead,
     BufReader
 };
+use colored::*;
 
 use ansi_parser::{
     AnsiParser,
@@ -251,6 +252,7 @@ impl TerminalScreen {
                     true
                 )
             } else {
+                let line = format!("{line}{}","↵".green().bold());
                 // line contains ansi, maybe
                 let mut contains_ansi = false;
                 let mut total_ansi_length = 0usize;
@@ -277,7 +279,10 @@ impl TerminalScreen {
             // let aligned_line = aligned_line + ENDC;
             // write!(handler, "{:?}\n\n", aligned_line)?;
 
-            let line = format!("│  {aligned_line}  │");
+            // let line = format!("│  {aligned_line}  │");
+
+            // WARNING: experimental code
+            let line = format!("│  {aligned_line}  │").replace("\t", "⭾");
             self.print(&line, current_x, y)?;
             current_x += 1;
 

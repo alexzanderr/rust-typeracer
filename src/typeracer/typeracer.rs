@@ -158,7 +158,7 @@ impl<'a> Typeracer<'a> {
                 // there inside MusicPLayer I could have
                 // a reference to AppState, to modifiy the Music state automatically
                 // but we'll see
-                mp.play_all_songs_one_by_one();
+                mp.play_all_songs_in_order();
                 {
                     let mut app_state_lock = app_state_arc.lock();
 
@@ -317,6 +317,18 @@ impl<'a> Typeracer<'a> {
         *keyboard_input = key_event_clone.yellow().to_string();
 
         match key_event {
+            // this needs to be merged with enter and Char(character)
+            KeyEvent {
+                code: KeyCode::Tab,
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                // its working, nice, but this is just a prototype
+                if '\t' == typeracer_text.chars().nth(*index).unwrap() {
+                    *index += 1;
+                    *index_shadow += 1;
+                }
+            },
             // this will pause the game and also pause the music and the stopwatch
             KeyEvent {
                 code: KeyCode::Char(' '),
@@ -385,6 +397,18 @@ impl<'a> Typeracer<'a> {
                     error_span
                 );
 
+                // TODO: recomment this
+                // // ui logic
+                let time_to_continue = self.handle_enter_key(
+                    &mut what_was_typed,
+                    &mut user_input_prompt,
+                    user_input_prompt_x.clone())?;
+
+                // if enter is pressed and the prompt is empty
+                // just continue the loop
+                if time_to_continue {
+                    return Ok((self, LoopActions::TimeToContinue))
+                }
 
                 //typeracer logic
 
@@ -415,16 +439,6 @@ impl<'a> Typeracer<'a> {
                     *wrong_index_shadow += 1;
                 }
 
-                // TODO: recomment this
-                // // ui logic
-                // let time_to_continue = self.handle_enter_key(
-                //     &mut what_was_typed,
-                //     &mut user_input_prompt,
-                //     user_input_prompt_x.clone())?;
-
-                // if time_to_continue {
-                //     return Ok((self, LoopActions::TimeToContinue))
-                // }
             },
             KeyEvent {
                 code: KeyCode::Char('c'),
@@ -640,6 +654,7 @@ impl<'a> Typeracer<'a> {
         if what_was_typed.len() >= term_width - 6 {
             what_was_typed.clear();
         }
+
         user_input_prompt.clear();
 
         Ok(false)
