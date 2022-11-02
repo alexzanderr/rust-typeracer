@@ -6,6 +6,7 @@
 # https://doc.rust-lang.org/cargo/reference/config.html#configuration-format
 [alias]
 b = "build"
+br = "build --release"
 c = "check"
 t = ["test", "--", "show-output"]
 r = "run"
@@ -13,7 +14,8 @@ rr = "run --release"
 # space_example = ["run", "--release", "--", "\"command list\""]
 
 [term]
-quiet = true          # whether cargo output is quiet
+# whether cargo output is quiet
+quiet = false
 verbose = false        # whether cargo provides verbose output
 color = 'auto'         # whether cargo colorizes output
 progress.when = 'auto' # whether cargo shows progress bar

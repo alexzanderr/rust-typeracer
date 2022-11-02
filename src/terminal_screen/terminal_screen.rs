@@ -11,7 +11,7 @@ use ansi_parser::{
 use ansi_parser::AnsiSequence;
 use thiserror::Error as ThisError;
 use pad::{
-    Alignment,
+    Alignment as PadAlignment,
     PadStr
 };
 use crossterm::event::{
@@ -45,22 +45,34 @@ use super::RectangleBuilder;
 use super::Rectangle;
 
 #[derive(Debug, DeriveBuilder)]
+// Precede your struct (or field) with #[builder(pattern = "owned")] to opt into this pattern.
+// Builders generated with this pattern do not automatically derive Clone,
+// which allows builders to be generated for structs with fields that do not derive Clone.
 #[builder(pattern = "owned")]
 pub struct TerminalScreen {
-    /// Precede your struct (or field) with #[builder(pattern = "owned")] to opt into this pattern. Builders generated with this pattern do not automatically derive Clone, which allows builders to be generated for structs with fields that do not derive Clone.
     #[builder(default = "std::io::stdout()")]
+    /// standard output where everything is written
     stdout:        std::io::Stdout,
     #[builder(default = "vec![]")]
+    /// this is the buffer where we write the entire UI
+    /// from which all the data will be flushed into stdout
+    /// then stdout will be flushed
     buffer:        Vec<u8>,
+    /// enter in alternate screen or dont enter
     alternate:     bool,
+    /// capture mouse or dont capture mouse
     capture_mouse: bool,
+
+    // TODO: this is actually not clean code; why to call 2 times in a row
+    // `crossterm::terminal::size().unwrap()`
     #[builder(default = "crossterm::terminal::size().unwrap().0")]
-    width:         u16,
+    // TODO: you must hold then as `usize`, its more convenient
+    width: u16,
     #[builder(default = "crossterm::terminal::size().unwrap().1")]
-    height:        u16
+    height: u16
 }
 
-impl<'a> TerminalScreen {
+impl TerminalScreen {
     pub fn new(
         alternate: bool,
         capture_mouse: bool
@@ -79,10 +91,10 @@ impl<'a> TerminalScreen {
         }
     }
 
-    /// its working :)
     pub fn set_panic_hook(&self) {
         let alternate = self.alternate;
         let capture_mouse = self.capture_mouse;
+
         std::panic::set_hook(Box::new(move |panic_info| {
             // if i dont manually bring back the cursor here,
             // the cursor wont come back
@@ -91,11 +103,13 @@ impl<'a> TerminalScreen {
 
             // ? operator is converting from an error to another
             if alternate {
-                let _ = execute!(stdout, LeaveAlternateScreen);
+                let _ = queue!(stdout, LeaveAlternateScreen);
             }
             if capture_mouse {
-                let _ = execute!(stdout, DisableMouseCapture);
+                let _ = queue!(stdout, DisableMouseCapture);
             }
+            let _ = stdout.flush();
+
             let _ = terminal::disable_raw_mode();
 
             eprintln!();
@@ -140,22 +154,27 @@ impl<'a> TerminalScreen {
         Ok(())
     }
 
-    pub fn rectangle<L>(&'a mut self) -> RectangleBuilder<'a, L>
+    pub fn rectangle<'a, L>(&'a mut self) -> RectangleBuilder<'a, L>
     where
         L: TermLines<'a, IteratorItem = &'a str> + 'a
     {
         RectangleBuilder::<'a, L>::new(self)
     }
 
+    #[inline(always)]
     pub fn width(&self) -> usize {
         self.width as usize
     }
 
+    #[inline(always)]
     pub fn height(&self) -> usize {
         self.height as usize
     }
 
+    /// this is like a lower level API for the terminal screen
+    /// where you pass all the configuration for drawing
     pub fn draw_rectangle<
+        'a,
         L: TermLines<'a, IteratorItem = &'a str> + 'a
     >(
         &'a mut self,
@@ -169,17 +188,19 @@ impl<'a> TerminalScreen {
         screens_width: bool,
         align_center: bool
     ) -> TerminalScreenResult<&'a mut Self> {
-        let DEBUG_MODE = std::env::var("DEBUG_MODE")?.eq("on");
-        let mut handler = std::fs::File::options()
-            .create(true)
-            // .truncate(true)
-            .write(true)
-            .append(true)
-            .open("logs/terminal_screen::draw_rectangle.log")?;
+        // TODO: remove this crap and pass the debugging options
+        // as field or parameter or global variable along the program
+        // let DEBUG_MODE = std::env::var("DEBUG_MODE")?.eq("on");
+        //        let mut handler = std::fs::File::options()
+        // .create(true)
+        // .truncate(true)
+        // .write(true)
+        // .append(true)
+        // .open("logs/terminal_screen::draw_rectangle.log")?;
 
-        if DEBUG_MODE {
-            write!(handler, "{:?}\n\n", lines)?;
-        }
+        // if DEBUG_MODE {
+        //     write!(handler, "{:?}\n\n", lines)?;
+        // }
 
         let mut current_x = x;
 
@@ -193,9 +214,9 @@ impl<'a> TerminalScreen {
         //     *line = format!("{line}{}", "\u{1b}[0m");
         // }
 
-        if DEBUG_MODE {
-            write!(handler, "{:?}\n\n", lines)?;
-        }
+        // if DEBUG_MODE {
+        //     write!(handler, "{:?}\n\n", lines)?;
+        // }
         // HERE
         // thats why we do have a bug in visual represenation of the text inside the rectangle
         // colored text doesnt have ENDC before line ending
@@ -223,7 +244,12 @@ impl<'a> TerminalScreen {
 
         for line in lines.iter() {
             let aligned_line = if align_center {
-                line.pad(inside_length - 4, ' ', Alignment::Middle, true)
+                line.pad(
+                    inside_length - 4,
+                    ' ',
+                    PadAlignment::Middle,
+                    true
+                )
             } else {
                 // line contains ansi, maybe
                 let mut contains_ansi = false;
@@ -245,7 +271,7 @@ impl<'a> TerminalScreen {
                     inside_length - 4
                 };
                 let line =
-                    line.pad(pad_length, ' ', Alignment::Left, true);
+                    line.pad(pad_length, ' ', PadAlignment::Left, true);
                 line
             };
             // let aligned_line = aligned_line + ENDC;
@@ -273,8 +299,14 @@ impl<'a> TerminalScreen {
         Ok(self)
     }
 
+    #[inline(always)]
     pub fn buffer_ref_mut(&mut self) -> &mut Vec<u8> {
         &mut self.buffer
+    }
+
+    #[inline(always)]
+    pub fn stdout_ref_mut(&mut self) -> &mut std::io::Stdout {
+        &mut self.stdout
     }
 
     pub fn clear(&mut self) -> TerminalScreenResult<&mut Self> {
@@ -283,10 +315,6 @@ impl<'a> TerminalScreen {
         );
         execute!(self.stdout, clear_screen)?;
         Ok(self)
-    }
-
-    pub fn stdout_ref_mut(&mut self) -> &mut std::io::Stdout {
-        &mut self.stdout
     }
 
     pub fn print(

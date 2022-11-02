@@ -47,6 +47,7 @@ impl SpanError {
         }
     }
 }
+
 impl core::fmt::Display for SpanError {
     fn fmt(
         &self,
@@ -128,6 +129,7 @@ r#"{}: IoError
         mpe: MusicPlayerErrors
     },
 
+    // TODO: actually implement from a real PoisonError with lifetimes (that was the hard part)
     #[error("PoisonError")]
     PoisonError
 }

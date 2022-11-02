@@ -10,7 +10,7 @@
 
 - [x] add music
 
-- [ ] start the stopwatch thread only after the first keyboard strike
+- [x] start the stopwatch thread only after the first keyboard strike
 
 - [ ] add progress bar for showing how much text is left to type
 
@@ -92,6 +92,7 @@
     right now cant use unicode inside the `текст`(text in russian)
     fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
+
     maybe with:
         - unicode segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
         - unicode crates stuff
@@ -129,3 +130,5 @@ pub enum BorderType {
 - [ ] check this https://github.com/erickt/rust-zmq
 
 - [ ] add url printex as text inside TUI to click on it and to go on docs for example
+
+- [ ] dont forget that there are `TODO`s inside the source code that

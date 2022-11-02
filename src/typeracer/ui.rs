@@ -163,10 +163,12 @@ impl<'a> TyperacerUI<'a> {
         format!("{green}{red}{rest}")
     }
 
+    #[inline(always)]
     pub fn term_height(&self) -> usize {
         self.term.height()
     }
 
+    #[inline(always)]
     pub fn term_width(&self) -> usize {
         self.term.width()
     }

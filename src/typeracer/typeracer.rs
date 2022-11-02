@@ -281,13 +281,12 @@ impl<'a> Typeracer<'a> {
     fn handle_key_event(
         &self,
         key_event: KeyEvent,
-        app_state_mutex: &MutexGuard<AppState>
+        app_state_mutex_ref: &MutexGuard<AppState>
     ) -> TyperacerResult<(&Self, LoopActions)> {
-        // let app_state = match self.app_state.lock() {
-        //     Ok(app_state) => app_state,
-        //     Err(error) => return Err(TyperacerErrors::PoisonError)
-        // };
-        let app_state = app_state_mutex;
+        let app_state = app_state_mutex_ref;
+        // at first keyboard press, the game has started
+        let mut game_state = app_state.game_state_ref_mut();
+        *game_state = GameState::Playing;
 
         let mut game_finished = app_state.game_finished_ref_mut();
         let mut typeracer_text = app_state.typeracer_text_ref_mut();
@@ -306,7 +305,6 @@ impl<'a> Typeracer<'a> {
 
         let mut music_state = app_state.music_state_ref_mut();
 
-        let mut game_state = app_state.game_state_ref_mut();
         let elapsed = app_state.elapsed_time_ref_mut();
         let mut keyboard_input = app_state.keyboard_input_ref_mut();
 

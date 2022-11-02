@@ -6,7 +6,7 @@ I had two loops which locked the mutex;
 the main loop was locking but no release/drop of the mutex-lock cuz it wasnt inside a secondary block of code.
 
 ## here's the entire code that you can test
-```rs
+```rust
 use std::time::{
     Duration,
     Instant

@@ -89,3 +89,6 @@ strip = true  # Automatically strip symbols from the binary.
 # for this you need cargo feature `cargo-features = ["profile-rustflags"]` at the top of Cargo.toml
 rustflags = ["-C", "target-cpu=native"]
 
+# learn more about that
+# https://doc.rust-lang.org/cargo/reference/profiles.html#incremental
+# incremental = false

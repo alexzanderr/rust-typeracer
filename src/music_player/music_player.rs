@@ -142,18 +142,29 @@ impl MusicPlayer {
         }
     }
 
-    // pub fn new() -> Result<Self, SoloudError> {
-    //     let mut sl = Soloud::default()?;
-    //     // sl.set_global_volume(2.0);
+    /// let music_player = MusicPlayer::new()?;
+    /// initializes a new music player with
+    /// global volume to 0.5 (the default one)
+    pub fn new() -> MusicPlayerResult<Self> {
+        if INITIALIZED_MUSIC_PLAYER.load(Ordering::Relaxed) {
+            Err(MusicPlayerErrors::MusicPLayerAlreadyInitializedError)
+        } else {
+            INITIALIZED_MUSIC_PLAYER.store(true, Ordering::Relaxed);
 
-    //     let mut wav = Wav::default();
-    //     Ok(Self {
-    //         player: sl,
-    //         wav,
-    //         playing: false,
-    //         handle: None,
-    //     })
-    // }
+            let mut player = Soloud::default()?;
+            // this is the default volume
+            // not too loud and not too low
+            player.set_global_volume(0.5);
+
+            let _self = Self {
+                player,
+                songs: None,
+                handles: None
+            };
+
+            Ok(_self)
+        }
+    }
 
     pub fn pause_playing_by_song(
         &mut self,
@@ -225,7 +236,7 @@ impl MusicPlayer {
         }
     }
 
-    pub fn play_music_by_song_in_background(
+    pub fn play_song_by_alias(
         &mut self,
         song_alias: &str
     ) {
@@ -262,24 +273,6 @@ impl MusicPlayer {
         } else {
             self.songs = Some(songs);
         }
-
-        Ok(())
-    }
-
-    fn play_song_by_alias(
-        &self,
-        alias: &str
-    ) -> MusicPlayerResult<()> {
-        todo!();
-
-        Ok(())
-    }
-
-    fn stop_song_by_alias(
-        &self,
-        arg: &str
-    ) -> MusicPlayerResult<()> {
-        todo!();
 
         Ok(())
     }

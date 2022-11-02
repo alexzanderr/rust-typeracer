@@ -223,7 +223,7 @@ many classes of bugs at compile-time."#;
         let music_state = RefCell::new(MusicState::new_stopped());
 
         let elapsed_time = RefCell::new(0usize);
-        let game_state = RefCell::new(GameState::Playing);
+        let game_state = RefCell::new(GameState::Paused);
 
         Self {
             stopwatch,
