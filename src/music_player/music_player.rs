@@ -30,7 +30,7 @@ impl MusicPlayer {
     }
 
     // BUG: this plays all the songs at the same time
-    pub fn play_all_songs_one_by_one(&mut self) {
+    pub fn play_all_songs_in_order(&mut self) {
         if let Some(ref mut songs) = self.songs {
             for pair in songs.iter() {
                 let (song_alias, song_wav) = pair;

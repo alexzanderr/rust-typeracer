@@ -172,7 +172,7 @@ fn main() {
             loop {
                 let music_state = music_thread_receiver.recv();
                 if let Ok(MusicState::Playing) = music_state {
-                    mp.play_all_songs_one_by_one();
+                    mp.play_all_songs_in_order();
                     break;
                 }
                 sleep(Duration::from_millis(10));

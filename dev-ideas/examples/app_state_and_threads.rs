@@ -152,7 +152,7 @@ fn main() {
             // there inside MusicPLayer I could have
             // a reference to AppState, to modifiy the Music state automatically
             // but we'll see
-            mp.play_all_songs_one_by_one();
+            mp.play_all_songs_in_order();
             {
                 let mut app_state_lock =
                     app_state_arc_clone.lock().unwrap();
