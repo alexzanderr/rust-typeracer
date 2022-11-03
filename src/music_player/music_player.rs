@@ -19,6 +19,8 @@ lazy_static::lazy_static! {
 #[derive(Debug)]
 // https://github.com/MoAlyousef/soloud-rs/issues/24
 pub struct MusicPlayer {
+    // TODO: would be a good idea to put this behind an Rc<RefCell>
+    // or to wrap the entire `MusicPlayer`
     player:  Soloud,
     songs:   Option<HashMap<String, Wav>>,
     handles: Option<HashMap<String, Handle>>
@@ -87,6 +89,9 @@ impl MusicPlayer {
         let mut wav = Wav::default();
         wav.load_mem(song_bytes)?;
 
+        // what if the song with this alias already exists
+        // old value is overwritten
+        // see the docs: https://doc.rust-lang.org/std/collections/hash_map/struct.HashMap.html#method.insert
         songs.insert(song_alias.to_string(), wav);
 
         if let Some(ref mut self_songs) = self.songs {
@@ -278,25 +283,25 @@ impl MusicPlayer {
     }
 }
 
-#[test]
-fn design_music_player() -> MusicPlayerResult<()> {
-    let player = MusicPlayer::from_volume(0.5)?;
-
-    // wav.load(&std::path::Path::new("static/audio/skeler-telaviv.mp3"))?;
-    // let handle = sl.play(&wav);
-
-    player.load_song_from_path(
-        std::path::Path::new("static/audio/davai_hardbass.wav"),
-        "davai-hardbass"
-    )?;
-
-    player.load_song_from_path(
-        std::path::Path::new("static/audio/skeler-telaviv.mp3"),
-        "skeler"
-    )?;
-
-    player.play_song_by_alias("skeler")?;
-    player.stop_song_by_alias("skeler")?;
-
-    Ok(())
-}
+// #[test]
+// fn design_music_player() -> MusicPlayerResult<()> {
+//     let player = MusicPlayer::from_volume(0.5)?;
+//
+//     // wav.load(&std::path::Path::new("static/audio/skeler-telaviv.mp3"))?;
+//     // let handle = sl.play(&wav);
+//
+//     player.load_song_from_path(
+//         std::path::Path::new("static/audio/davai_hardbass.wav"),
+//         "davai-hardbass"
+//     )?;
+//
+//     player.load_song_from_path(
+//         std::path::Path::new("static/audio/skeler-telaviv.mp3"),
+//         "skeler"
+//     )?;
+//
+//     player.play_song_by_alias("skeler")?;
+//     player.stop_song_by_alias("skeler")?;
+//
+//     Ok(())
+// }
