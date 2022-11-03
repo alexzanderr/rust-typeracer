@@ -36,7 +36,7 @@ pub use terminal_screen::{
 };
 
 mod typeracer;
-pub use typeracer::{
+pub use self::typeracer::{
     AppState,
     GameState,
     Stats,

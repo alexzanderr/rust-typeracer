@@ -49,7 +49,10 @@
 
 - [x] load the music files using rayon crate for parallelism or using `std::thread::spawn`
     im not sure if Soloud can be modified on multiple threads, it is!
+- 
     `Wav` cannot be sent between threads safely, even with unsafe! WHY??
+- 
+    because the compiler doesnt care about unsafe when Send and Sync are dont impl for that type
 
 - [ ] improve performance of the code
 
@@ -90,7 +93,6 @@
 
 
 - [x] added unicode support in #58aa37b
-- 
     right now cant use unicode inside the `текст`(text in russian)
     fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
@@ -133,4 +135,6 @@ pub enum BorderType {
 
 - [ ] add url printex as text inside TUI to click on it and to go on docs for example
 
-- [ ] dont forget that there are `TODO`s inside the source code that
+- [ ] dont forget that there are `TODO`s inside the source code as well
+
+- [ ] you can make a separate thread to receive signals if the main thread blocks; then you can `std::process::exit(1)` from there
