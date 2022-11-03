@@ -16,23 +16,47 @@ path = "src/bin/try_music_player/main.rs"
 
 # https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-dependencies-table
 [dependencies]
-crossterm = { workspace = true }
-typeracer = { path = ".."}
-colored = { workspace = true }
-dotenv = { workspace = true }
-rand = { workspace = true }
+crossterm = { workspace = true, optional = true }
+# the main project's library for testing and creating new ideas
+typeracer = { path = "..", optional = true}
+
+colored = { workspace = true, optional = true }
+dotenv = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
 crossbeam-channel = { version = "0.5.6", optional = true }
+termion = { version = "1.5.6", optional = true }
+pancurses = { version = "0.17.0", optional = true }
+criterion = { version = "0.4.0", optional = true }
+tokio = { version = "1.21.2", features = ["rt", "rt-multi-thread"], optional = true }
+termion-input-tokio = { version = "0.3.0", optional = true }
+
+soloud = { workspace = true, optional = true }
+
 
 [features]
-channels = ["dep:crossbeam-channel"]
+dev-ideas = [
+    "soloud",
+    "crossterm",
+    # the main project's library for testing and creating new ideas
+    "typeracer",
+    "colored",
+    "dotenv",
+    "rand",
+    "crossbeam-channel",
+    "termion",
+    "pancurses",
+    "criterion",
+    "tokio",
+    "termion-input-tokio",
+]
 
 [[example]]
 name = "chan"
 path = "examples/channels_method_music.rs"
-required-features = ["channels"]
+required-features = ["dev-ideas"]
 
 
 [[example]]
 name = "cm"
 path = "examples/channels_method_music_and_stopwatch.rs"
-required-features = ["channels"]
+required-features = ["dev-ideas"]
