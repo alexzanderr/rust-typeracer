@@ -99,11 +99,42 @@ st: show_threads
 #  87 + │ cc:·check_continuous␊
 
 check_loop:
+	@echo "hello world"
+
 	@time cargo watch \
 		--clear \
+		--delay 1.2 \
+		--why \
+		--quiet \
+		--postpone \
+		--watch-when-idle \
 		--watch="src" \
+		--watch="benches" \
 		--watch="dev-ideas" \
-		--shell="cargo check --quiet" \
-		--delay 1.2
+		--watch="examples" \
+		--shell="cargo check --quiet"
 
 cc: check_loop
+
+
+check_workspace:
+	@time cargo watch \
+		--clear \
+		--delay 1.2 \
+		--why \
+		--quiet \
+		--postpone \
+		--watch-when-idle \
+		--watch="src" \
+		--watch="benches" \
+		--watch="dev-ideas" \
+		--watch="examples" \
+		--shell="cargo check --quiet --workspace"
+
+cw: check_workspace
+
+
+cargo_docs:
+	@time cargo doc --no-deps --all-features --document-private-items --workspace --open
+
+md: cargo_docs
