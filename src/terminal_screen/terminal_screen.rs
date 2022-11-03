@@ -74,11 +74,15 @@ pub struct TerminalScreen {
 }
 
 impl TerminalScreen {
+    /// sets the width of the terminal screen
+    /// meaning the y
     #[inline(always)]
     pub fn set_width(&mut self, width: u16) {
         self.width = width;
     }
 
+    /// sets the height of the terminal screen
+    /// meaning the x
     #[inline(always)]
     pub fn set_height(&mut self, height: u16) {
         self.height = height;
@@ -86,7 +90,7 @@ impl TerminalScreen {
 
     pub fn new(
         alternate: bool,
-        capture_mouse: bool
+        capture_mouse: bool,
     ) -> Self {
         let mut stdout = std::io::stdout();
         let (width, height) = crossterm::terminal::size().unwrap();
