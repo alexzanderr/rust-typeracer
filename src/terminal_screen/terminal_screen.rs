@@ -3,8 +3,8 @@ use std::io::{
     BufRead,
     BufReader
 };
-use colored::*;
 
+use colored::*;
 use ansi_parser::{
     AnsiParser,
     Output
@@ -74,6 +74,16 @@ pub struct TerminalScreen {
 }
 
 impl TerminalScreen {
+    #[inline(always)]
+    pub fn set_width(&mut self, width: u16) {
+        self.width = width;
+    }
+
+    #[inline(always)]
+    pub fn set_height(&mut self, height: u16) {
+        self.height = height;
+    }
+
     pub fn new(
         alternate: bool,
         capture_mouse: bool
@@ -252,7 +262,7 @@ impl TerminalScreen {
                     true
                 )
             } else {
-                let line = format!("{line}{}","↵".green().bold());
+                let line = format!("{line}{}", "↵".green().bold());
                 // line contains ansi, maybe
                 let mut contains_ansi = false;
                 let mut total_ansi_length = 0usize;

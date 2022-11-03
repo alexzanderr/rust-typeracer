@@ -163,6 +163,17 @@ impl<'a> TyperacerUI<'a> {
         format!("{green}{red}{rest}")
     }
 
+
+    #[inline(always)]
+    pub fn set_term_height(&mut self, height: u16) {
+        self.term.set_height(height);
+    }
+
+    #[inline(always)]
+    pub fn set_term_width(&mut self, width: u16) {
+        self.term.set_width(width);
+    }
+
     #[inline(always)]
     pub fn term_height(&self) -> usize {
         self.term.height()
