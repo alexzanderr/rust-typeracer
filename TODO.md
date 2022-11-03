@@ -16,7 +16,7 @@
 
 - [ ] use another linker and more stuff from that article to improve compile time speed
 
-- [ ] you can bench the MusicPlayer load time, if its so slow
+- [x] you can bench the MusicPlayer load time, if its so slow
 
 - [x] handle screen resize, just update the term height and width inside the TyperacerUI
 

@@ -11,6 +11,7 @@ c= "check"
 t = ["test", "--", "show-output"]
 r = "run"
 rr = "run --release"
+bn = "bench"
 # space_example = ["run", "--release", "--", "\"command list\""]
 
 [term]
