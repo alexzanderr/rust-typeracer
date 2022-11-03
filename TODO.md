@@ -47,7 +47,7 @@
 
 - [ ] improve project quality by adding a better readme, import from other rust projects, by adding CI, by adding tests for individual methods or functions
 
-- [ ] load the music files using rayon crate for parallelism
+- [x] load the music files using rayon crate for parallelism or using `std::thread::spawn`
     im not sure if Soloud can be modified on multiple threads, it is!
     `Wav` cannot be sent between threads safely, even with unsafe! WHY??
 
