@@ -9,8 +9,14 @@ edition = "2021"
 default-run = "typeracer"
 authors = [ "alexzanderr <alexzander.dot.dev@gmail.com>" ]
 exclude = [
-    "python_version"
+    "python_version",
+    # https://github.com/rust-lang/cargo/issues/3578
+    "examples/*"
 ]
+
+[[bin]]
+name = "typeracer"
+path = "src/main.rs"
 
 [features]
 music = []
@@ -45,35 +51,50 @@ rand = "0.8.5"
 
 
 [dependencies]
-ansi_term = "0.12.1"
-termion = "1.5.6"
+# builder design pattern: create a builder for your struct
 derive_builder = "0.11.2"
+# error management
 thiserror = "1.0.37"
 
+# string alignment
 pad = "0.1.6"
+# parse ansi codes from a string
 ansi-parser = "0.8.0"
-pancurses = "0.17.0"
+# random numbers
 rand = { workspace = true }
+# play music
 soloud = { workspace = true }
+# ansi + rgb colors
 colored = { workspace = true }
+# load env variables
 dotenv = { workspace = true }
+# better testing assertions
 assert2 = { workspace = true }
+# terminal manipulation library
 crossterm = { workspace = true }
+# getters and setters automatically created with derive
+# but they are crap, honestly, you better write your own setters
 getset = "0.1.2"
+# global variables allocated at runtime
 lazy_static = "1.4.0"
+# unicode manipulation
+# a unicode char can have between 1..4 bytes instead of 1 like a char
 unicode-segmentation = "1.10.0"
+
+
 
 
 [workspace]
 members = [
+    # the place where all new ideas and experimental examples are implemented
     "dev-ideas",
-    "examples/music"
 ]
 exclude = [
 ]
 
 
-# ultra specs
+# Ultra performance specs
+# NOTE: compilation is very long, but its worth it
 [profile.release]
 # https://github.com/johnthagen/min-sized-rust
 # compilation takes longer here

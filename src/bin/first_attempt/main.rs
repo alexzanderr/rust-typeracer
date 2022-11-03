@@ -50,27 +50,20 @@ use crossterm::{
     Result as CrosstermResult
 };
 use core_dev::datetime::datetime::get_current_datetime;
-use ansi_term::{
-    Color::{
-        Green,
-        Red
-    },
-    Colour,
-    Style
-};
 use colored::*;
 use core_dev::traits::StringExtended;
 use rand::thread_rng;
 use rand::Rng;
+use colored::*;
+
 
 fn get_text_colored(
     text: &str,
     index: usize,
     wrong_index: usize
 ) -> String {
-    let green = Green.paint(&text[..index]).to_string().replace(" ", "_");
-    let red = Red
-        .paint(&text[index..index + wrong_index])
+    let green = text[..index].green().to_string().replace(" ", "_");
+    let red = text[index..index + wrong_index].red()
         .to_string()
         .replace(" ", "_");
     let rest = &text[index + wrong_index..];
