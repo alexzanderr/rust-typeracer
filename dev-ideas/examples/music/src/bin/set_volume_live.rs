@@ -1,3 +1,19 @@
+#![allow(
+    dead_code,
+    unused_imports,
+    unused_variables,
+    unused_macros,
+    unused_assignments,
+    unused_mut,
+    non_snake_case,
+    unused_must_use,
+    non_upper_case_globals,
+    non_camel_case_types,
+    semicolon_in_expressions_from_macros,
+    redundant_semicolons,
+    unused_macros
+)]
+
 use std::io::Write;
 
 use soloud::*;
@@ -5,20 +21,24 @@ use rand::*;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut sl = Soloud::default()?;
 
+    // TODO: hello world
+
     let mut wav = audio::Wav::default();
     let mut filt = filter::EchoFilter::default();
     // let mut filt = filter::
     let mut filt = filter::BassboostFilter::default();
     filt.set_params(1.0)?;
 
-    let song_bytes = include_bytes!("../static/audio/skeler-telaviv.mp3");
+    let song_bytes =
+        include_bytes!("../../../../static/audio/skeler-telaviv.mp3");
     // WARNING: DONT RUN THIS; doesnt work; it plays gibberish and destroys my ears
     // unsafe { wav.load_raw_wav_8(song_bytes)?; }
 
-    wav.load(&std::path::Path::new("static/audio/skeler-telaviv.mp3"))?;
+    wav.load(&std::path::Path::new(
+        "../../static/audio/skeler-telaviv.mp3"
+    ))?;
     wav.set_filter(0, Some(&filt));
     let handle = sl.play(&wav);
-
 
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
