@@ -18,7 +18,7 @@
 
 - [ ] you can bench the MusicPlayer load time, if its so slow
 
-- [ ] handle screen resize, just update the term height and width inside the TyperacerUI
+- [x] handle screen resize, just update the term height and width inside the TyperacerUI
 
 - [x] if you want to have mutliple threads you can use `channels/crossbeam-channels/arc<mutex<AppState>>` to send data and to tell the music thread to stop the music completely or to pause the music
     resources:
