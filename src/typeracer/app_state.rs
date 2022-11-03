@@ -157,7 +157,8 @@ impl AppState {
         let typeracer_text_x = 6;
         let typeracer_text =
             "rust is the best language ever and the hardest";
-        let typeracer_text = "\tRust's is blazingly fast and memory-efficient:
+        let typeracer_text =
+            "\tRust's is blazingly fast and memory-efficient:
 with no runtime or garbage collector,
 it can power performance-critical services,
 run on embedded devices,

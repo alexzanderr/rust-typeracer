@@ -17,7 +17,7 @@ use std::cell::{
 // #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
     text:  RefCell<String>,
-    index: RefCell<usize>,
+    index: RefCell<usize>
 }
 
 impl AppState {

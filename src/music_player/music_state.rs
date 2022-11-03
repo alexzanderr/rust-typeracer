@@ -11,10 +11,9 @@ use super::MusicPlayer;
 pub enum MusicState {
     Stopped,
     Paused,
-    Playing
-    // IDEA
-    // LoadSongFromPath(String)
-    // PlaySong(String)
+    Playing /* IDEA
+             * LoadSongFromPath(String)
+             * PlaySong(String) */
 }
 
 impl MusicState {
