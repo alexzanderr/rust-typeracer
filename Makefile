@@ -134,7 +134,60 @@ check_workspace:
 cw: check_workspace
 
 
-cargo_docs:
+test_all:
+	@cargo test --quiet --workspace -- --show-output
+
+docs:
 	@time cargo doc --no-deps --all-features --document-private-items --workspace --open
 
-md: cargo_docs
+md: docs
+
+cfmt:
+	@cargo fmt --all -- --check
+
+
+clip:
+	@cargo clippy
+
+cti: test_all docs clip cfmt
+
+
+
+
+# TODO: the paths will change to change here too
+init-git-config:
+	# set git hooks to be in the folder .githooks
+	git config core.hooksPath githooks
+	git config --local include.path ../.gitconfig
+
+
+#publish:
+#	cargo doc --no-deps --all-features --document-private-items --workspace
+#	cargo test --workspace -- --show-output
+#	cargo clippy -- -D warnings
+#	cargo fmt --all -- --check
+#	cargo publish --key $crates_io_key_as_env_var
+
+
+# optimizations for the future
+#pgo:
+#	exit 1
+#	# STEP 0: Make sure there is no left-over profiling data from previous runs
+#	rm -rf /tmp/pgo-data
+#
+#	# STEP 1: Build the instrumented binaries
+#	RUSTFLAGS="-Cprofile-generate=/tmp/pgo-data" \
+#	    cargo build --release --target=x86_64-unknown-linux-gnu
+#
+#	# STEP 2: Run the instrumented binaries with some typical data
+#	./target/x86_64-unknown-linux-gnu/release/myprogram mydata1.csv
+#	./target/x86_64-unknown-linux-gnu/release/myprogram mydata2.csv
+#	./target/x86_64-unknown-linux-gnu/release/myprogram mydata3.csv
+#
+#	# STEP 3: Merge the `.profraw` files into a `.profdata` file
+#	llvm-profdata merge -o /tmp/pgo-data/merged.profdata /tmp/pgo-data
+#
+#	# STEP 4: Use the `.profdata` file for guiding optimizations
+#	RUSTFLAGS="-Cprofile-use=/tmp/pgo-data/merged.profdata" \
+#	    cargo build --release --target=x86_64-unknown-linux-gnu
+#

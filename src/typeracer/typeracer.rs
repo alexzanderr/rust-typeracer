@@ -690,7 +690,10 @@ impl<'a> Typeracer<'a> {
         let stopwatch_thread = ThreadBuilder::new()
             .name("stopwatch-thread".to_string())
             .spawn(move || {
-                // let _ = 123;
+                // this comment helps protect this from rustfmt to
+                // make a single block loop: `move || loop {}`
+                // i really dont like this, to reformat everytime
+                // what if i want to put some lines before the loop
                 loop {
                     if let Ok(mut app_state_mutex) = app_state_arc.lock() {
                         let mut game_state =

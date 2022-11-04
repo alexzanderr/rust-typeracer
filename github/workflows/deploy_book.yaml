@@ -1,0 +1,33 @@
+name: Deploy Rust Python Objects Book
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Install mdbook
+              run: |
+                  mkdir mdbook
+                  curl -Lf https://github.com/rust-lang/mdBook/releases/download/v0.4.15/mdbook-v0.4.15-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
+                  echo `pwd`/mdbook >> $GITHUB_PATH
+
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+
+            - name: deploy book
+              run: |
+                  git checkout gh-pages
+                  rm -rfv book
+                  rm -rfv src
+                  git checkout main "book/src/*" "book/book.toml"
+                  mv -vf ./book/book.toml ./book/src .
+                  mdbook build
+                  git config --global user.name "Deploy Book CI"
+                  git config --global user.email ""
+                  git add .
+                  git commit -m "rust book built ($GITHUB_SHA) automatically and deployed to gh-pages"
+                  git push

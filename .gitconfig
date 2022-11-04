@@ -1,0 +1,14 @@
+
+
+
+[core]
+    # yes, this config will be `appended` to the `.git/config` file
+
+    # its not working
+    hooksPath = .githooks
+
+    # TODO: use the $EDITOR because to all users have sublime text installed
+	editor = subl --wait
+
+    # transform .gitignore to this file
+    excludesFile = git-config/ignore
