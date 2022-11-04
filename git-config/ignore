@@ -1,9 +1,10 @@
 
-
+# rust specific
 target
-
+dist
 # because its a binary application
-# Cargo.lock
+Cargo.lock
+
 
 # sublime workspace
 *.sublime-*
@@ -14,4 +15,11 @@ target
 python_version
 logs
 
-new
+# if you are using vs code
+.vscode
+*.code-workspace
+
+
+# right now we ignore the docs
+# because i need to check it first and make some changes
+docs

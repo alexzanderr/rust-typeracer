@@ -1,0 +1,82 @@
+name: Deploy Rust Typeracer Book
+on:
+  push:
+    branches:
+      - main
+
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-system-path
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install mdbook
+        run: |
+          mkdir mdbook
+          curl -Lf https://github.com/rust-lang/mdBook/releases/download/v0.4.15/mdbook-v0.4.15-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
+          echo `pwd`/mdbook >> $GITHUB_PATH
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: deploy book
+        run: |
+          # what if gh-pages branch doesnt exist?
+          # error: pathspec 'gh-pages' did not match any file(s) known to git
+          # this will crash at first runt
+          git checkout gh-pages
+          rm -rfv book
+          rm -rfv src
+          
+          # copy the file patterns from main branch to gh-pages branch
+          git checkout main "book/src/*" "book/book.toml"
+          
+          # move from book folder to root folder in gh-pages branch
+          mv -vf ./book/book.toml ./book/src .
+          
+          mdbook build
+          git config --global user.name "Deploy Book CI"
+          git config --global user.email ""
+          git add .
+          git commit -m "rust book built ($GITHUB_SHA) automatically and deployed to gh-pages"
+          git push
+
+
+
+# another old option here
+#name: Docs Deploy
+#on:
+#  push:
+#    branches:
+#      - master
+
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-system-path
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: Install mdbook
+#        run: |
+#          mkdir mdbook
+#          curl -Lf https://github.com/rust-lang/mdBook/releases/download/v0.4.15/mdbook-v0.4.15-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=./mdbook
+#          echo `pwd`/mdbook >> $GITHUB_PATH
+#      - name: Deploy docs
+#        run: |
+#          cd docs
+#          mdbook build
+#          git worktree add gh-pages gh-pages
+#          git config user.name "Deploy from CI"
+#          git config user.email ""
+#          cd gh-pages
+#          # Delete the ref to avoid keeping history.
+#          git update-ref -d refs/heads/gh-pages
+#          rm -rf *
+#          mv ../book/* .
+#          git add .
+#          git commit -m "Deploy $GITHUB_SHA to gh-pages"
+#          git push --force

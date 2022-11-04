@@ -10,7 +10,9 @@ jobs:
     security_audit:
         runs-on: ubuntu-latest
         steps:
+            # this clones the github repo into a container
             - uses: actions/checkout@v1
+            # this runs the below command
             - uses: actions-rs/audit-check@v1
               with:
                   # cargo audit -D warnings -D unmaintained -D unsound -D yanked

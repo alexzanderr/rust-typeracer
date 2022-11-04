@@ -1,16 +1,24 @@
-
-
 # git hooks
+
 why there is a `githooks` here instead of being in the folder `.git/hooks/**` ?
 
 because this hooks are useful and maybe other developers just want to use this hooks
 
+IMPORTANT NOTICE: all the git hook files need to be `executable`
+
+```shell
+# assuming you are in project root
+chmod +x git/hooks/pre-commit
+```
+
 ## to install these hooks into your .git/hooks
 
 run
+
 ```shell
 git config core.hooksPath githooks
 ```
+
 this will add the `githooks` directory as main git hooks dir
 
 and you are ready to go

@@ -1,6 +1,6 @@
-
-
-
+#
+# extened git configuration custom for this project
+#
 [core]
     # yes, this config will be `appended` to the `.git/config` file
 
@@ -8,7 +8,21 @@
     hooksPath = .githooks
 
     # TODO: use the $EDITOR because to all users have sublime text installed
-	editor = subl --wait
+	editor = idea --wait
 
     # transform .gitignore to this file
+    # https://git-scm.com/docs/gitignore
     excludesFile = git-config/ignore
+
+
+[alias]
+    # with !git you tell git to ignore `git` as a first word
+    # because aliases are run as subcommands
+    # just like cargo
+	commits = "!git rev-list HEAD --count"
+
+
+[color "branch"]
+    current = "#b9db69" reverse
+    local = "#ABB2BF"
+    remote = "#7191fb"

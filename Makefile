@@ -1,4 +1,6 @@
 
+# include configuration for the Makefile
+include config.mk
 
 
 # BIN = main
@@ -68,7 +70,8 @@ check:
 c: check
 
 code_stats:
-	tokei -C -s code
+	tokei -e book --verbose -e .idea -e target -e static -C -s code
+#   tokei -C -s code
 
 cc: code_stats
 

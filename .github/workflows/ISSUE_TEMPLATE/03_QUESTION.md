@@ -1,7 +1,7 @@
 
 ---
 name: ❓ Question
-about: Ask a question about rust-python-objects
+about: Ask a question about rust-typeracer
 ---
 
 # Question

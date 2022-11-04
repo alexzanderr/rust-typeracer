@@ -5,35 +5,30 @@
 Great TODOs for improvement of this project.
 
 
-# Planned for Future
-- [ ] migrate to some TUI framework
-- [ ] check this https://github.com/kraanzu/termtyper
-
-- [ ] check this crates that are using crossterm:
-    - https://github.com/nushell/reedline
-    - https://github.com/rhysd/tui-textarea
-    - https://github.com/d-e-s-o/notnow/tree/3fa49e41550926d865afc56446bd950a39a139fc/
-- [ ]
-- [ ]
-- [ ]
-- [ ]
-- [ ]
-- [ ]
-- [ ]
-
-
 # Ideas
+- [ ] what do to in case i want to show the README.md from another branch
+  all the included links are on blob/main
+- [ ] check this
+  nice `mdbook github action` [`https://github.com/peaceiris/actions-mdbook/blob/main/README.md`](https://github.com/peaceiris/actions-mdbook/blob/main/README.md)
+
+- [ ] when using CI; there is a dependency cacher for github actions to not install all dependecies at every CI action
+
+- [ ] add private tests for the function `color_formatted_text`
+
+- [ ] create a typeracer-proc-macro crate inside this workspace
+
+- [ ] put music on separate feature, for example
+
 - [ ] split this `TODO.md` file on multiple files within a folder, because it will grow very large in the future
-- 
+-
 - [ ] add progress bar for showing how much text is left to type
 
 - [ ] use another linker and more stuff from that article to improve compile time speed
 
-- [ ] improve project quality by adding a better readme, import from other rust projects, by adding CI, by adding tests for individual methods or functions
-
 - [ ] improve performance of the code
 
-- [ ] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe some users dont want to see WPM at all
+- [ ] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe
+  some users dont want to see WPM at all
     ```toml
         [ui]    
         # maybe some people will get intimidated while
@@ -42,9 +37,9 @@ Great TODOs for improvement of this project.
         show_wpm = "true"
         show_invisibles = "true"
     ```
-  
+
 - [ ] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
-    for this we need a music menu to control what will happen with the music
+  for this we need a music menu to control what will happen with the music
 
 - [ ] add auto detection of window lostfocus and then the game should pause automatically
 
@@ -56,8 +51,8 @@ Great TODOs for improvement of this project.
         [ui]
         show_invisibles = "true"
     ```
-    this would be at `~/.config/typeracer/config.toml`
-    we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(binary name)
+  this would be at `~/.config/typeracer/config.toml`
+  we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(binary name)
 
 
 - [ ] add option for the border type
@@ -89,6 +84,8 @@ Great TODOs for improvement of this project.
 
 # Working On
 
+- [ ] improve project quality by adding a better readme, import from other rust projects, by adding CI, by adding tests
+  for individual methods or functions
 
 
 
@@ -167,7 +164,6 @@ Great TODOs for improvement of this project.
   right now cant use unicode inside the `текст`(text in russian)
   fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
-
     maybe with:
         - unicode segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
         - unicode crates stuff
@@ -175,3 +171,20 @@ Great TODOs for improvement of this project.
 - [x] add multi-line typeracing (hardest one)
 
 - [x] add pre-commit hooks
+
+# Planned for Future
+
+- [ ] migrate to some TUI framework
+- [ ] check this https://github.com/kraanzu/termtyper
+
+- [ ] check this crates that are using crossterm:
+  - https://github.com/nushell/reedline
+  - https://github.com/rhysd/tui-textarea
+  - https://github.com/d-e-s-o/notnow/tree/3fa49e41550926d865afc56446bd950a39a139fc/
+- [ ]
+- [ ]
+- [ ]
+- [ ]
+- [ ]
+- [ ]
+- [ ]

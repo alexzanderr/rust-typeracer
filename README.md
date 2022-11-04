@@ -122,6 +122,7 @@ typeracer = "$the_version_you_want"
 # example
 typeracer = "0.0.6"
 ```
+
 to your `Cargo.toml` and then write some code and build your project that uses `python-objects`.
 
 ## typeracer as a rust standalone binary; the compiled game
@@ -130,39 +131,51 @@ to your `Cargo.toml` and then write some code and build your project that uses `
 cargo install typeracer # or tty-racer 
 ```
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # Documentation
+
 `docs.rs` official website
+
 - [`docs.rs/rust-typeracer`](https://docs.rs/rust-typeracer/latest)
-the custom made book
+  the custom made book
 - [`Rust Typeracer`](https://alexzanderr.github.io/rust-python-objects/index.html)
 
-
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # Why
-- why? 
 
-because typeracer is a very cool game. this project is heavily insipired by the original web game: [`https://play.typeracer.com/]`(https://play.typeracer.com/)
+- why?
+
+because typeracer is a very cool game. this project is heavily insipired by the original web
+game: [`https://play.typeracer.com/]`(https://play.typeracer.com/)
 
 - why this project when there are already typeracer rust games on the internet?
 
 because none of them support these features:
-    - multi-line
-    - programming source code with syntax highlithing
-    - background music
+- multi-line
+- programming source code with syntax highlithing
+- background music
 
 and because they are not really configurable by the user, for example:
-    - i dont want block cursor
-    - i want to change the colors
-    - i want to change the UI layout
-    - and many more settings
-   
+- i dont want block cursor
+- i want to change the colors
+- i want to change the UI layout
+- and many more settings
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # Other Rust Typeracer Games
+
 - [`https://gitlab.com/ttyperacer/terminal-typeracer`](https://gitlab.com/ttyperacer/terminal-typeracer)
-    honestly, by far this is the most advanced typeracer out there.
-    I've looked in the source, its really well designed, the game supports `chinese` and it does statistics.
+  honestly, by far this is the most advanced typeracer out there.
+  I've looked in the source, its really well designed, the game supports `chinese` and it does statistics.
 
 
 - [`https://github.com/ukmrs/smokey`](https://github.com/ukmrs/smokey)
@@ -171,33 +184,51 @@ and because they are not really configurable by the user, for example:
 
 Note: if you find other typeracer games please create an issue to tell me about them to put them here. Thank you.
 
-
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # TODOs Tracking file
+
 check [`TODO.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/TODO.md)
 
 
-
-
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # Contributing
+
 check [`CONTRIBUTING.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/CONTRIBUTING.md
 )
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
+
 # Changelog
+
 check [`CHANGELOG.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/changelog/CHANGELOG.md)
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
+
 # Projects That Use Rust Typeracer
+
 incoming, would be nice.
 
 using typeracer as library in their game, maybe they are making a game that has this library as sub-game
 
-
 - [ ]
 - [ ]
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # NOTEs
+
 note for the user and developer
 
 if you find `issues` go ahead and make an
@@ -208,21 +239,40 @@ cant wait to take a look into them.
 
 peace to you!
 
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
+
 # ISSUES
+
 check [`ISSUES.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/ISSUES.md
 )
+
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>
 
 # Extra
 
 ## Git Configuration
+
 to apply the settings from `.gitconfig` of this repo, run this command:
+
 ```shell
 cd rust-python-objects # or dont cd if you are already in
 git config --local include.path ../.gitconfig
 ```
-this needs to run manually because it can never be automated due to security issues, see this [`stack overflow answer`](https://stackoverflow.com/a/18330114/12172291)
+
+this needs to run manually because it can never be automated due to security issues, see
+this [`stack overflow answer`](https://stackoverflow.com/a/18330114/12172291)
 
 for git config see also [`git-config`](https://git-scm.com/docs/git-config#_includes)
 
 ## Badges for readme
+
 https://dev.to/envoy_/150-badges-for-github-pnk
+
+
+<div align="right">
+<a href="#table-of-contents">Back to TOC ☝️</a>
+</div>

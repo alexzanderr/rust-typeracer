@@ -7,31 +7,70 @@ about: Report errors and problems about `rust-typeracer`
 
 <!-- Fill in the below form so that we have the relevant details about the environment where the bug/error is occurring. -->
 
-- **Operating System**
-  - [ ] Linux
-  - [ ] Mac
-  - [ ] Windows
+### Operating System
 
-- **Rust Version**:
+- [ ] Linux
+    - **What kind of linux?**
+        - [ ] Arch Linux based: Manjaro, Arch Linux, ..
+        - [ ] Debian based: Ubuntu, ..
+        - [ ] RedHat based: Fedora
+        - [ ] other:
+- [ ] Mac
+- [ ] Windows
+
 ```shell
-❱ rustc --version
+❱  neofetch --json
 ```
-put version here
+
+put output here
+
 ```shell
 # here
 ```
 
-- **Rust Release Channel**
-  - [ ] Stable
-  - [ ] Nightly
-  - [ ] Beta
-- **Cargo Version**:
-- **rusty-hook Version**:
+### Rust Version
+
+```shell
+❱ rustc --version --verbose
+```
+
+put version here
+
+```shell
+# here
+```
+
+### Rust Release Channel
+
+- [ ] Stable
+- [ ] Nightly
+- [ ] Beta
+
+```shell
+❱  rustup --verbose --version
+```
+
+put output here
+
+```shell
+# here
+```
+
+### Cargo Version
+
+```shell
+❱  cargo --version --verbose
+```
+
+put version here
+
+```shell
+# here
+```
 
 ## Description
 
 <!-- Provide a clear and concise description of the bug/problem you are experiencing. -->
-
 
 ## How to Reproduce
 
