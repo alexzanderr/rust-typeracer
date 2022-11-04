@@ -134,7 +134,9 @@ pub enum BorderType {
 - [ ] check this https://github.com/erickt/rust-zmq
 
 - [ ] add url printex as text inside TUI to click on it and to go on docs for example
-
+  
 - [ ] dont forget that there are `TODO`s inside the source code as well
 
 - [ ] you can make a separate thread to receive signals if the main thread blocks; then you can `std::process::exit(1)` from there
+
+- [ ] add pre-commit hooks
