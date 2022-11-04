@@ -609,13 +609,18 @@ impl<'a> Typeracer<'a> {
                 todo!("do something if terminal focus is LOST")
             },
             Event::Paste(string_from_ctrl_v) => {},
-            Event::Resize(y, x) => {
-                dbg!(y, x);
-                let y = y as u16;
-                let x = x as u16;
+            Event::Resize(width, height) => {
+                // the opposite compared to the one from mathematical graphs
+                // y is always the width (total cols in the term)
+                // which in math should be the `x`
+                // same as `tput cols`
+                let y = width as u16;
+                // x is always the height (total rows in the term)
+                // which in math should be the `y`
+                // same as `tput lines`
+                let x = height as u16;
                 self.ui.set_term_height(x);
-                self.ui.set_term_width();
-                std::thread::sleep(Duration::from_secs_f32(5f32));
+                self.ui.set_term_width(y);
             },
             Event::Mouse(mevent) => {
                 // dbg!(mevent);

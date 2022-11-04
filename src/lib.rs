@@ -1,3 +1,7 @@
+// documentation right now its the readme
+#![doc = include_str ! ("../README.md")]
+
+
 #![forbid(unsafe_code)]
 // features
 #![feature(error_generic_member_access)]
@@ -5,13 +9,16 @@
 #![feature(provide_any)]
 // allows
 #![allow(
-    unused,
-    dead_code,
-    non_snake_case,
-    non_upper_case_globals,
-    non_camel_case_types,
-    semicolon_in_expressions_from_macros,
-    redundant_semicolons
+// for this kind
+// help: use an automatic link instead: `<https://play.typeracer.com/>`
+rustdoc::bare_urls,
+unused,
+dead_code,
+non_snake_case,
+non_upper_case_globals,
+non_camel_case_types,
+semicolon_in_expressions_from_macros,
+redundant_semicolons
 )]
 // warning: allow(clippy::all) incompatible with previous forbid
 // fix: use `deny` instead of `forbid`
