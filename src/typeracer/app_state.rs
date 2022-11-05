@@ -226,6 +226,7 @@ many classes of bugs at compile-time.";
         let elapsed_time = RefCell::new(0usize);
         let game_state = RefCell::new(GameState::Paused);
 
+
         Self {
             stopwatch,
             typeracer_text,

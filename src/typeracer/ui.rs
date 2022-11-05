@@ -51,17 +51,20 @@ use crate::statics::{
     GREEN,
     PROMPT_ARROW,
     RED,
-    TERMINAL_CURSOR
+    TERMINAL_CURSOR,
 };
+
+use std::borrow::Cow;
+
 
 #[derive(Debug)]
 pub struct TyperacerUI<'a> {
     // TODO: mut ref of something its too stupid
     // use Rc<RefCell<TerminalScreen>
-    term:    &'a mut TerminalScreen,
+    term: &'a mut TerminalScreen,
     // this practice is very useful when dropping stuff
     // mostly for the compiler to know
-    _marker: PhantomData<TerminalScreen>
+    _marker: PhantomData<TerminalScreen>,
 }
 
 impl<'a> TyperacerUI<'a> {
@@ -127,41 +130,21 @@ impl<'a> TyperacerUI<'a> {
         Ok(self)
     }
 
+    // inline is here to get rid of the double-call
+    #[inline(always)]
     pub fn color_format_text(
         &self,
         text: &str,
         index: usize,
-        wrong_index: usize
+        wrong_index: usize,
     ) -> String {
-        let text = UnicodeSegmentation::graphemes(text, true)
-            .collect::<Vec<&str>>();
-
-        // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
-        let mut green =
-            text[..index].join("").green().to_string().replace(' ', "_");
-
-        let green = if green.contains('\n') {
-            let pat = format!("{ENDC}\n{GREEN}");
-            green.replace('\n', &pat)
-        } else {
-            green
-        };
-
-        let red = text[index..index + wrong_index]
-            .join("")
-            .red()
-            .to_string()
-            .replace(' ', "_");
-        let red = if red.contains('\n') {
-            let pat = format!("{ENDC}\n{RED}");
-            red.replace('\n', &pat)
-        } else {
-            red
-        };
-
-        let rest = text[index + wrong_index..].join("");
-        format!("{green}{red}{rest}")
+        // this function is private and i want to test it individually with private tests
+        // im doing this because i dont want to instantiante
+        // a TyperacerUI every time i want to test this function
+        color_format_text(text, index, wrong_index)
     }
+
+
 
 
     #[inline(always)]
@@ -315,5 +298,88 @@ impl<'a> TyperacerUI<'a> {
         self.term.refresh()?;
 
         Ok(self)
+    }
+}
+
+
+// this will be the better version
+fn _color_format_text<'str>(text: &'str str,
+                            index: usize,
+                            wrong_index: usize,
+) -> Cow<'str, str> {
+    if index == 0 && wrong_index == 0 {
+        return Cow::Borrowed(text)
+    } else {
+        Cow::Owned(text.to_string())
+    }
+}
+
+// TODO: make this function return Cow<&'a, str>
+// if index == 0 && and wrong_index == 0 then just pass through
+// else return a new String
+fn color_format_text(
+    text: &str,
+    index: usize,
+    wrong_index: usize,
+) -> String {
+    // dont do anything because nothing changed
+    if index == 0 && wrong_index == 0 {
+        return text.to_string()
+    }
+
+    let text = UnicodeSegmentation::graphemes(text, true)
+        .collect::<Vec<&str>>();
+
+    // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
+    let mut green = text[..index].join("").green().to_string().replace(' ', "_");
+
+    let green = if green.contains('\n') {
+        let pat = format!("{ENDC}\n{GREEN}");
+        green.replace('\n', &pat)
+    } else {
+        green
+    };
+
+    let red = text[index..index + wrong_index]
+        .join("")
+        .red()
+        .to_string()
+        .replace(' ', "_");
+    let red = if red.contains('\n') {
+        let pat = format!("{ENDC}\n{RED}");
+        red.replace('\n', &pat)
+    } else {
+        red
+    };
+
+    let rest = text[index + wrong_index..].join("");
+    format!("{green}{red}{rest}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::color_format_text;
+    use assert2::assert;
+    use super::{RED, GREEN, ENDC};
+    use rstest::rstest;
+
+    #[rstest]
+    #[case("hello world", 0, 0, "hello world")]
+    // ERROR: this doesnt work
+    // it puts an empty green at the beginning that is not visible
+    // because its an ENDC just next to it to delete it
+    //   \x1b[32m\x1b[0m\u{1b}[31mh\u{1b}[0mello world
+    #[case("hello world", 0, 1, "\x1b[0;31mh\u{1b}[0mello world")]
+    fn test_color_format_text(
+        #[case] text: &str,
+        #[case] index: usize,
+        #[case] wrong_index: usize,
+        #[case] expected_text: &str,
+    ) {
+        // green "\x1b[0;32m";
+        // red "\x1b[0;31m";
+        // endc  "\u{1b}[0m";
+        let colored_formatted_text = color_format_text(text, index, wrong_index);
+        assert!(colored_formatted_text == expected_text)
     }
 }

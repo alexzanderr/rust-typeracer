@@ -8,19 +8,19 @@ Great TODOs for improvement of this project.
 # Ideas
 - [ ] what do to in case i want to show the README.md from another branch
   all the included links are on blob/main
+
 - [ ] check this
   nice `mdbook github action` [`https://github.com/peaceiris/actions-mdbook/blob/main/README.md`](https://github.com/peaceiris/actions-mdbook/blob/main/README.md)
 
 - [ ] when using CI; there is a dependency cacher for github actions to not install all dependecies at every CI action
 
-- [ ] add private tests for the function `color_formatted_text`
 
 - [ ] create a typeracer-proc-macro crate inside this workspace
 
 - [ ] put music on separate feature, for example
 
 - [ ] split this `TODO.md` file on multiple files within a folder, because it will grow very large in the future
--
+
 - [ ] add progress bar for showing how much text is left to type
 
 - [ ] use another linker and more stuff from that article to improve compile time speed
@@ -164,13 +164,16 @@ Great TODOs for improvement of this project.
   right now cant use unicode inside the `текст`(text in russian)
   fix unicode errors like this one: byte index 201 is not a char boundary; it is inside '’' (bytes 200..203)
 
-    maybe with:
-        - unicode segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
-        - unicode crates stuff
+  maybe with:
+  - unicode
+  segmentation (https://docs.rs/unicode-segmentation/1.10.0/unicode_segmentation/trait.UnicodeSegmentation.html#tymethod.graphemes)
+  - unicode crates stuff
 
 - [x] add multi-line typeracing (hardest one)
 
 - [x] add pre-commit hooks
+
+- [x] add private tests for the function `color_formatted_text`
 
 # Planned for Future
 

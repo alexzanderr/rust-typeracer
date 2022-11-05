@@ -102,8 +102,6 @@ st: show_threads
 #  87 + │ cc:·check_continuous␊
 
 check_loop:
-	@echo "hello world"
-
 	@time cargo watch \
 		--clear \
 		--delay 1.2 \
@@ -132,7 +130,7 @@ check_workspace:
 		--watch="benches" \
 		--watch="dev-ideas" \
 		--watch="examples" \
-		--shell="cargo check --quiet --workspace"
+		--shell="cargo check --quiet --workspace --all-features"
 
 cw: check_workspace
 

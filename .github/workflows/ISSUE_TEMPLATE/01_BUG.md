@@ -20,24 +20,16 @@ about: Report errors and problems about `rust-typeracer`
 
 ```shell
 ❱  neofetch --json
-```
+# output goes on next line
 
-put output here
-
-```shell
-# here
 ```
 
 ### Rust Version
 
 ```shell
 ❱ rustc --version --verbose
-```
+# output goes on next line
 
-put version here
-
-```shell
-# here
 ```
 
 ### Rust Release Channel
@@ -48,24 +40,27 @@ put version here
 
 ```shell
 ❱  rustup --verbose --version
-```
+# output goes on next line
 
-put output here
-
-```shell
-# here
 ```
 
 ### Cargo Version
 
 ```shell
 ❱  cargo --version --verbose
+# output goes on next line
+
 ```
 
-put version here
+## `rust-typeracer` Version**:
 
 ```shell
-# here
+# assuming you are in the project root.
+❱ cat Cargo.toml | head
+# output goes on next line
+
+# or if you use rust-typeracer as dependency
+❱  cat Cargo.toml | grep "tty-racer"
 ```
 
 ## Description

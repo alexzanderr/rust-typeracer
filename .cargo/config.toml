@@ -1,13 +1,16 @@
 #
-#
 # Configuration - The Cargo Book
 # https://doc.rust-lang.org/cargo/reference/config.html
-
+#
+#
+#
+#
+#
 # https://doc.rust-lang.org/cargo/reference/config.html#configuration-format
 [alias]
 b = "build"
 br = "build --release"
-c= "check"
+c = "check"
 t = ["test", "--", "show-output"]
 r = "run"
 rr = "run --release"
