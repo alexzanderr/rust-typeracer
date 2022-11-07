@@ -188,9 +188,9 @@ Note: if you find other typeracer games please create an issue to tell me about 
 <a href="#table-of-contents">Back to TOC ☝️</a>
 </div>
 
-# TODOs Tracking file
+# TODOs
 
-check [`TODO.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/TODO.md)
+check [`todo/README.md`](https://github.com/alexzanderr/rust-typeracer/blob/main/todo/README.md)
 
 
 <div align="right">
