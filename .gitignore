@@ -1,8 +1,9 @@
 
+
 # rust specific
 target
 dist
-# because its a binary application
+# because the project has a binary crate
 Cargo.lock
 
 
@@ -12,14 +13,8 @@ Cargo.lock
 # intellij
 .idea
 
-python_version
 logs
 
 # if you are using vs code
 .vscode
 *.code-workspace
-
-
-# right now we ignore the docs
-# because i need to check it first and make some changes
-docs
