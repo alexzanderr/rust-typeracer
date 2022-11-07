@@ -1,5 +1,17 @@
 # TODOs Ideas
 
+- [ ] to get 60 FPS (frames per second) you need 16.66 ms sleep in the game loop
+  explanation: if you sleep 1 second (1000ms), you need to 1000/60 to get the sleep in milliseconds to actually draw 60
+  frames per second. it will be 1 frame at every 16.66 ms. 16.66 ms * 60 == 999.6 ms  ~= 1000 ms (60 frames in a single
+  second on the clock)
+
+  also add
+    ```toml
+        [ui]
+        fps = 60
+    ```
+  and also limit the frame frate between: `[1; 100]` if not; runtime-error: ... msg
+
 - [ ] rename the entire project to `tty-racer`
 
 - [ ] when doing CI, build for Linux, MacOS and windows (3 targets) and also try all toolchains (stable, beta, nightly);
@@ -25,8 +37,6 @@
 
 
 - [ ] create a typeracer-proc-macro crate inside this workspace
-
-i dont think its a good idea
 
 - [ ] add progress bar for showing how much text is left to type
 
@@ -80,9 +90,7 @@ i dont think its a good idea
 
 - [ ] download the default music from yt using yt-dlp api in rust (later)
 
-- [ ] check this https://github.com/erickt/rust-zmq
-
-- [ ] add url printex as text inside TUI to click on it and to go on docs for example
+- [ ] add ansi code to print url as text inside TUI to click on it and to go on docs for example
 
 - [ ] dont forget that there are `TODO`s inside the source code as well
 

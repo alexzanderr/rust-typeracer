@@ -132,6 +132,9 @@ lazy_static = "1.4.0"
 # a unicode char can have between 1..4 bytes instead of 1 like a char
 unicode-segmentation = "1.10.0"
 notify.workspace = true
+itoa = { version = "1.0.4", optional = true }
+ryu = { version = "1.0.11", optional = true }
+dbg-pls = { version = "0.3.4", optional = true }
 
 
 

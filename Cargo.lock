@@ -472,6 +472,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dbg-pls"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b94eb25b30f003eac5a8f2a582f417d6d22026ee3f4660867a2061957d8789f5"
+dependencies = [
+ "itoa",
+ "once_cell",
+ "proc-macro2 1.0.37",
+ "quote 1.0.18",
+ "ryu",
+ "syn 1.0.91",
+]
+
+[[package]]
 name = "derive_builder"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1766,10 +1780,12 @@ dependencies = [
  "core-dev",
  "criterion",
  "crossterm",
+ "dbg-pls",
  "derive_builder",
  "doc-comment",
  "dotenv",
  "getset",
+ "itoa",
  "lazy_static",
  "notify",
  "pad",
@@ -1779,6 +1795,7 @@ dependencies = [
  "rand",
  "rstest",
  "rstest_reuse",
+ "ryu",
  "soloud",
  "string_template",
  "test-generator",

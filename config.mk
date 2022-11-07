@@ -1,4 +1,13 @@
-# configuration for the Makefile
+#
+#
+#
+# Configuration for the Makefile
+#
+#
+#
+#
+#
+#
 VERSION = 5.5.0
 
 # paths

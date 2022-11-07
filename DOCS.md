@@ -25,3 +25,10 @@ https://github.com/MoAlyousef/soloud-rs/issues/25#issuecomment-1121688791
 # git
 
 - https://stackoverflow.com/questions/2719579/how-to-add-a-changed-file-to-an-older-not-last-commit-in-git
+
+# FPS in C++ (calculate how many fps your game outputs)
+
+this is different from what im doing; in this game im setting the thick rate of the UI refresh which is not the same
+thing
+
+- https://www.youtube.com/watch?v=ZVi9T1D8clM
