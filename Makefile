@@ -107,7 +107,6 @@ check_loop:
 		--delay 1.2 \
 		--why \
 		--quiet \
-		--postpone \
 		--watch-when-idle \
 		--watch="src" \
 		--watch="benches" \
@@ -119,12 +118,12 @@ cc: check_loop
 
 
 check_workspace:
+	@# --postpone
 	@time cargo watch \
 		--clear \
 		--delay 1.2 \
 		--why \
 		--quiet \
-		--postpone \
 		--watch-when-idle \
 		--watch="src" \
 		--watch="benches" \

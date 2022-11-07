@@ -138,6 +138,7 @@ impl<'a> Typeracer<'a> {
         }
     }
 
+    #[cfg(feature = "music")]
     fn create_and_spawn_music_thread(
         &self
     ) -> Result<JoinHandle<MusicPlayerResult<()>>, std::io::Error> {
@@ -203,20 +204,6 @@ impl<'a> Typeracer<'a> {
 
     // TODO: future: make reusable game as a library
     fn game_loop(mut self) -> TyperacerResult<()> {
-        // IDEA: I could hold this arc pointer inside Self instead of state: AppState
-        // if i cant hold the reference inside the mutex
-        // let app_state_arc = Arc::new(Mutex::new(self.state));
-        // clones the pointer here
-
-        // arc pointer is in self as field
-        let music_thread_handle = self.create_and_spawn_music_thread()?;
-        let stopwatch_thread_handle =
-            self.create_and_spawn_stopwatch_thread()?;
-
-        // there is one thing i can do
-        // make a thread for music only, and only share on that thread AppSgstate
-        // and stop the music from that thread while playing using AppState
-
         loop {
             // render ui
             {
@@ -274,6 +261,14 @@ impl<'a> Typeracer<'a> {
     }
 
     pub fn mainloop(mut self) -> TyperacerResult<()> {
+        // arc pointer is in self as field
+        #[cfg(feature = "music")]
+            // this only exists if the music feature is ON
+            let music_thread_handle = self.create_and_spawn_music_thread()?;
+
+        let stopwatch_thread_handle =
+            self.create_and_spawn_stopwatch_thread()?;
+
         self.game_loop()?;
         Ok(())
     }
@@ -305,7 +300,6 @@ impl<'a> Typeracer<'a> {
             app_state.wrong_index_shadow_ref_mut();
         let mut current_line = app_state.current_line_ref_mut();
 
-        let mut music_state = app_state.music_state_ref_mut();
 
         let elapsed = app_state.elapsed_time_ref_mut();
         let mut keyboard_input = app_state.keyboard_input_ref_mut();
@@ -315,6 +309,10 @@ impl<'a> Typeracer<'a> {
 
         let key_event_clone = format!("{:?}", key_event.code.clone());
         *keyboard_input = key_event_clone.yellow().to_string();
+
+        #[cfg(feature = "music")]
+            let mut music_state = app_state.music_state_ref_mut();
+
 
         match key_event {
             // this needs to be merged with enter and Char(character)
@@ -341,6 +339,8 @@ impl<'a> Typeracer<'a> {
                 match *game_state {
                     GameState::Paused => {
                         *game_state = GameState::Playing;
+
+                        #[cfg(feature = "music")]
                         match *music_state {
                             MusicState::Stopped => {
                                 music_state.play();
@@ -353,6 +353,7 @@ impl<'a> Typeracer<'a> {
                     GameState::Playing => {
                         *game_state = GameState::Paused;
 
+                        #[cfg(feature = "music")]
                         match *music_state {
                             // MusicState::Stopped => {
                             //     music_state.play();
@@ -516,6 +517,7 @@ impl<'a> Typeracer<'a> {
             } => {
                 self.handle_ctrl_backspace(&mut user_input_prompt)
             },
+            #[cfg(feature = "music")]
             KeyEvent {
                 code: KeyCode::Char('s'),
                 modifiers: KeyModifiers::CONTROL,

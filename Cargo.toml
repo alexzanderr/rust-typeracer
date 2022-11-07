@@ -47,6 +47,10 @@ name = "typeracer"
 #name = "tty-racer"
 path = "src/main.rs"
 
+# these would be useful for activating when
+# someone is building a binary with typeracer-lib
+# and maybe they dont want to compile the `music` part
+# or the `statistics` part
 [features]
 default = [
     "music",

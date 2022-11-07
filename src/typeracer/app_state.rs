@@ -52,6 +52,7 @@ pub struct AppState {
     wrong_index_shadow: RefCell<usize>,
     current_line:       RefCell<usize>,
 
+    #[cfg(feature = "music")]
     music_state: RefCell<MusicState>,
 
     elapsed_time: RefCell<usize>,
@@ -67,6 +68,7 @@ impl AppState {
         self.game_state.borrow_mut()
     }
 
+    #[cfg(feature = "music")]
     pub fn music_state_ref_mut(&self) -> RefMut<'_, MusicState> {
         self.music_state.borrow_mut()
     }
@@ -221,6 +223,7 @@ many classes of bugs at compile-time.";
         let cursor_y = RefCell::new(0usize);
         let current_line = RefCell::new(0usize);
 
+        #[cfg(feature = "music")]
         let music_state = RefCell::new(MusicState::new_stopped());
 
         let elapsed_time = RefCell::new(0usize);
@@ -245,6 +248,7 @@ many classes of bugs at compile-time.";
             index_shadow,
             wrong_index_shadow,
             current_line,
+            #[cfg(feature = "music")]
             music_state,
             elapsed_time,
             game_state

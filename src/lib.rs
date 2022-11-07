@@ -1,7 +1,5 @@
 // documentation right now its the readme
 #![doc = include_str ! ("../README.md")]
-
-
 #![forbid(unsafe_code)]
 // features
 #![feature(error_generic_member_access)]
