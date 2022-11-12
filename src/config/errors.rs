@@ -4,7 +4,7 @@ use colored::*;
 
 #[derive(Debug, ThisError)]
 pub enum ConfigErrors {
-    #[error("invalid fps value: {0}, must be between [1; 100]")]
+    #[error("FPSError: invalid fps value: {}, must be between [1; 100]", .0.to_string().yellow().bold())]
     FPSError(u8),
 
     #[error("failed to print on the screen")]

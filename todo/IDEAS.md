@@ -7,12 +7,6 @@
 
   to get the `total_ms_sleep`, divide `1000/fps`
 
-- [x] also add in config toml
-    ```toml
-        [ui]
-        fps = 60
-    ```
-  and also limit the frame frate between: `[1; 100]` if not; runtime-error: ... msg
 
 - [ ] rename the entire project to `tty-racer`
 
@@ -46,16 +40,6 @@
 
 - [ ] improve performance of the code
 
-- [x] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe
-  some users dont want to see WPM at all
-    ```toml
-        [ui]    
-        # maybe some people will get intimidated while
-        # watching the WPM and playing at the same time
-        # some people just dont want to see `WPM dropping`
-        show_wpm = "true"
-        show_invisibles = "true"
-    ```
 
 - [ ] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
   for this we need a music menu to control what will happen with the music
@@ -64,24 +48,6 @@
 
 - [ ] fix typeracer game logic inside the match block, some things are redundant
 
-- [ ] add option from cli and config to show invisibles like `tab`(`⭾`) or `\n`(`↵`)
-
-    ```toml
-        [ui]
-        show_invisibles = "true"
-    ```
-  this would be at `~/.config/typeracer/config.toml`
-  we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(
-  binary name)
-
-
-- [x] add option for the border type in config
-    ```rust
-    pub enum BorderType {
-        Round,
-        Square
-    }
-    ```
 
 - [ ] implement control + backspace for the typeracer_text
 

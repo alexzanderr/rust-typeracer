@@ -86,3 +86,41 @@
   nothing to do with triggering ON/OFF music inside a binary game; features in this project are for the `typeracer-lib`
 
 - [x] split this `TODO.md` file on multiple files within a folder, because it will grow very large in the future
+
+- [x] also add in config toml
+    ```toml
+        [ui]
+        fps = 60
+    ```
+  and also limit the frame frate between: `[1; 100]` if not; runtime-error: ... msg
+
+- [x] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe
+  some users dont want to see WPM at all
+    ```toml
+        [ui]    
+        # maybe some people will get intimidated while
+        # watching the WPM and playing at the same time
+        # some people just dont want to see `WPM dropping`
+        show_wpm = "true"
+        show_invisibles = "true"
+    ```
+
+
+- [x] add option for the border type in config
+    ```rust
+    pub enum BorderType {
+        Round,
+        Square
+    }
+    ```
+
+
+- [x] add option from cli and config to show invisibles like `tab`(`⭾`) or `\n`(`↵`)
+
+    ```toml
+        [ui]
+        show_invisibles = "true"
+    ```
+  this would be at `~/.config/typeracer/config.toml`
+  we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(
+  binary name)
