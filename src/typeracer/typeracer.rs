@@ -488,11 +488,13 @@ impl<'a> Typeracer<'a> {
                 // logic for the typeracer game
                 if *wrong_index > 0 {
                     *wrong_index -= 1;
+
                     if *wrong_index_shadow > 0 {
                         *wrong_index_shadow -= 1;
                     }
                 } else if *index > 0 {
                     *index -= 1;
+
                     if *index_shadow > 0 {
                         *index_shadow -= 1;
                     }

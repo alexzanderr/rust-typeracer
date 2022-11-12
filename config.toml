@@ -1,0 +1,16 @@
+#
+#
+# this is a sample with the default values for the game
+#
+#
+fps = 60
+music = true
+
+
+[ui]
+# maybe some people will get intimidated while
+# watching the WPM and playing at the same time
+# some people just dont want to see `WPM dropping`
+wpm = true
+invisibles = true
+border = "round"

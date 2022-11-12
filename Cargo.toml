@@ -135,6 +135,9 @@ notify.workspace = true
 itoa = { version = "1.0.4", optional = true }
 ryu = { version = "1.0.11", optional = true }
 dbg-pls = { version = "0.3.4", optional = true }
+toml = "0.5.9"
+dirs = "4.0.0"
+serde = { version = "1.0.147", features = ["derive"] }
 
 
 

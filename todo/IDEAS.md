@@ -5,7 +5,9 @@
   frames per second. it will be 1 frame at every 16.66 ms. 16.66 ms * 60 == 999.6 ms  ~= 1000 ms (60 frames in a single
   second on the clock)
 
-  also add
+  to get the `total_ms_sleep`, divide `1000/fps`
+
+- [x] also add in config toml
     ```toml
         [ui]
         fps = 60
@@ -44,7 +46,7 @@
 
 - [ ] improve performance of the code
 
-- [ ] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe
+- [x] add configuration for the UI layout to please the user; maybe some users want to see the WPM at the bottom; maybe
   some users dont want to see WPM at all
     ```toml
         [ui]    
@@ -73,7 +75,7 @@
   binary name)
 
 
-- [ ] add option for the border type
+- [x] add option for the border type in config
     ```rust
     pub enum BorderType {
         Round,
