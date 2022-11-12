@@ -6,7 +6,7 @@ use dirs;
 use lazy_static::lazy_static;
 
 use crate::utils::__exit;
-use super::ConfigResult;
+use super::{ConfigResult, ConfigErrors};
 
 lazy_static! {
     // NOTE: syntax highlight doesnt work inside lazy_static blocks inside intellij idea with rust plugin
@@ -87,12 +87,22 @@ impl TyperacerConfig {
     //     }
     // }
 
+    fn check_values(_self: Self) -> ConfigResult<Self> {
+        // check FPS
+
+        if 1 > _self.fps || _self.fps > 100 {
+            return Err(ConfigErrors::FPSError(_self.fps));
+        }
+        Ok(_self)
+    }
+
     fn _load_from_path<P>(path: P) -> ConfigResult<Self>
         where
             P: AsRef<Path>
     {
         let config_contents = fs::read_to_string(&path)?;
         let config: Self = toml::from_str(&config_contents)?;
+        let config = Self::check_values(config)?;
         Ok(config)
     }
 
@@ -114,10 +124,13 @@ mod config {
     use super::{
         ConfigResult,
         TyperacerConfig,
+        ConfigErrors,
         DEFAULT_CONFIG_PATH,
     };
 
     use assert2::assert;
+    use rstest::rstest;
+    use std::path::Path;
 
     #[test]
     /// load from default path doesnt mean that the values are default
@@ -132,11 +145,22 @@ mod config {
         Ok(())
     }
 
-    #[test]
-    fn load_from_custom_path() -> ConfigResult<()> {
-        let config = TyperacerConfig::load_from_toml(&*DEFAULT_CONFIG_PATH)?;
-        dbg!(&config);
-
+    #[rstest]
+    #[case(& * DEFAULT_CONFIG_PATH)]
+    #[case("config.toml")]
+    fn load_from_custom_path<P: AsRef<Path>>(
+        #[case] path: P
+    ) -> ConfigResult<()> {
+        let res = TyperacerConfig::load_from_toml(path);
+        match res {
+            Ok(config) => {
+                dbg!(&config);
+            },
+            Err(error) => {
+                eprintln!("\n{}\n", error);
+                return Err(error);
+            }
+        }
         Ok(())
     }
 }
