@@ -14,7 +14,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // unsafe { wav.load_raw_wav_8(song_bytes)?; }
 
     // but load all the files at the beginning of the game to make sure they are in memory
-    // TODO: use wav.load_mem(&bytes)?; to load from memory in the middle of the game
 
     wav.load(&std::path::Path::new("static/audio/skeler-telaviv.mp3"))?;
     let handle = sl.play(&wav);

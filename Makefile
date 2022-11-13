@@ -154,11 +154,9 @@ cti: test_all docs clip cfmt
 
 
 
-# TODO: the paths will change to change here too
 init-git-config:
 	# set git hooks to be in the folder .githooks
-	git config core.hooksPath githooks
-	git config --local include.path ../.gitconfig
+	git config --local include.path ../git/config
 
 
 #publish:

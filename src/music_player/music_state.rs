@@ -64,6 +64,7 @@ impl MusicState {
         }
     }
 
+    #[deprecated = "use MusicPlayer::react_to_state() instead"]
     pub fn do_based_on_state(
         &mut self,
         music_player: &mut MusicPlayer

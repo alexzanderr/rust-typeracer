@@ -188,8 +188,6 @@ fn main() {
                             app_state_mutex.music_state_ref_mut();
                         let ns = app_state_mutex.not_sharable_ref_mut();
 
-                        // TODO: 1. how about music_player.do_based_on_state()
-                        // 2. how about the music_player to contain the state?
 
                         music_state.do_based_on_state(&mut mp);
 

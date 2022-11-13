@@ -21,8 +21,6 @@ use rand::*;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut sl = Soloud::default()?;
 
-    // TODO: hello world
-
     let mut wav = audio::Wav::default();
     let mut filt = filter::EchoFilter::default();
     // let mut filt = filter::

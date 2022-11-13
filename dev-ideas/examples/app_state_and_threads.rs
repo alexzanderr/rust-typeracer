@@ -139,7 +139,6 @@ fn main() {
     let music_thread = ThreadBuilder::new()
         .name("music-thread".to_string())
         .spawn(move || {
-            // TODO add the music player here
             let x = 123;
             let mut mp = MusicPlayer::from_volume(0.5).unwrap();
 
@@ -181,8 +180,6 @@ fn main() {
                         let mut music_state =
                             app_state_lock.music_state_ref_mut();
 
-                        // TODO: 1. how about music_player.do_based_on_state()
-                        // 2. how about the music_player to contain the state?
 
                         music_state.do_based_on_state(&mut mp);
 

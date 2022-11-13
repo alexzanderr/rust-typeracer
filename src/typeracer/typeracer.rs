@@ -149,10 +149,6 @@ impl<'a> Typeracer<'a> {
             .spawn(move || -> MusicPlayerResult<()> {
                 let mut mp = MusicPlayer::from_volume(0.5)?;
 
-                // this read operating slows the startup
-                // TODO: still after putting the songs inside binary
-                // load_from_mem is slow too
-                // i need to to this operation async, or on another thread
                 mp.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
                 mp.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
 
@@ -176,6 +172,8 @@ impl<'a> Typeracer<'a> {
                 // cause player is running in background
                 // and if this finishes, music player is done
                 loop {
+                    // try lock is non-blocking
+                    // doesnt need to be
                     let mut app_state_lock = app_state_arc.try_lock();
 
                     match app_state_lock {
@@ -183,10 +181,7 @@ impl<'a> Typeracer<'a> {
                             let mut music_state =
                                 app_state_mutex.music_state_ref_mut();
 
-                            // TODO: 1. how about music_player.do_based_on_state()
-                            // 2. how about the music_player to contain the state?
-
-                            music_state.do_based_on_state(&mut mp);
+                            mp.react_to_state(&music_state);
                         },
                         Err(_) => {}
                     }
@@ -202,7 +197,6 @@ impl<'a> Typeracer<'a> {
         Ok(music_thread)
     }
 
-    // TODO: future: make reusable game as a library
     fn game_loop(mut self) -> TyperacerResult<()> {
         loop {
             // render ui

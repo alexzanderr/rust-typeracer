@@ -84,8 +84,6 @@ fn main() {
                     let mut game_state =
                         app_state_mutex.game_state_ref_mut();
                     match *game_state {
-                        // TODO:
-                        // add something to tell the thread to stop itself
                         GameState::Paused => {},
                         GameState::Playing => {
                             let mut elapsed =

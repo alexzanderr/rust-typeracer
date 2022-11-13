@@ -106,11 +106,13 @@ impl TyperacerConfig {
         Ok(config)
     }
 
+    /// load from default path doesnt mean that the values are default
     pub fn load_default_path() -> ConfigResult<Self>
     {
         Self::_load_from_path(&*DEFAULT_CONFIG_PATH)
     }
 
+    /// load from custom path
     pub fn load_from_toml<P>(path: P) -> ConfigResult<Self>
         where
             P: AsRef<Path>

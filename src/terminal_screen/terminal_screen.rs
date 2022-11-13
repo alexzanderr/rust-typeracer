@@ -50,6 +50,7 @@ use super::Rectangle;
 // Builders generated with this pattern do not automatically derive Clone,
 // which allows builders to be generated for structs with fields that do not derive Clone.
 #[builder(pattern = "owned")]
+#[builder(name = "TerminalScreenBuilder")]
 pub struct TerminalScreen {
     #[builder(default = "std::io::stdout()")]
     /// standard output where everything is written
