@@ -77,15 +77,17 @@ impl IndexOutOfBoundsError {
         Self {
             index,
             text,
-            span
+            span,
         }
     }
 }
 
+use crate::ConfigErrors;
+
 #[derive(Debug, ThisError)]
 pub enum TyperacerErrors {
     #[error(
-r#"{}: IndexOutOfBounds
+    r#"{}: IndexOutOfBounds
     text: "{}"
     index: {}
     text.len(): {}
@@ -131,7 +133,13 @@ r#"{}: IoError
 
     // TODO: actually implement from a real PoisonError with lifetimes (that was the hard part)
     #[error("PoisonError")]
-    PoisonError
+    PoisonError,
+
+    #[error("ConfigError: {}", ce)]
+    ConfigError {
+        #[from]
+        ce: ConfigErrors
+    }
 }
 
 pub type TyperacerResult<T> = core::result::Result<T, TyperacerErrors>;

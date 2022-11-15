@@ -1,12 +1,17 @@
 use std::path::Path;
 use std::fs;
 
-use toml;
-use dirs;
 use lazy_static::lazy_static;
 
 use crate::utils::__exit;
-use super::{ConfigResult, ConfigErrors};
+use super::{
+    ConfigErrors,
+    ConfigResult,
+};
+
+#[cfg(feature = "config-load-from-bin")]
+pub const DEFAULT_CONFIG_DATA: &'static str =
+    include_str!(concat!(env!("", "")));
 
 lazy_static! {
     // NOTE: syntax highlight doesnt work inside lazy_static blocks inside intellij idea with rust plugin
@@ -28,11 +33,11 @@ lazy_static! {
     };
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct TyperacerConfig {
-    fps: u8,
+    pub(crate) fps: u8,
     music: bool,
-    ui: UIConfig,
+    pub(crate) ui: UIConfig,
 }
 
 impl Default for TyperacerConfig {
@@ -45,7 +50,9 @@ impl Default for TyperacerConfig {
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Clone)]
+#[derive(
+Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone,
+)]
 pub enum Border {
     // this is to write
     // border = "round" inside the toml file
@@ -53,10 +60,10 @@ pub enum Border {
     // otherwise, it wouldnt work
     Round,
     #[serde(rename = "square")]
-    Square,
+    Square
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct UIConfig {
     wpm: bool,
     invisibles: bool,
@@ -107,8 +114,7 @@ impl TyperacerConfig {
     }
 
     /// load from default path doesnt mean that the values are default
-    pub fn load_default_path() -> ConfigResult<Self>
-    {
+    pub fn load_default_path() -> ConfigResult<Self> {
         Self::_load_from_path(&*DEFAULT_CONFIG_PATH)
     }
 
@@ -119,20 +125,26 @@ impl TyperacerConfig {
     {
         Self::_load_from_path(path)
     }
+
+    #[cfg(feature = "config-load-from-bin")]
+    pub fn load_from_binary() -> ConfigResult<Self> {
+        unimplemented!()
+    }
 }
 
 #[cfg(test)]
-mod config {
-    use super::{
-        ConfigResult,
-        TyperacerConfig,
-        ConfigErrors,
-        DEFAULT_CONFIG_PATH,
-    };
+mod tests {
+    use std::path::Path;
 
     use assert2::assert;
     use rstest::rstest;
-    use std::path::Path;
+
+    use super::{
+        ConfigErrors,
+        ConfigResult,
+        TyperacerConfig,
+        DEFAULT_CONFIG_PATH,
+    };
 
     #[test]
     /// load from default path doesnt mean that the values are default
