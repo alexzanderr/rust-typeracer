@@ -135,7 +135,10 @@ cw: check_workspace
 
 
 test_all:
-	@cargo test --quiet --workspace -- --show-output
+	@cargo test --quiet --workspace --all-features -- --show-output
+
+test_config:
+	@cargo test -q --lib config -- --show-output
 
 docs:
 	@time cargo doc --no-deps --all-features --document-private-items --workspace --open
@@ -149,7 +152,8 @@ cfmt:
 clip:
 	@cargo clippy
 
-cti: test_all docs clip cfmt
+#cti: test_all docs clip cfmt
+cti: test_all clip cfmt
 
 
 

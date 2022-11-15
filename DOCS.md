@@ -26,9 +26,11 @@ https://github.com/MoAlyousef/soloud-rs/issues/25#issuecomment-1121688791
 
 - https://stackoverflow.com/questions/2719579/how-to-add-a-changed-file-to-an-older-not-last-commit-in-git
 
-# FPS in C++ (calculate how many fps your game outputs)
+# FPS in C++ (calculate how many fps your game outputs; basically its benching a no sleep loop)
 
 this is different from what im doing; in this game im setting the thick rate of the UI refresh which is not the same
 thing
 
 - https://www.youtube.com/watch?v=ZVi9T1D8clM
+
+- https://stackoverflow.com/questions/50999616/how-to-idiomatically-alias-a-crate-in-rust-2018
