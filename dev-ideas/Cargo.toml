@@ -18,7 +18,7 @@ path = "src/bin/try_music_player/main.rs"
 [dependencies]
 crossterm = { workspace = true, optional = true }
 # the main project's library for testing and creating new ideas
-typeracer = { path = "..", optional = true}
+typeracer = { package = "tty-racer", path = "..", optional = true }
 
 colored = { workspace = true, optional = true }
 dotenv = { workspace = true, optional = true }

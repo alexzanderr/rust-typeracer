@@ -9,7 +9,7 @@ cargo-features = ["profile-rustflags"]
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 #
 [package]
-name = "typeracer"
+name = "tty-racer"
 version = "0.0.1"
 edition = "2021"
 authors = ["alexzanderr <alexzander.dot.dev@gmail.com>"]
@@ -40,11 +40,10 @@ exclude = [
     "static",
     # + all folders that are not going to be inlcuded in the packaged crate for crates io
 ]
-default-run = "typeracer"
+default-run = "tty-racer"
 
 [[bin]]
-name = "typeracer"
-#name = "tty-racer"
+name = "tty-racer"
 path = "src/main.rs"
 
 # these would be useful for activating when
@@ -99,6 +98,8 @@ soloud = "1.0.2"
 rand = "0.8.5"
 color-backtrace = "0.5.1"
 notify = "5.0.0"
+syn = "1.0.103"
+quote = "1.0.21"
 
 
 [dependencies]
@@ -142,6 +143,8 @@ serde = { version = "1.0.147", features = ["derive"] }
 
 
 
+
+
 [workspace]
 members = [
     # the place where all new ideas and experimental examples are implemented
@@ -149,6 +152,7 @@ members = [
     # this is the docs manager
     # disabled for now
     #    "docs"
+    "typeracer-proc-macro"
 ]
 exclude = [
 ]
