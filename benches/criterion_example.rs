@@ -1,11 +1,10 @@
 use criterion::{
-    Criterion,
-    BenchmarkId,
     black_box,
     criterion_group,
     criterion_main,
+    BenchmarkId,
+    Criterion,
 };
-
 use soloud::*;
 use typeracer::MusicPlayer;
 
@@ -13,7 +12,6 @@ pub const SKELER_TELATIV_SONG: &'static [u8] =
     include_bytes!("../static/audio/skeler-telaviv.mp3");
 pub const PLAY_CS16_SOUND: &'static [u8] =
     include_bytes!("../static/audio/play_cs16.wav");
-//
 // pub fn bench_two_sum(criterion: &mut Criterion) {
 //     criterion.bench_function("two+wum", |bencher| {
 //         bencher.iter(move || {

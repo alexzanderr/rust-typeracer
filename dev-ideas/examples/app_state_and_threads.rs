@@ -180,7 +180,6 @@ fn main() {
                         let mut music_state =
                             app_state_lock.music_state_ref_mut();
 
-
                         music_state.do_based_on_state(&mut mp);
 
                         // match *music_state {

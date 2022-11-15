@@ -1,4 +1,3 @@
-
 #![allow(
     dead_code,
     unused_imports,
@@ -12,9 +11,8 @@
     non_camel_case_types,
     semicolon_in_expressions_from_macros,
     redundant_semicolons,
-    unused_macros,
+    unused_macros
 )]
-
 
 #[cfg(feature = "dev-ideas")]
 pub mod prelude {

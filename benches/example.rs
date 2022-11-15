@@ -15,12 +15,13 @@
 )]
 #![feature(test)]
 
-
 // exactly like `extern crate proc_macro;`
 // rust's built in crates
 extern crate test;
-use test::{Bencher, black_box};
-
+use test::{
+    black_box,
+    Bencher,
+};
 use soloud::*;
 use typeracer::MusicPlayer;
 

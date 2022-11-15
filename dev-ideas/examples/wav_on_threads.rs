@@ -38,8 +38,6 @@ pub struct WavWrapper(Wav);
 unsafe impl Send for WavWrapper {
 }
 
-
-
 fn main() -> GenericResult<()> {
     let songs_arc: Arc<Mutex<Vec<WavWrapper>>> =
         Arc::new(Mutex::new(Vec::with_capacity(15)));

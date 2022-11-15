@@ -1,4 +1,3 @@
-
 #![allow(
     dead_code,
     unused_imports,
@@ -12,28 +11,29 @@
     non_camel_case_types,
     semicolon_in_expressions_from_macros,
     redundant_semicolons,
-    unused_macros,
+unused_macros
 )]
 
 mod common;
-use common::{
-    PLAY_CS16_SOUND,
-    SKELER_TELAVIV_SONG
-};
 
-use typeracer as game;
-use game::{MusicPlayer, MusicPlayerResult};
 use std::time::Instant;
-
-
 use std::sync::{
     Arc,
-    Mutex
+    Mutex,
+};
+
+use common::{
+    PLAY_CS16_SOUND,
+    SKELER_TELAVIV_SONG,
+};
+use typeracer as game;
+use game::{
+    MusicPlayer,
+    MusicPlayerResult,
 };
 
 pub type GenericResult<T> =
 core::result::Result<T, Box<dyn std::error::Error>>;
-
 
 // https://doc.rust-lang.org/nomicon/send-and-sync.html
 pub struct WavWrapper(Wav);
@@ -101,7 +101,6 @@ mod load_from_mem {
         Ok(())
     }
 
-
     #[test]
     fn main() -> GenericResult<()> {
         let songs_arc: Arc<Mutex<Vec<WavWrapper>>> =
@@ -135,5 +134,4 @@ mod load_from_mem {
 
         Ok(())
     }
-
 }

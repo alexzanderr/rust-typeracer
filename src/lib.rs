@@ -58,14 +58,14 @@ pub use music_player::{
     MusicPlayer,
     MusicPlayerErrors,
     MusicPlayerResult,
-    MusicState,
+    MusicState
 };
 
 mod utils;
 mod config;
 
 pub use config::{
-    TyperacerConfig,
     ConfigErrors,
     ConfigResult,
+    TyperacerConfig
 };

@@ -1,12 +1,15 @@
 mod config;
 
 pub use config::{
-    TyperacerConfig
+    TyperacerConfig,
+    UIConfig,
 };
 
 mod errors;
 
 pub use errors::{
-    ConfigResult,
     ConfigErrors,
+    ConfigResult,
 };
+
+mod getters;

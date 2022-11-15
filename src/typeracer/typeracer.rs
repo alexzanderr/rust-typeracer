@@ -73,16 +73,25 @@ pub enum LoopActions {
     Noop,
     PauseGame,
     ContinueGame,
-    ForceQuitGame
+    ForceQuitGame,
 }
+
+use crate::{
+    ConfigResult,
+    TyperacerConfig,
+};
 
 #[derive(Debug)]
 /// Typeracer main handle to the game
 pub struct Typeracer<'a> {
     /// separate UI with specific methods
-    ui:        TyperacerUI<'a>,
+    ui: TyperacerUI<'a>,
     /// entire app state
-    app_state: Arc<Mutex<AppState>>
+    /// similar to `context` in other "contexts"
+    app_state: Arc<Mutex<AppState>>,
+    /// configuration for the game
+    // NOTE: I suppose you will need to make arc<mutex<>> from this one
+    config: TyperacerConfig,
 }
 
 impl<'a> Typeracer<'a> {
@@ -108,9 +117,14 @@ impl<'a> Typeracer<'a> {
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let ui = TyperacerUI::from_term(term);
         let app_state = Arc::new(Mutex::new(AppState::init()));
+
+        // this is ugly; i dont want this in the future
+        let config = TyperacerConfig::load_default_path().unwrap();
+
         Self {
             ui,
-            app_state
+            app_state,
+            config,
         }
     }
 
@@ -157,14 +171,11 @@ impl<'a> Typeracer<'a> {
                 // but we'll see
                 mp.play_all_songs_in_order();
                 {
-                    let mut app_state_lock = app_state_arc.lock();
-
-                    match app_state_lock {
-                        Ok(app_state_mutex) => {
-                            *app_state_mutex.music_state_ref_mut() =
-                                MusicState::new_playing();
-                        },
-                        Err(_) => {}
+                    if let Ok(app_state_mutex) = app_state_arc.lock() {
+                        *app_state_mutex.music_state_ref_mut() =
+                            MusicState::new_playing();
+                    } else {
+                        panic!("here")
                     }
                 }
 
@@ -174,16 +185,12 @@ impl<'a> Typeracer<'a> {
                 loop {
                     // try lock is non-blocking
                     // doesnt need to be
-                    let mut app_state_lock = app_state_arc.try_lock();
 
-                    match app_state_lock {
-                        Ok(app_state_mutex) => {
-                            let mut music_state =
-                                app_state_mutex.music_state_ref_mut();
+                    if let Ok(app_state_mutex) = app_state_arc.try_lock() {
+                        let mut music_state =
+                            app_state_mutex.music_state_ref_mut();
 
-                            mp.react_to_state(&music_state);
-                        },
-                        Err(_) => {}
+                        mp.react_to_state(&music_state);
                     }
 
                     std::thread::sleep(std::time::Duration::from_millis(
@@ -198,6 +205,11 @@ impl<'a> Typeracer<'a> {
     }
 
     fn game_loop(mut self) -> TyperacerResult<()> {
+        let sleep_period = {
+            let s = 1000f32 / *self.config.fps_ref() as f32;
+            s as u64
+        };
+
         loop {
             // render ui
             {
@@ -219,7 +231,7 @@ impl<'a> Typeracer<'a> {
             // }
 
             // handle keyboard input
-            if event::poll(Duration::from_millis(100))? {
+            if event::poll(Duration::from_millis(sleep_period))? {
                 let event = event::read()?;
 
                 let loop_action = self.handle_event(event)?.1;
@@ -251,9 +263,11 @@ impl<'a> Typeracer<'a> {
                 // write!(handler, "{}\n\n", app_state)?;
             }
         }
-        return Ok(());
+
+        Ok(())
     }
 
+    /// the main game that is only played once
     pub fn mainloop(mut self) -> TyperacerResult<()> {
         // arc pointer is in self as field
         #[cfg(feature = "music")]
@@ -294,7 +308,6 @@ impl<'a> Typeracer<'a> {
             app_state.wrong_index_shadow_ref_mut();
         let mut current_line = app_state.current_line_ref_mut();
 
-
         let elapsed = app_state.elapsed_time_ref_mut();
         let mut keyboard_input = app_state.keyboard_input_ref_mut();
 
@@ -306,7 +319,6 @@ impl<'a> Typeracer<'a> {
 
         #[cfg(feature = "music")]
             let mut music_state = app_state.music_state_ref_mut();
-
 
         match key_event {
             // this needs to be merged with enter and Char(character)
@@ -348,14 +360,7 @@ impl<'a> Typeracer<'a> {
                         *game_state = GameState::Paused;
 
                         #[cfg(feature = "music")]
-                        match *music_state {
-                            // MusicState::Stopped => {
-                            //     music_state.play();
-                            // },
-                            // MusicState::Paused => music_state.play(),
-                            MusicState::Playing => music_state.pause(),
-                            _ => {}
-                        }
+                        if let MusicState::Playing = *music_state { music_state.pause() }
                     },
                 }
             },
@@ -397,7 +402,7 @@ impl<'a> Typeracer<'a> {
                 let time_to_continue = self.handle_enter_key(
                     &mut what_was_typed,
                     &mut user_input_prompt,
-                    user_input_prompt_x.clone())?;
+                    *user_input_prompt_x)?;
 
                 // if enter is pressed and the prompt is empty
                 // just continue the loop

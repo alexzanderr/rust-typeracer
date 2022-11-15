@@ -1,5 +1,4 @@
 use thiserror::Error as ThisError;
-
 use colored::*;
 
 #[derive(Debug, ThisError)]
@@ -19,8 +18,8 @@ pub enum ConfigErrors {
     #[error("TomlError: failed to parse:\n\t{}", .source.to_string().yellow().bold())]
     TomlError {
         #[from]
-        source: toml::de::Error,
-    },
+        source: toml::de::Error
+    }
 }
 
 pub type ConfigResult<T> = core::result::Result<T, ConfigErrors>;

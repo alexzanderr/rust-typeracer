@@ -56,14 +56,14 @@ use rand::thread_rng;
 use rand::Rng;
 use colored::*;
 
-
 fn get_text_colored(
     text: &str,
     index: usize,
     wrong_index: usize
 ) -> String {
     let green = text[..index].green().to_string().replace(" ", "_");
-    let red = text[index..index + wrong_index].red()
+    let red = text[index..index + wrong_index]
+        .red()
         .to_string()
         .replace(" ", "_");
     let rest = &text[index + wrong_index..];

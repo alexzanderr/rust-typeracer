@@ -188,7 +188,6 @@ fn main() {
                             app_state_mutex.music_state_ref_mut();
                         let ns = app_state_mutex.not_sharable_ref_mut();
 
-
                         music_state.do_based_on_state(&mut mp);
 
                         // match *music_state {

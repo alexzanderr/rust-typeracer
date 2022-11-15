@@ -5,6 +5,7 @@ use std::sync::{
     RwLock
 };
 use std::marker::PhantomData;
+use std::borrow::Cow;
 
 use unicode_segmentation::UnicodeSegmentation;
 use colored::*;
@@ -51,11 +52,8 @@ use crate::statics::{
     GREEN,
     PROMPT_ARROW,
     RED,
-    TERMINAL_CURSOR,
+    TERMINAL_CURSOR
 };
-
-use std::borrow::Cow;
-
 
 #[derive(Debug)]
 pub struct TyperacerUI<'a> {
@@ -136,7 +134,7 @@ impl<'a> TyperacerUI<'a> {
         &self,
         text: &str,
         index: usize,
-        wrong_index: usize,
+        wrong_index: usize
     ) -> String {
         // this function is private and i want to test it individually with private tests
         // im doing this because i dont want to instantiante
@@ -144,16 +142,19 @@ impl<'a> TyperacerUI<'a> {
         color_format_text(text, index, wrong_index)
     }
 
-
-
-
     #[inline(always)]
-    pub fn set_term_height(&mut self, height: u16) {
+    pub fn set_term_height(
+        &mut self,
+        height: u16,
+    ) {
         self.term.set_height(height);
     }
 
     #[inline(always)]
-    pub fn set_term_width(&mut self, width: u16) {
+    pub fn set_term_width(
+        &mut self,
+        width: u16,
+    ) {
         self.term.set_width(width);
     }
 
@@ -301,14 +302,14 @@ impl<'a> TyperacerUI<'a> {
     }
 }
 
-
 // this will be the better version
-fn _color_format_text<'str>(text: &'str str,
-                            index: usize,
-                            wrong_index: usize,
-) -> Cow<'str, str> {
+fn _color_format_text(
+    text: &str,
+    index: usize,
+    wrong_index: usize,
+) -> Cow<'_, str> {
     if index == 0 && wrong_index == 0 {
-        return Cow::Borrowed(text)
+        Cow::Borrowed(text)
     } else {
         Cow::Owned(text.to_string())
     }
@@ -320,18 +321,19 @@ fn _color_format_text<'str>(text: &'str str,
 fn color_format_text(
     text: &str,
     index: usize,
-    wrong_index: usize,
+    wrong_index: usize
 ) -> String {
     // dont do anything because nothing changed
     if index == 0 && wrong_index == 0 {
-        return text.to_string()
+        return text.to_string();
     }
 
-    let text = UnicodeSegmentation::graphemes(text, true)
-        .collect::<Vec<&str>>();
+    let text =
+        UnicodeSegmentation::graphemes(text, true).collect::<Vec<&str>>();
 
     // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
-    let mut green = text[..index].join("").green().to_string().replace(' ', "_");
+    let mut green =
+        text[..index].join("").green().to_string().replace(' ', "_");
 
     let green = if green.contains('\n') {
         let pat = format!("{ENDC}\n{GREEN}");
@@ -358,10 +360,15 @@ fn color_format_text(
 
 #[cfg(test)]
 mod tests {
-    use super::color_format_text;
     use assert2::assert;
-    use super::{RED, GREEN, ENDC};
     use rstest::rstest;
+
+    use super::color_format_text;
+    use super::{
+        ENDC,
+        GREEN,
+        RED,
+    };
 
     #[rstest]
     #[case("hello world", 0, 0, "hello world")]
@@ -374,12 +381,13 @@ mod tests {
         #[case] text: &str,
         #[case] index: usize,
         #[case] wrong_index: usize,
-        #[case] expected_text: &str,
+        #[case] expected_text: &str
     ) {
         // green "\x1b[0;32m";
         // red "\x1b[0;31m";
         // endc  "\u{1b}[0m";
-        let colored_formatted_text = color_format_text(text, index, wrong_index);
+        let colored_formatted_text =
+            color_format_text(text, index, wrong_index);
         assert!(colored_formatted_text == expected_text)
     }
 }

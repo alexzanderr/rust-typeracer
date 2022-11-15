@@ -10,7 +10,7 @@ use soloud::*;
 use super::{
     MusicPlayerErrors,
     MusicPlayerResult,
-    MusicState,
+    MusicState
 };
 
 lazy_static::lazy_static! {
@@ -25,8 +25,7 @@ pub struct MusicPlayer {
     // or use atomic orderings (already using, but use them better!)
     player: Soloud,
     songs: Option<HashMap<String, Wav>>,
-    handles: Option<HashMap<String, Handle>>,
-    // music_state: MusicState
+    handles: Option<HashMap<String, Handle>>, // music_state: MusicState
 }
 
 impl MusicPlayer {
@@ -285,7 +284,10 @@ impl MusicPlayer {
         Ok(())
     }
 
-    pub fn react_to_state(&mut self, music_state: &MusicState) {
+    pub fn react_to_state(
+        &mut self,
+        music_state: &MusicState,
+    ) {
         match music_state {
             MusicState::Stopped => {
                 self.stop_all();

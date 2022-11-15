@@ -21,9 +21,9 @@ bn = "bench"
 # whether cargo output is quiet
 quiet = false
 verbose = false        # whether cargo provides verbose output
-color = 'auto'         # whether cargo colorizes output
-progress.when = 'auto' # whether cargo shows progress bar
-progress.width = 80    # width of progress bar
+color = "always"         # whether cargo colorizes output
+progress.when = "always" # whether cargo shows progress bar
+progress.width = 100    # width of progress bar
 
 [env]
 # RUST_BACKTRACE = "full"

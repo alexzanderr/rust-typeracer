@@ -10,6 +10,7 @@
 
 use colored::*;
 use dotenv::dotenv;
+use tty_racer as typeracer;
 use typeracer::*;
 
 fn main() -> TyperacerResult<()> {

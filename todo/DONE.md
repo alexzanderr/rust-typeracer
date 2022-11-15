@@ -124,3 +124,12 @@
   this would be at `~/.config/typeracer/config.toml`
   we need to come up with a different name for the folder because there is already a typeracer game called `typeracer`(
   binary name)
+
+- [x] to get 60 FPS (frames per second) you need 16.66 ms sleep in the game loop
+  explanation: if you sleep 1 second (1000ms), you need to 1000/60 to get the sleep in milliseconds to actually draw 60
+  frames per second. it will be 1 frame at every 16.66 ms. 16.66 ms * 60 == 999.6 ms  ~= 1000 ms (60 frames in a single
+  second on the clock)
+
+  to get the `total_ms_sleep`, divide `1000/fps`
+
+- [x] create a typeracer-proc-macro crate inside this workspace

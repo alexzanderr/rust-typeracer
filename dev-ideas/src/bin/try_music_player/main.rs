@@ -11,12 +11,12 @@ non_upper_case_globals,
 non_camel_case_types,
 semicolon_in_expressions_from_macros,
 redundant_semicolons,
-unused_macros,
+unused_macros
 )]
 
 use typeracer::{
     MusicPlayer,
-    MusicPlayerResult,
+    MusicPlayerResult
 };
 
 fn main() -> MusicPlayerResult<()> {
