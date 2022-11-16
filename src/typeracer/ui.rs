@@ -169,13 +169,13 @@ impl<'a> TyperacerUI<'a> {
     }
 
     /// uses `self.term.print(text, x, y)?`
-    pub fn print(
+    pub fn print<T: AsRef<str>>(
         &mut self,
-        text: &str,
+        text: T,
         x: usize,
-        y: usize
+        y: usize,
     ) -> TerminalScreenResult<&mut Self> {
-        self.term.print(text, x, y)?;
+        self.term.print(text.as_ref(), x, y)?;
         Ok(self)
     }
 
@@ -207,6 +207,14 @@ impl<'a> TyperacerUI<'a> {
 
         let mut game_state = app_state.game_state_ref_mut();
         let app_state_elapsed = app_state.elapsed_time_ref_mut();
+        let mut wpm = app_state.wpm_ref_mut();
+
+        // self.print(format!("{:#?}", wpm), 23, 10)?;
+
+        let wpm = match *wpm {
+            Some(wpm) => wpm.to_string(),
+            None => "None".to_string()
+        };
 
         let yellow_left_bracket = "[".yellow();
         let yellow_right_bracket = "]".yellow();
@@ -223,7 +231,8 @@ impl<'a> TyperacerUI<'a> {
                 {lb}Elapsed: {elapsed_time:.2?}s{rb} \
                 {lb}Game: {game_state:?}{rb} \
                 {lb}EAS: {app_state_elapsed:.2}s{rb}\
-                ",
+                \n\
+                {lb}WPM: {wpm}{rb}",
             lb = yellow_left_bracket,
             rb = yellow_right_bracket,
             app_state_elapsed = *app_state_elapsed as f32

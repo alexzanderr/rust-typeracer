@@ -3,7 +3,9 @@
 # this is a sample with the default values for the game
 #
 #
-sleep_ms = 1000
+
+# so the secret to `no cursor flickering` is to put a higher sleep for the ui, something like 500 ms or 1 second
+sleep_ms = 10
 music = true
 
 

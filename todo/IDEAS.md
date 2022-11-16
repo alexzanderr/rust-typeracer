@@ -40,7 +40,6 @@
 
 - [ ] implement control + backspace for the typeracer_text
 
-- [ ] calculate WPM and print it on the screen
 
 - [ ] cand wpm depaseste 50 sau valoare definita de user atunci ruleaza in alt thread unstoppable, sau "blazingly fast"
   - primeagen + plus sunetul ala de piuuu

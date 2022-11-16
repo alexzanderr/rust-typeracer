@@ -135,3 +135,8 @@
 - [x] create a typeracer-proc-macro crate inside this workspace
 
 - [x] add custom made builder for `TerminalScreen` which is not something like `#[derive(Builder)]`
+
+
+- [x] so the secret to `no cursor flickering` is to put a higher sleep for the ui, something like 500 ms or 1 second
+
+- [x] calculate WPM and print it on the screen

@@ -17,24 +17,25 @@ pub struct AppState {
     /// used to calculate total elapsed time
     stopwatch:            RefCell<Instant>,
     typeracer_text:       RefCell<String>,
+    // this is broken due to Option in front
     typeracer_text_lines: Option<RefCell<Vec<String>>>,
 
     // #[getset(skip)]
     typeracer_text_x: RefCell<usize>,
-    what_was_typed:   RefCell<String>,
+    what_was_typed: RefCell<String>,
 
     // #[getset(skip)]
-    what_was_typed_x:  RefCell<usize>,
+    what_was_typed_x: RefCell<usize>,
     user_input_prompt: RefCell<String>,
 
-    index:               RefCell<usize>,
+    index: RefCell<usize>,
     // #[getset(skip)]
     user_input_prompt_x: RefCell<usize>,
-    keyboard_input:      RefCell<String>,
+    keyboard_input: RefCell<String>,
 
     // #[getset(skip)]
     // #[getset(skip)]
-    wrong_index:   RefCell<usize>,
+    wrong_index: RefCell<usize>,
     // #[getset(skip)]
     game_finished: RefCell<bool>,
 
@@ -45,19 +46,32 @@ pub struct AppState {
     cursor_x: RefCell<usize>,
     cursor_y: RefCell<usize>,
 
-    index_shadow:       RefCell<usize>,
+    index_shadow: RefCell<usize>,
     wrong_index_shadow: RefCell<usize>,
-    current_line:       RefCell<usize>,
+    current_line: RefCell<usize>,
 
     #[cfg(feature = "music")]
     music_state: RefCell<MusicState>,
 
-    elapsed_time: RefCell<usize>,
-    game_state:   RefCell<GameState>
+    elapsed_time: RefCell<f64>,
+    game_state: RefCell<GameState>,
+
+    // most of the users dont have higher than u8, i.e 256 WPM
+    // this is to include all kind of users (fastest ones, especially)
+    wpm: RefCell<Option<u16>>,
+    total_correct_typed_chars: RefCell<usize>
 }
 
 impl AppState {
-    pub fn elapsed_time_ref_mut(&self) -> RefMut<'_, usize> {
+    pub fn total_correct_typed_chars_ref_mut(&self) -> RefMut<'_, usize> {
+        self.total_correct_typed_chars.borrow_mut()
+    }
+
+    pub fn wpm_ref_mut(&self) -> RefMut<'_, Option<u16>> {
+        self.wpm.borrow_mut()
+    }
+
+    pub fn elapsed_time_ref_mut(&self) -> RefMut<'_, f64> {
         self.elapsed_time.borrow_mut()
     }
 
@@ -157,7 +171,7 @@ impl AppState {
         // game
 
         // let typeracer_text = line;
-        let typeracer_text_x = 6;
+        let typeracer_text_x = 10;
         let typeracer_text =
             "rust is the best language ever and the hardest";
         let typeracer_text =
@@ -175,7 +189,7 @@ many classes of bugs at compile-time.";
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
 
-        let user_input_prompt_x = 3;
+        let user_input_prompt_x = 6;
 
         let mut user_input_prompt = String::from("");
         let mut total_spaces = 0usize;
@@ -225,10 +239,16 @@ many classes of bugs at compile-time.";
         let current_line = RefCell::new(0usize);
 
         #[cfg(feature = "music")]
-        let music_state = RefCell::new(MusicState::new_stopped());
+            let music_state = RefCell::new(MusicState::new_stopped());
 
-        let elapsed_time = RefCell::new(0usize);
+        let elapsed_time = RefCell::new(0f64);
         let game_state = RefCell::new(GameState::Paused);
+
+        let wpm = RefCell::new(None);
+        let total_correct_typed_chars = RefCell::new(0);
+
+        let game_started = RefCell::new(false);
+
 
         Self {
             stopwatch,
@@ -252,7 +272,9 @@ many classes of bugs at compile-time.";
             #[cfg(feature = "music")]
             music_state,
             elapsed_time,
-            game_state
+            game_state,
+            wpm,
+            total_correct_typed_chars,
         }
     }
 }

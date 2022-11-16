@@ -1,10 +1,13 @@
 use std::sync::MutexGuard;
 use std::io::Write;
-use std::time::Duration;
+use std::time::{
+    Duration,
+    Instant,
+};
 use std::sync::{
     Arc,
     Mutex,
-    RwLock
+    RwLock,
 };
 use std::cell::RefCell;
 use std::thread::{
@@ -73,12 +76,12 @@ pub enum LoopActions {
     Noop,
     PauseGame,
     ContinueGame,
-    ForceQuitGame,
+    ForceQuitGame
 }
 
 use crate::{
     ConfigResult,
-    TyperacerConfig,
+    TyperacerConfig
 };
 
 #[derive(Debug)]
@@ -120,7 +123,10 @@ impl<'a> Typeracer<'a> {
         let app_state = Arc::new(Mutex::new(AppState::init()));
         // this is ugly; i dont want this in the future
         // let config = TyperacerConfig::load_default_path().unwrap();
-        let config = TyperacerConfig::load_from_str(include_str!("../../config.toml")).unwrap();
+        let config = TyperacerConfig::load_from_str(include_str!(
+            "../../config.toml"
+        ))
+            .unwrap();
 
         Self {
             ui,
@@ -205,9 +211,55 @@ impl<'a> Typeracer<'a> {
         Ok(music_thread)
     }
 
+    fn calculate_wpm(&mut self) {
+        // def calculate_wpm(self):
+        //     try:
+        //     time_diff = abs(time() - self.start_time)
+        // time_diff_2 = fixed_set_precision_float(time_diff, 2)
+        //
+        // if time_diff_2 == 0:
+        // return round(time_diff / 1000)
+        //
+        // time_diff = float(time_diff)
+        //
+        // time_diff = current_time - start_time
+        // self.wpm = (
+        //     60 * len(self.total_correct_typed_chars) / 5) / time_diff
+        // return round(self.wpm)
+        if let Ok(mut app_state_mutex) = self.app_state.lock() {
+            let mut game_state = app_state_mutex.game_state_ref_mut();
+
+            match *game_state {
+                GameState::Playing => {
+                    let mut time_diff =
+                        app_state_mutex.elapsed_time_ref_mut();
+                    let total_correct_typed_chars = app_state_mutex
+                        .total_correct_typed_chars_ref_mut();
+
+                    let wpm = (60.0 * (*total_correct_typed_chars as f64)
+                        / 5.0)
+                        / *time_diff;
+                    let wpm = wpm as u16;
+
+                    let mut wpm_ref_mut = app_state_mutex.wpm_ref_mut();
+                    *wpm_ref_mut = Some(wpm);
+                },
+                GameState::Paused => {
+                    // do nothing if the game hasnt started
+                }
+            }
+        } else {
+            panic!("asd")
+        }
+    }
+
     fn game_loop(mut self) -> TyperacerResult<()> {
         let sleep_ms = u64::from(self.config.sleep_ms());
+
         loop {
+            // calculate WPM always
+            self.calculate_wpm();
+
             // render ui
             {
                 let app_state_arc = self.app_state.clone();
@@ -294,8 +346,10 @@ impl<'a> Typeracer<'a> {
 
         /// initialize the game state flag
         {
-            let control_space = KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL);
-            let control_s = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL);
+            let control_space =
+                KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL);
+            let control_s =
+                KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL);
 
             // if the user pressed anything other than the game keybindings for menu actions
             if key_event != control_space {
@@ -330,9 +384,11 @@ impl<'a> Typeracer<'a> {
         let mut index = app_state.index_ref_mut();
         let mut wrong_index = app_state.wrong_index_ref_mut();
 
+        let mut total_correct_typed_chars =
+            app_state.total_correct_typed_chars_ref_mut();
+
         let key_event_clone = format!("{:?}", key_event.code.clone());
         *keyboard_input = key_event_clone.yellow().to_string();
-
 
         match key_event {
             // this needs to be merged with enter and Char(character)
@@ -362,13 +418,13 @@ impl<'a> Typeracer<'a> {
                         GameState::Paused => {
                             *game_state = GameState::Playing;
 
-                        #[cfg(feature = "music")]
-                        {
-                            *music_state = MusicState::Playing;
+                            #[cfg(feature = "music")]
+                            {
+                                *music_state = MusicState::Playing;
+                            }
                         }
-                    }
-                    GameState::Playing => {
-                        *game_state = GameState::Paused;
+                        GameState::Playing => {
+                            *game_state = GameState::Paused;
 
                             #[cfg(feature = "music")]
                             {
@@ -495,6 +551,11 @@ impl<'a> Typeracer<'a> {
                     }
                 }
 
+                // you cannot go back if all the text is green behind the cursor
+                if *wrong_index == 0 {
+                    return Ok((self, LoopActions::TimeToContinue))
+                }
+
                 // ui logic
                 let _ = user_input_prompt.pop();
 
@@ -597,6 +658,8 @@ impl<'a> Typeracer<'a> {
                     if *index == typeracer_text.len() {
                         *game_finished = true;
                     }
+
+                    *total_correct_typed_chars += 1;
                 } else if *index + *wrong_index < typeracer_text.len() {
                     *wrong_index += 1;
                     *wrong_index_shadow += 1;
@@ -726,14 +789,14 @@ impl<'a> Typeracer<'a> {
                             GameState::Playing => {
                                 let mut elapsed =
                                     app_state_mutex.elapsed_time_ref_mut();
-                                *elapsed += 1;
+                                *elapsed += 0.01;
                             }
                         }
                     }
 
-                    std::thread::sleep(std::time::Duration::from_millis(
-                        1000
-                    ));
+                    std::thread::sleep(
+                        std::time::Duration::from_secs_f32(0.0095)
+                    );
                 }
             })?;
 
