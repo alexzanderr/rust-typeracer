@@ -114,12 +114,13 @@ impl<'a> Typeracer<'a> {
     //     Ok(_self)
     // }
 
+    /// typeracer/src/typeracer/typeracer.rs
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let ui = TyperacerUI::from_term(term);
         let app_state = Arc::new(Mutex::new(AppState::init()));
-
         // this is ugly; i dont want this in the future
-        let config = TyperacerConfig::load_default_path().unwrap();
+        // let config = TyperacerConfig::load_default_path().unwrap();
+        let config = TyperacerConfig::load_from_str(include_str!("../../config.toml")).unwrap();
 
         Self {
             ui,
@@ -205,11 +206,7 @@ impl<'a> Typeracer<'a> {
     }
 
     fn game_loop(mut self) -> TyperacerResult<()> {
-        let sleep_period = {
-            let s = 1000f32 / *self.config.fps_ref() as f32;
-            s as u64
-        };
-
+        let sleep_ms = u64::from(self.config.sleep_ms());
         loop {
             // render ui
             {
@@ -231,7 +228,7 @@ impl<'a> Typeracer<'a> {
             // }
 
             // handle keyboard input
-            if event::poll(Duration::from_millis(sleep_period))? {
+            if event::poll(Duration::from_millis(sleep_ms))? {
                 let event = event::read()?;
 
                 let loop_action = self.handle_event(event)?.1;

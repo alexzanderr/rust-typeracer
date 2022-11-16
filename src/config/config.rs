@@ -35,15 +35,16 @@ lazy_static! {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct TyperacerConfig {
-    pub(crate) fps: u8,
+    pub(super) sleep_ms: u16,
     music: bool,
-    pub(crate) ui: UIConfig,
+    pub(super) ui: UIConfig,
 }
 
 impl Default for TyperacerConfig {
     fn default() -> Self {
         Self {
-            fps: 60,
+            // 1 second
+            sleep_ms: 1000,
             music: true,
             ui: UIConfig::default(),
         }
@@ -96,11 +97,17 @@ impl TyperacerConfig {
 
     fn check_values(_self: Self) -> ConfigResult<Self> {
         // check FPS
-
-        if 1 > _self.fps || _self.fps > 100 {
-            return Err(ConfigErrors::FPSError(_self.fps));
+        let sleep_ms = _self.sleep_ms;
+        if sleep_ms < 10 || sleep_ms > 1000 {
+            return Err(ConfigErrors::SleepMSError(sleep_ms));
         }
+
         Ok(_self)
+    }
+
+    fn _load_from_str<S: AsRef<str>>(config_contents: S) -> ConfigResult<Self> {
+        let config: Self = toml::from_str(config_contents.as_ref())?;
+        Self::check_values(config)
     }
 
     fn _load_from_path<P>(path: P) -> ConfigResult<Self>
@@ -108,8 +115,7 @@ impl TyperacerConfig {
             P: AsRef<Path>
     {
         let config_contents = fs::read_to_string(&path)?;
-        let config: Self = toml::from_str(&config_contents)?;
-        let config = Self::check_values(config)?;
+        let config = Self::_load_from_str(config_contents)?;
         Ok(config)
     }
 
@@ -124,6 +130,10 @@ impl TyperacerConfig {
             P: AsRef<Path>
     {
         Self::_load_from_path(path)
+    }
+
+    pub fn load_from_str<S: AsRef<str>>(file_contents: S) -> ConfigResult<Self> {
+        Self::_load_from_str(file_contents)
     }
 
     #[cfg(feature = "config-load-from-bin")]

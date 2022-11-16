@@ -3,8 +3,8 @@ use colored::*;
 
 #[derive(Debug, ThisError)]
 pub enum ConfigErrors {
-    #[error("FPSError: invalid fps value: {}, must be between [1; 100]", .0.to_string().yellow().bold())]
-    FPSError(u8),
+    #[error("SleepMSError: invalid sleep in milliseconds value: {}, must be between [10; 1000]", .0.to_string().yellow().bold())]
+    SleepMSError(u16),
 
     #[error("failed to print on the screen")]
     IoError(#[from] std::io::Error),

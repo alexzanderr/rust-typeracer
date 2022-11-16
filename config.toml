@@ -3,7 +3,7 @@
 # this is a sample with the default values for the game
 #
 #
-fps = 60
+sleep_ms = 1000
 music = true
 
 
