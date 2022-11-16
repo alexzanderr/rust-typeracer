@@ -2,12 +2,12 @@ use std::sync::MutexGuard;
 use std::io::Write;
 use std::time::{
     Duration,
-    Instant,
+    Instant
 };
 use std::sync::{
     Arc,
     Mutex,
-    RwLock,
+    RwLock
 };
 use std::cell::RefCell;
 use std::thread::{
@@ -131,7 +131,7 @@ impl<'a> Typeracer<'a> {
         Self {
             ui,
             app_state,
-            config,
+            config
         }
     }
 
@@ -358,7 +358,11 @@ impl<'a> Typeracer<'a> {
                     *has_game_started = true;
                 } else if *game_state == GameState::Paused {
                     *game_state = GameState::Playing;
-                    *music_state = MusicState::Playing;
+
+                    #[cfg(feature = "music")]
+                    {
+                        *music_state = MusicState::Playing;
+                    }
                 }
             }
         }

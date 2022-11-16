@@ -33,17 +33,19 @@ use crossterm::{
     terminal::{
         self,
         EnterAlternateScreen,
-        LeaveAlternateScreen
+        LeaveAlternateScreen,
     },
     tty,
     Result as CrosstermResult
 };
 
+use super::GameState;
+use crate::MusicState;
 use super::AppState;
 use crate::{
     TerminalScreen,
     TerminalScreenResult,
-    TyperacerErrors
+    TyperacerErrors,
 };
 use super::TyperacerResult;
 use super::Stats;
@@ -145,7 +147,7 @@ impl<'a> TyperacerUI<'a> {
     #[inline(always)]
     pub fn set_term_height(
         &mut self,
-        height: u16,
+        height: u16
     ) {
         self.term.set_height(height);
     }
@@ -153,7 +155,7 @@ impl<'a> TyperacerUI<'a> {
     #[inline(always)]
     pub fn set_term_width(
         &mut self,
-        width: u16,
+        width: u16
     ) {
         self.term.set_width(width);
     }
@@ -173,7 +175,7 @@ impl<'a> TyperacerUI<'a> {
         &mut self,
         text: T,
         x: usize,
-        y: usize,
+        y: usize
     ) -> TerminalScreenResult<&mut Self> {
         self.term.print(text.as_ref(), x, y)?;
         Ok(self)
@@ -212,8 +214,8 @@ impl<'a> TyperacerUI<'a> {
         // self.print(format!("{:#?}", wpm), 23, 10)?;
 
         let wpm = match *wpm {
-            Some(wpm) => wpm.to_string(),
-            None => "None".to_string()
+            Some(wpm) => wpm.to_string().yellow().bold(),
+            None => "None".red().bold()
         };
 
         let yellow_left_bracket = "[".yellow();
@@ -223,13 +225,44 @@ impl<'a> TyperacerUI<'a> {
 
         let elapsed_time = stopwatch.elapsed().as_secs_f32();
 
+        let game_state_string = match *game_state {
+            GameState::Playing => "Playing".green().bold().to_string(),
+            GameState::Paused => "Paused".red().bold().to_string()
+        };
+
         let header_x = 0usize;
         // let elapsed_repr = format!("{:.2?}", elapsed_time);
         let current_time = get_current_time();
-        let header = format!(
+
+        #[cfg(feature = "music")]
+            let header = {
+            let music_state = app_state.music_state_ref_mut();
+            let music_state_string = match *music_state {
+                MusicState::Playing => {
+                    "Playing".green().bold().to_string()
+                },
+                MusicState::Paused => "Paused".yellow().bold().to_string(),
+                MusicState::Stopped => "Stopped".red().bold().to_string()
+            };
+            format!(
+                "{lb}Time: {current_time}{rb} \
+                {lb}Elapsed: {elapsed_time:.2?}s{rb} \
+                {lb}Game: {game_state_string}{rb} \
+                {lb}EAS: {app_state_elapsed:.2}s{rb}\
+                \n\
+                {lb}WPM: {wpm}{rb} \
+                {lb}Music: {music_state_string}{rb}",
+                lb = yellow_left_bracket,
+                rb = yellow_right_bracket,
+                app_state_elapsed = *app_state_elapsed as f32
+            )
+        };
+
+        #[cfg(not(feature = "music"))]
+            let header = format!(
             "{lb}Time: {current_time}{rb} \
                 {lb}Elapsed: {elapsed_time:.2?}s{rb} \
-                {lb}Game: {game_state:?}{rb} \
+                {lb}Game: {game_state_string}{rb} \
                 {lb}EAS: {app_state_elapsed:.2}s{rb}\
                 \n\
                 {lb}WPM: {wpm}{rb}",
@@ -315,7 +348,7 @@ impl<'a> TyperacerUI<'a> {
 fn _color_format_text(
     text: &str,
     index: usize,
-    wrong_index: usize,
+    wrong_index: usize
 ) -> Cow<'_, str> {
     if index == 0 && wrong_index == 0 {
         Cow::Borrowed(text)
@@ -376,7 +409,7 @@ mod tests {
     use super::{
         ENDC,
         GREEN,
-        RED,
+        RED
     };
 
     #[rstest]
