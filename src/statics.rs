@@ -11,6 +11,20 @@ pub const SKELER_TELATIV_SONG: &'static [u8] =
     include_bytes!("../static/audio/skeler-telaviv.mp3");
 pub const PLAY_CS16_SOUND: &'static [u8] =
     include_bytes!("../static/audio/play_cs16.wav");
+
+
+#[cfg(feature = "embedded-music")]
+mod embedded_music {
+    pub const SKELER_TELATIV_SONG1: &'static [u8] =
+        include_bytes!("../static/audio/skeler-telaviv.mp3");
+    pub const PLAY_CS16_SOUND1: &'static [u8] =
+        include_bytes!("../static/audio/play_cs16.wav");
+}
+
+#[cfg(feature = "embedded-music")]
+pub use embedded_music::*;
+
+
 // let cursor = "▏".red();
 // let cursor = "│".red();
 // let cursor = "|".red();

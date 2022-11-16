@@ -59,6 +59,7 @@ default = [
 music = []
 # statistics in background sent to a database on a separate thread from main
 statistics = []
+embedded-music = []
 
 [dependencies.core-dev]
 git = "https://github.com/alexzanderr/rust-core-dev"
@@ -85,6 +86,7 @@ test-generator = "0.3.0"
 
 # https://github.com/rust-lang/rust/blob/master/RELEASES.md#cargo
 # https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-dependencies-table
+# /// Dependencies from this table cannot be declared as optional
 [workspace.dependencies]
 # the good part is that i have the same version of crossterm for the entire workspace
 # and if i manually change the version here its propagated to the entire workspace
@@ -100,6 +102,7 @@ color-backtrace = "0.5.1"
 notify = "5.0.0"
 syn = "1.0.103"
 quote = "1.0.21"
+dbg-pls = { version = "0.3.4" }
 
 
 [dependencies]
@@ -135,7 +138,6 @@ unicode-segmentation = "1.10.0"
 notify.workspace = true
 itoa = { version = "1.0.4", optional = true }
 ryu = { version = "1.0.11", optional = true }
-dbg-pls = { version = "0.3.4", optional = true }
 toml = "0.5.9"
 dirs = "4.0.0"
 serde = { version = "1.0.147", features = ["derive"] }
