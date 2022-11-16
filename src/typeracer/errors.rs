@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 
 use crate::terminal_screen::{
     RectangleBuilderErrors,
-    TerminalScreenBuilderError
+    TerminalScreenBuilderErrors
 };
 use crate::{
     AppState,
@@ -101,17 +101,17 @@ pub enum TyperacerErrors {
     IndexOutOfBounds(IndexOutOfBoundsError),
 
     #[error("BuilderError")]
-    BuilderError(#[from] TerminalScreenBuilderError),
+    BuilderError(#[from] TerminalScreenBuilderErrors),
 
     #[error(
-r#"{}: IoError
+    r#"{}: IoError
     message: {source}
 "#,
     RED_ERROR.to_string()
     )]
     IoError {
         #[from]
-        source:    std::io::Error,
+        source: std::io::Error,
         backtrace: Backtrace
     },
 

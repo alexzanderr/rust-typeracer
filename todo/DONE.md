@@ -133,3 +133,5 @@
   to get the `total_ms_sleep`, divide `1000/fps`
 
 - [x] create a typeracer-proc-macro crate inside this workspace
+
+- [x] add custom made builder for `TerminalScreen` which is not something like `#[derive(Builder)]`

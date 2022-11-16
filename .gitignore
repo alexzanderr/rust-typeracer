@@ -18,3 +18,5 @@ logs
 # if you are using vs code
 .vscode
 *.code-workspace
+
+*.expanded.rs

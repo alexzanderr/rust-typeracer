@@ -1,6 +1,6 @@
 # TODOs Ideas
 
-- [ ] implement config logic into the project
+- [x] implement config logic into the project
 
 - [ ] when doing CI, build for Linux, MacOS and windows (3 targets) and also try all toolchains (stable, beta, nightly);
   so 3 targets with 3 toolchains == 3 * 3 == 9 tests with
@@ -50,11 +50,6 @@
 - [ ] add ansi code to print url as text inside TUI to click on it and to go on docs for example
 
 - [ ] dont forget that there are `TODO`s inside the source code as well
-
-- [ ] you can make a separate thread to receive signals if the main thread blocks; then you can `std::process::exit(1)`
-  from there
-
-- [ ] add custom made builder for `TerminalScreen` which is not something like `#[derive(Builder)]`
 
 - [ ] HARD: make a TUI for debugging and logging data from main app to look at while developing; connect them with tpc
   sockets; they will be separate processes

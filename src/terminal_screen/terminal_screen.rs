@@ -38,40 +38,33 @@ use crossterm::{
     tty,
     Result as CrosstermResult
 };
-use derive_builder::Builder as DeriveBuilder;
 
 use super::TerminalScreenResult;
 use super::TermLines;
 use super::RectangleBuilder;
 use super::Rectangle;
+use super::TerminalScreenBuilder;
 
-#[derive(Debug, DeriveBuilder)]
+#[derive(Debug)]
 // Precede your struct (or field) with #[builder(pattern = "owned")] to opt into this pattern.
 // Builders generated with this pattern do not automatically derive Clone,
 // which allows builders to be generated for structs with fields that do not derive Clone.
-#[builder(pattern = "owned")]
-#[builder(name = "TerminalScreenBuilder")]
 pub struct TerminalScreen {
-    #[builder(default = "std::io::stdout()")]
     /// standard output where everything is written
-    stdout:        std::io::Stdout,
-    #[builder(default = "vec![]")]
+    pub(super) stdout: std::io::Stdout,
     /// this is the buffer where we write the entire UI
     /// from which all the data will be flushed into stdout
     /// then stdout will be flushed
-    buffer:        Vec<u8>,
+    pub(super) buffer: Vec<u8>,
     /// enter in alternate screen or dont enter
-    alternate:     bool,
+    pub(super) alternate: bool,
     /// capture mouse or dont capture mouse
-    capture_mouse: bool,
+    pub(super) capture_mouse: bool,
 
-    // TODO: this is actually not clean code; why to call 2 times in a row
-    // `crossterm::terminal::size().unwrap()`
-    #[builder(default = "crossterm::terminal::size().unwrap().0")]
-    // TODO: you must hold then as `usize`, its more convenient
-    width: u16,
-    #[builder(default = "crossterm::terminal::size().unwrap().1")]
-    height: u16
+    /// terminal height aka x from math graph
+    pub(super) width: u16,
+    /// terminal height aka y from math graph
+    pub(super) height: u16,
 }
 
 impl TerminalScreen {
@@ -100,8 +93,9 @@ impl TerminalScreen {
         capture_mouse: bool
     ) -> Self {
         let mut stdout = std::io::stdout();
-        let (width, height) = crossterm::terminal::size().unwrap();
         let buffer = Vec::<u8>::new();
+
+        let (width, height) = crossterm::terminal::size().unwrap();
 
         Self {
             stdout,
@@ -109,7 +103,7 @@ impl TerminalScreen {
             alternate,
             capture_mouse,
             width,
-            height
+            height,
         }
     }
 
