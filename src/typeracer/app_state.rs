@@ -6,15 +6,7 @@ use std::cell::{
     RefMut
 };
 
-use getset::{
-    CopyGetters,
-    Getters,
-    MutGetters,
-    Setters
-};
-
-use crate::MusicState;
-use crate::GameState;
+use crate::{MusicState, GameState};
 
 type rusize = RefCell<usize>;
 
