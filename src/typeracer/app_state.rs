@@ -14,6 +14,7 @@ type rusize = RefCell<usize>;
 // #[derive(Getters, MutGetters, Debug)]
 // #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
+    /// used to calculate total elapsed time
     stopwatch:            RefCell<Instant>,
     typeracer_text:       RefCell<String>,
     typeracer_text_lines: Option<RefCell<Vec<String>>>,
@@ -36,6 +37,10 @@ pub struct AppState {
     wrong_index:   RefCell<usize>,
     // #[getset(skip)]
     game_finished: RefCell<bool>,
+
+    /// whether or not the game has started
+    /// the game starts only if the user presses the first key
+    game_started: RefCell<bool>,
 
     cursor_x: RefCell<usize>,
     cursor_y: RefCell<usize>,
@@ -115,6 +120,10 @@ impl AppState {
 
     pub fn user_input_prompt_x_ref_mut(&self) -> RefMut<'_, usize> {
         self.user_input_prompt_x.borrow_mut()
+    }
+
+    pub fn game_started_ref_mut(&self) -> RefMut<'_, bool> {
+        self.game_started.borrow_mut()
     }
 
     pub fn index_shadow_ref_mut(&self) -> RefMut<'_, usize> {
@@ -236,6 +245,7 @@ many classes of bugs at compile-time.";
             cursor_x,
             cursor_y,
             game_finished,
+            game_started,
             index_shadow,
             wrong_index_shadow,
             current_line,

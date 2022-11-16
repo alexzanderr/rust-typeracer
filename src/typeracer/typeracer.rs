@@ -286,9 +286,28 @@ impl<'a> Typeracer<'a> {
         let app_state = app_state_mutex_ref;
         // at first keyboard press, the game has started
         let mut game_state = app_state.game_state_ref_mut();
-        // BUG: this is not good
-        // this line needs to be ran just once
-        *game_state = GameState::Playing;
+
+        #[cfg(feature = "music")]
+            let mut music_state = app_state.music_state_ref_mut();
+
+        let mut has_game_started = app_state.game_started_ref_mut();
+
+        /// initialize the game state flag
+        {
+            let control_space = KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL);
+            let control_s = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL);
+
+            // if the user pressed anything other than the game keybindings for menu actions
+            if key_event != control_space {
+                if !*has_game_started {
+                    *game_state = GameState::Playing;
+                    *has_game_started = true;
+                } else if *game_state == GameState::Paused {
+                    *game_state = GameState::Playing;
+                    *music_state = MusicState::Playing;
+                }
+            }
+        }
 
         let mut game_finished = app_state.game_finished_ref_mut();
         let mut typeracer_text = app_state.typeracer_text_ref_mut();
@@ -314,8 +333,6 @@ impl<'a> Typeracer<'a> {
         let key_event_clone = format!("{:?}", key_event.code.clone());
         *keyboard_input = key_event_clone.yellow().to_string();
 
-        #[cfg(feature = "music")]
-            let mut music_state = app_state.music_state_ref_mut();
 
         match key_event {
             // this needs to be merged with enter and Char(character)
@@ -334,31 +351,31 @@ impl<'a> Typeracer<'a> {
             KeyEvent {
                 code: KeyCode::Char(' '),
                 modifiers: KeyModifiers::CONTROL,
+                ..
                 // Release doesnt work, just Press
-                kind: KeyEventKind::Press,
+                // kind: KeyEventKind::Press,
                 // TODO: file an issue about this
-                state: KeyEventState::NONE
+                // state: KeyEventState::NONE
             } => {
-                match *game_state {
-                    GameState::Paused => {
-                        *game_state = GameState::Playing;
+                if *has_game_started {
+                    match *game_state {
+                        GameState::Paused => {
+                            *game_state = GameState::Playing;
 
                         #[cfg(feature = "music")]
-                        match *music_state {
-                            MusicState::Stopped => {
-                                music_state.play();
-                            },
-                            MusicState::Paused => music_state.play(),
-                            _ => {}
-                            // MusicState::Playing => music_state.pause(),
+                        {
+                            *music_state = MusicState::Playing;
                         }
                     }
                     GameState::Playing => {
                         *game_state = GameState::Paused;
 
-                        #[cfg(feature = "music")]
-                        if let MusicState::Playing = *music_state { music_state.pause() }
-                    },
+                            #[cfg(feature = "music")]
+                            {
+                                *music_state = MusicState::Paused;
+                            }
+                        },
+                    }
                 }
             },
             // clear the entire user_input_bar
