@@ -14,7 +14,7 @@ pub enum MusicState {
     Playing,
     // plays in the background
     PlaySongNowByAlias(String),
-
+    Muted
 // LoadSongFromPath(String)
 }
 
@@ -83,7 +83,8 @@ impl MusicState {
             MusicState::Paused => mp.pause_playing(),
             MusicState::PlaySongNowByAlias(alias) => {
                 mp.play_song_by_alias_blocking(&alias)
-            }
+            },
+            _ => {}
         }
     }
 }

@@ -22,7 +22,7 @@ use std::thread::{
 
 use dbg_pls::{pretty, DebugPls, color};
 use crate::statics::UNSTOPPABLE_CS16_SOUND;
-
+use crate::KeyboardManager;
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
 use crossterm::event::{
@@ -182,6 +182,7 @@ impl<'a> Typeracer<'a> {
                 // TODO load all music from multiple threads
                 mp.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
                 mp.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
+                mp.load_song_from_mem(include_bytes!("../../static/audio/davai_hardbass.wav"), "davai")?;
                 mp.load_song_from_mem(UNSTOPPABLE_CS16_SOUND, "unstoppable")?;
 
                 // inside MusicPLayer I could have
@@ -189,7 +190,7 @@ impl<'a> Typeracer<'a> {
                 // but we'll see
                 {
                     mp.play_song_by_alias("play");
-                    mp.play_song_by_alias("skeler");
+                    mp.play_song_by_alias("davai");
 
                     if let Ok(app_state_mutex) = app_state_arc.lock() {
                         *app_state_mutex.music_state_ref_mut() =
@@ -284,7 +285,8 @@ impl<'a> Typeracer<'a> {
                 }
             }
         } else {
-            panic!("asd")
+            // this will only panic if the music thread panics while guarding the lock
+            panic!("panicked inside calculate_wpm()")
         }
     }
 
@@ -513,13 +515,33 @@ impl<'a> Typeracer<'a> {
 
         let mut typed_keys = app_state.typed_keys_ref_mut();
 
+        let mut music_volume = app_state.music_volume_ref_mut();
+
         let key_event_clone = format!("{:?}", key_event.code.clone());
         *keyboard_input = key_event_clone.yellow().to_string();
 
         // append keys to the list to show them on the screen
         self.handle_typed_keys(&mut typed_keys, &key_event);
 
+
         match key_event {
+            // TODO: replace all match match with these kind of managers
+            // KeyboardManager::handle_tab_key(&app_state, &key_event);
+            KeyEvent {
+                code: KeyCode::Char('m'),
+                modifiers: KeyModifiers::ALT,
+                ..
+            } => {
+                match *music_state {
+                    MusicState::Playing | MusicState::Paused | MusicState::Stopped => {
+                        *music_state = MusicState::Muted;
+                    },
+                    MusicState::Muted => {
+                        *music_state = MusicState::Playing;
+                    },
+                    _ => {}
+                }
+            },
             // this needs to be merged with enter and Char(character)
             KeyEvent {
                 code: KeyCode::Tab,

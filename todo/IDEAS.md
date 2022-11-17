@@ -30,8 +30,7 @@
 
 - [ ] improve performance of the code
 
-- [ ] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
-  for this we need a music menu to control what will happen with the music
+
 
 - [ ] add auto detection of window lostfocus and then the game should pause automatically
 

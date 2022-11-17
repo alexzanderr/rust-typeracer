@@ -26,7 +26,10 @@ pub struct MusicPlayer {
     // or use atomic orderings (already using, but use them better!)
     player: Soloud,
     songs: Option<HashMap<String, Wav>>,
-    handles: Option<HashMap<String, Handle>>, // music_state: MusicState
+    handles: Option<HashMap<String, Handle>>,
+    // music_state: MusicState
+    current_volume: Option<f32>,
+    last_volume: Option<f32>,
 }
 
 impl MusicPlayer {
@@ -141,9 +144,11 @@ impl MusicPlayer {
             let mut wav = Wav::default();
 
             let _self = MusicPlayer {
-                player:  _soloud,
-                songs:   None,
-                handles: None
+                player: _soloud,
+                songs: None,
+                handles: None,
+                current_volume: Some(global_volume),
+                last_volume: None,
             };
 
             Ok(_self)
@@ -167,7 +172,9 @@ impl MusicPlayer {
             let _self = Self {
                 player,
                 songs: None,
-                handles: None
+                handles: None,
+                current_volume: Some(0.5),
+                last_volume: None,
             };
 
             Ok(_self)
@@ -320,6 +327,29 @@ impl MusicPlayer {
         Ok(())
     }
 
+
+    pub fn set_volume(&mut self, volume: f32) {
+        self.last_volume = Some(self.current_volume.unwrap());
+        self.current_volume = Some(volume);
+        self.player.set_global_volume(volume);
+    }
+
+    pub fn muted(&self) -> bool {
+        self.player.global_volume() == 0.0
+    }
+
+    pub fn mute(&mut self) {
+        self.last_volume = Some(self.current_volume.unwrap());
+        self.current_volume = Some(0.0);
+        self.player.set_global_volume(0.0);
+    }
+
+    pub fn unmute(&mut self) {
+        self.current_volume = Some(self.last_volume.unwrap());
+        self.player.set_global_volume(self.current_volume.unwrap());
+        self.last_volume = Some(0.0);
+    }
+
     pub fn react_to_state(
         &mut self,
         music_state: &mut MusicState,
@@ -328,13 +358,21 @@ impl MusicPlayer {
             MusicState::Stopped => {
                 self.stop_all();
             },
-            MusicState::Playing => self.continue_playing(),
+            MusicState::Playing => {
+                if self.muted() {
+                    self.set_volume(0.5);
+                }
+                self.continue_playing();
+            },
             MusicState::Paused => self.pause_playing(),
             MusicState::PlaySongNowByAlias(alias) => {
                 self.play_song_by_alias_blocking(&alias);
                 // move back to playing state
                 // cuz that will break up things if not
                 *music_state = MusicState::Playing;
+            },
+            MusicState::Muted => {
+                self.set_volume(0.0);
             }
         }
     }

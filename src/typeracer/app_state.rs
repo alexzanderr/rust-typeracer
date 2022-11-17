@@ -52,6 +52,8 @@ pub struct AppState {
 
     #[cfg(feature = "music")]
     music_state: RefCell<MusicState>,
+    #[cfg(feature = "music")]
+    music_volume: RefCell<f32>,
 
     elapsed_time: RefCell<f64>,
     game_state: RefCell<GameState>,
@@ -97,6 +99,11 @@ impl AppState {
     #[cfg(feature = "music")]
     pub fn music_state_ref_mut(&self) -> RefMut<'_, MusicState> {
         self.music_state.borrow_mut()
+    }
+
+    #[cfg(feature = "music")]
+    pub fn music_volume_ref_mut(&self) -> RefMut<'_, f32> {
+        self.music_volume.borrow_mut()
     }
 
     pub fn current_line_ref_mut(&self) -> RefMut<'_, usize> {
@@ -267,6 +274,8 @@ many classes of bugs at compile-time.";
 
         let typed_keys = RefCell::new(VecDeque::<String>::with_capacity(TYPED_KEYS_CAPACITY));
 
+        let music_volume = RefCell::new(0.5);
+
 
         Self {
             stopwatch,
@@ -289,6 +298,8 @@ many classes of bugs at compile-time.";
             current_line,
             #[cfg(feature = "music")]
             music_state,
+            #[cfg(feature = "music")]
+            music_volume,
             elapsed_time,
             game_state,
             wpm,

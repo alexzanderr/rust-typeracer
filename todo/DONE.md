@@ -154,3 +154,6 @@
     - use channels to communicate with the MusicPlayer to play a new specific song
     -
 - [x] add progress bar for showing how much text is left to type
+
+- [x] add option to mute (`Soloud::set_volume(0.0)?;`) the song in the middle of the game
+  for this we need a music menu to control what will happen with the music

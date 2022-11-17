@@ -294,12 +294,15 @@ impl<'a> TyperacerUI<'a> {
             let music_state_string = match &*music_state {
                 MusicState::Playing => {
                     "Playing".green().bold().to_string()
-                },
+                }
                 MusicState::Paused => "Paused".yellow().bold().to_string(),
                 MusicState::Stopped => "Stopped".red().bold().to_string(),
                 MusicState::PlaySongNowByAlias(alias) => {
                     format!("Playing: {alias}").green().bold().to_string()
-                },
+                }
+                MusicState::Muted => {
+                    "Muted".truecolor(62, 62, 62).bold().to_string()
+                }
             };
             format!(
                 "{lb}Time: {current_time}{rb} \
