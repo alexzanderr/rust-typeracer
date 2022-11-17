@@ -2,7 +2,8 @@ use std::io::Write;
 use std::sync::{
     Arc,
     Mutex,
-    RwLock
+    MutexGuard,
+    RwLock,
 };
 use std::marker::PhantomData;
 use std::borrow::Cow;
@@ -187,9 +188,55 @@ impl<'a> TyperacerUI<'a> {
         Ok(self)
     }
 
+    pub fn draw_progress_bar(
+        &mut self,
+        index: usize,
+        text: &str,
+    ) -> TyperacerResult<()> {
+        let progress_bar_width = self.term.width() - 2;
+        let text_length = text.len();
+        let text_length_f32 = text_length as f32;
+
+        let index_f32 = index as f32;
+
+        let progress_percent = 100f32 * (index_f32 / text_length_f32);
+        let fill_len = progress_bar_width * index / text_length;
+
+        let progress_bar = format!(
+            "{}{}",
+            "━".repeat(fill_len).green(),
+            "━"
+                .repeat(progress_bar_width - fill_len)
+                .truecolor(62, 62, 62)
+        );
+
+        self.term
+            .print(&progress_bar, 9, 1)?;
+
+        //     [Progress]: |███████████████████████_________________| [58.00] [Complete]
+        //     [Progress]: |━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━| [58.00] [Complete]
+
+        //     progress_percent = 100 * (index / text.len())
+        //
+        //
+        //     fill_len = int(progress_bar_width * index // text.len())
+        //
+        //     completed = fill_symbol.repeat(fill_len) + "{remaining_char}" * (progress_bar_width - 4 - fill_len)
+        //
+        //     if iteration == length:
+        //         progressbar = f"[{title}]: |{completed}| [{progress_percent}] [Completed]"
+        //     progressbar = ConsoleColored(progressbar, "green")
+        //     else:
+        //     progressbar = f"[{title}]: |{completed}| [{progress_percent}] [Complete]"
+        //     progressbar = ConsoleColored(progressbar, color)
+        //
+        //     return progressbar
+        Ok(())
+    }
+
     pub fn draw(
         &mut self,
-        app_state_arc: Arc<Mutex<AppState>>
+        app_state_arc: Arc<Mutex<AppState>>,
     ) -> TyperacerResult<&mut Self> {
         let app_state = match app_state_arc.lock() {
             Ok(app_state) => app_state,
@@ -252,7 +299,7 @@ impl<'a> TyperacerUI<'a> {
                 MusicState::Stopped => "Stopped".red().bold().to_string(),
                 MusicState::PlaySongNowByAlias(alias) => {
                     format!("Playing: {alias}").green().bold().to_string()
-                }
+                },
             };
             format!(
                 "{lb}Time: {current_time}{rb} \
@@ -298,6 +345,8 @@ impl<'a> TyperacerUI<'a> {
             0,
         )?;
 
+        self.draw_progress_bar(*index, &*typeracer_text)?;
+
         let typeracer_text_colored =
             self.color_format_text(&typeracer_text, *index, *wrong_index);
 
@@ -321,7 +370,8 @@ impl<'a> TyperacerUI<'a> {
         } else {
             typed_keys_string
         };
-        let typed_keys_string = format!("{}{}", typed_keys_string, " ".repeat(10));
+        let typed_keys_string =
+            format!("{}{}", typed_keys_string, " ".repeat(10));
         self.term.print(&typed_keys_string, 22, 0)?;
         // self.term
         //     .rectangle()
@@ -338,7 +388,7 @@ impl<'a> TyperacerUI<'a> {
                 &keyboard_input,
                 *index,
                 *wrong_index,
-                typeracer_text.len(),
+                typeracer_text.len()
             );
             self.draw_stats(stats)?;
         }

@@ -16,6 +16,9 @@ pub const PLAY_CS16_SOUND: &'static [u8] =
 pub const UNSTOPPABLE_CS16_SOUND: &'static [u8] =
     include_bytes!("../static/audio/unstoppable.wav");
 
+pub const PROGRESS_BAR_LINE: &'static str = "━";
+pub const PROGRESS_BAR: &'static str = "█";
+
 
 #[cfg(feature = "embedded-music")]
 mod embedded_music {
@@ -40,7 +43,9 @@ pub static KEYS_REPR: phf::Map<&'static str, &'static str> = phf_map! {
     "left" => "←",
     "right" => "→",
     "down" => "↓",
-    "shift" => "⇧"
+    "shift" => "⇧",
+    // "progress-bar-line" => PROGRESS_BAR_LINE,
+    // "progress-bar" => PROGRESS_BAR,
 };
 
 // let cursor = "▏".red();

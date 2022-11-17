@@ -152,3 +152,5 @@
   2 solutions:
     - make MusicPlayer Send and Sync; i.e make Wav Send + Sync using WavWrapper which unsafely implements Sync
     - use channels to communicate with the MusicPlayer to play a new specific song
+    -
+- [x] add progress bar for showing how much text is left to type

@@ -13,8 +13,6 @@ type rusize = RefCell<usize>;
 
 
 #[derive(Debug)]
-// #[derive(Getters, MutGetters, Debug)]
-// #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
     /// used to calculate total elapsed time
     stopwatch: RefCell<Instant>,

@@ -24,7 +24,7 @@
 
 - [ ] when using CI; there is a dependency cacher for github actions to not install all dependecies at every CI action
 
-- [ ] add progress bar for showing how much text is left to type
+
 
 - [ ] use another linker and more stuff from that article to improve compile time speed
 
