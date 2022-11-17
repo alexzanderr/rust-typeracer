@@ -190,7 +190,8 @@ impl<'a> Typeracer<'a> {
                 // but we'll see
                 {
                     mp.play_song_by_alias("play");
-                    mp.play_song_by_alias("davai");
+                    mp.play_song_by_alias("skeler");
+                    // mp.play_song_by_alias("davai");
 
                     if let Ok(app_state_mutex) = app_state_arc.lock() {
                         *app_state_mutex.music_state_ref_mut() =
@@ -210,6 +211,8 @@ impl<'a> Typeracer<'a> {
                     if let Ok(app_state_mutex) = app_state_arc.try_lock() {
                         let mut music_state =
                             app_state_mutex.music_state_ref_mut();
+
+                        let mut game_state = app_state_mutex.game_state_ref_mut();
 
                         mp.react_to_state(&mut music_state);
                     }
@@ -834,11 +837,39 @@ impl<'a> Typeracer<'a> {
         };
 
         match event {
+            // this is a terminal capability
+            // NOT supported on alacritty :(
             Event::FocusGained => {
-                todo!("do something if terminal focus is gained")
+                let mut game_state = app_state.game_state_ref_mut();
+                let mut music_state = app_state.music_state_ref_mut();
+                match *game_state {
+                    // GameState::Playing => {
+                    //     *game_state = GameState::Paused
+                    // },
+                    // if the user just focused the window
+                    // the game continues
+                    GameState::Paused => {
+                        *game_state = GameState::Playing;
+                        *music_state = MusicState::Playing;
+                    },
+                    _ => {}
+                }
             },
             Event::FocusLost => {
-                todo!("do something if terminal focus is LOST")
+                let mut game_state = app_state.game_state_ref_mut();
+                let mut music_state = app_state.music_state_ref_mut();
+                match *game_state {
+                    // if the user goes to other window
+                    // the game is paused automatically
+                    GameState::Playing => {
+                        *game_state = GameState::Paused;
+                        *music_state = MusicState::Paused;
+                    },
+                    // GameState::Paused => {
+                    //     *game_state = GameState::Playing
+                    // },
+                    _ => {}
+                }
             },
             Event::Paste(string_from_ctrl_v) => {},
             Event::Resize(width, height) => {

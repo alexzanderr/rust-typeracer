@@ -39,7 +39,10 @@ fn main() -> TyperacerResult<()> {
     let mut term = TerminalScreen::builder()
         .alternate(true)
         .capture_mouse(false)
+        .capture_focus(true)
         .build()?;
+
+    dbg!(&term);
 
     term.enter_raw_terminal()?;
     term.set_panic_hook();

@@ -18,14 +18,16 @@ use pad::{
 use crossterm::event::{
     Event,
     KeyCode,
-    KeyEvent
+    KeyEvent,
 };
 use crossterm::{
     cursor,
     event::{
         self,
         DisableMouseCapture,
-        EnableMouseCapture
+        EnableMouseCapture,
+        EnableFocusChange,
+        DisableFocusChange,
     },
     execute,
     queue,
@@ -61,6 +63,9 @@ pub struct TerminalScreen {
     /// capture mouse or dont capture mouse
     pub(super) capture_mouse: bool,
 
+    /// window focus can be lost or gained
+    pub(super) capture_focus: bool,
+
     /// terminal height aka x from math graph
     pub(super) width: u16,
     /// terminal height aka y from math graph
@@ -90,7 +95,8 @@ impl TerminalScreen {
 
     pub fn new(
         alternate: bool,
-        capture_mouse: bool
+        capture_mouse: bool,
+        capture_focus: bool,
     ) -> Self {
         let mut stdout = std::io::stdout();
         let buffer = Vec::<u8>::new();
@@ -102,6 +108,7 @@ impl TerminalScreen {
             buffer,
             alternate,
             capture_mouse,
+            capture_focus,
             width,
             height,
         }
@@ -110,6 +117,7 @@ impl TerminalScreen {
     pub fn set_panic_hook(&self) {
         let alternate = self.alternate;
         let capture_mouse = self.capture_mouse;
+        let capture_focus = self.capture_focus;
 
         std::panic::set_hook(Box::new(move |panic_info| {
             // if i dont manually bring back the cursor here,
@@ -123,6 +131,9 @@ impl TerminalScreen {
             }
             if capture_mouse {
                 let _ = queue!(stdout, DisableMouseCapture);
+            }
+            if capture_focus {
+                let _ = queue!(stdout, DisableFocusChange);
             }
             let _ = stdout.flush();
 
@@ -147,6 +158,9 @@ impl TerminalScreen {
         if self.capture_mouse {
             queue!(self.stdout, EnableMouseCapture)?;
         }
+        if self.capture_focus {
+            queue!(self.stdout, EnableFocusChange)?;
+        }
         self.stdout.flush()?;
 
         Ok(())
@@ -163,6 +177,9 @@ impl TerminalScreen {
         }
         if self.capture_mouse {
             queue!(self.stdout, DisableMouseCapture)?;
+        }
+        if self.capture_focus {
+            queue!(self.stdout, DisableFocusChange)?;
         }
         self.stdout.flush()?;
 

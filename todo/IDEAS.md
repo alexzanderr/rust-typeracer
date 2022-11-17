@@ -31,9 +31,6 @@
 - [ ] improve performance of the code
 
 
-
-- [ ] add auto detection of window lostfocus and then the game should pause automatically
-
 - [ ] fix typeracer game logic inside the match block, some things are redundant;
   inside `Typeracer::handle_key_event(&mut self)` method
 

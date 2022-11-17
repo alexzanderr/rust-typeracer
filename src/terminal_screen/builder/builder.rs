@@ -24,11 +24,14 @@ pub struct TerminalScreenBuilder {
     alternate: Option<bool>,
     /// capture mouse or dont capture mouse
     capture_mouse: Option<bool>,
+    /// capture window focus or nto
+    capture_focus: Option<bool>,
 
     /// terminal height aka y from math graph
     height: Option<u16>,
     /// terminal width aka x from math graph
     width: Option<u16>,
+
 }
 
 impl Default for TerminalScreenBuilder {
@@ -46,6 +49,7 @@ impl Default for TerminalScreenBuilder {
             buffer,
             alternate: None,
             capture_mouse: None,
+            capture_focus: None,
             width,
             height,
         }
@@ -60,6 +64,7 @@ impl TerminalScreenBuilder {
         let buffer = Vec::<u8>::new();
         let alternate = true;
         let capture_mouse = false;
+        let capture_focus = true;
         let (width, height) = crossterm::terminal::size()?;
 
         let terminal_screen = TerminalScreen {
@@ -67,11 +72,21 @@ impl TerminalScreenBuilder {
             buffer,
             alternate,
             capture_mouse,
+            capture_focus,
             width,
             height,
         };
 
         Ok(terminal_screen)
+    }
+
+    /// capture window focus or not
+    pub fn capture_focus(
+        mut self,
+        value: bool,
+    ) -> Self {
+        self.capture_focus = Some(value);
+        self
     }
 
     /// alternate screen or not
@@ -137,13 +152,17 @@ impl TerminalScreenBuilder {
         };
 
         let alternate = self.alternate.clone().ok_or(TerminalScreenBuilderErrors::UninitializedFieldError("hello world"))?;
+
         let capture_mouse = self.capture_mouse.clone().ok_or(TerminalScreenBuilderErrors::UninitializedFieldError("hello world"))?;
+
+        let capture_focus = self.capture_focus.clone().ok_or(TerminalScreenBuilderErrors::UninitializedFieldError("asdasd"))?;
 
         let term_screen = TerminalScreen {
             stdout,
             buffer,
             alternate,
             capture_mouse,
+            capture_focus,
             width,
             height,
         };
@@ -158,6 +177,7 @@ impl TerminalScreenBuilder {
             buffer: None,
             alternate: None,
             capture_mouse: None,
+            capture_focus: None,
             width: None,
             height: None,
         }
