@@ -208,6 +208,17 @@ guarantee memory-safety and thread-safety
 - enabling you to eliminate
 many classes of bugs at compile-time.";
 
+        let typeracer_text = r#"use std::io::stdout;
+fn main() {
+    let x = 123;
+    let y = "\n";
+    // Load these once at the start of your program
+    let syntax = ps.find_syntax_by_extension("rs").unwrap();
+    let ps = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let s = "pub struct Wow { hi: u64 }\nfn blah() -> u64 {}\n";
+"#.replace("    ", "\t");
+
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
 

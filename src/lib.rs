@@ -67,5 +67,15 @@ mod config;
 pub use config::{
     ConfigErrors,
     ConfigResult,
-    TyperacerConfig
+    TyperacerConfig,
 };
+
+mod keyboard;
+
+pub use keyboard::{
+    KeyboardManager
+};
+
+mod highlighter;
+
+pub use highlighter::{TyperacerHighlighter};

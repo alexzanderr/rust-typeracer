@@ -64,6 +64,7 @@ pub struct TyperacerUI<'a> {
     // TODO: mut ref of something its too stupid
     // use Rc<RefCell<TerminalScreen>
     term: &'a mut TerminalScreen,
+    hl: TyperacerHighlighter,
     // this practice is very useful when dropping stuff
     // mostly for the compiler to know
     _marker: PhantomData<TerminalScreen>,
@@ -72,9 +73,11 @@ pub struct TyperacerUI<'a> {
 impl<'a> TyperacerUI<'a> {
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let _marker = PhantomData;
+        let hl = TyperacerHighlighter::new();
         Self {
             term,
-            _marker
+            hl,
+            _marker,
         }
     }
 
@@ -138,18 +141,35 @@ impl<'a> TyperacerUI<'a> {
         &self,
         text: &str,
         index: usize,
-        wrong_index: usize
+        wrong_index: usize,
     ) -> String {
         // this function is private and i want to test it individually with private tests
         // im doing this because i dont want to instantiante
         // a TyperacerUI every time i want to test this function
+        // color_format_text(text, index, wrong_index)
         color_format_text(text, index, wrong_index)
     }
+
+    // inline is here to get rid of the double-call
+    #[inline(always)]
+    pub fn color_format_code(
+        &mut self,
+        text: &str,
+        index: usize,
+        wrong_index: usize,
+    ) -> String {
+        // this function is private and i want to test it individually with private tests
+        // im doing this because i dont want to instantiante
+        // a TyperacerUI every time i want to test this function
+        // color_format_text(text, index, wrong_index)
+        color_format_code(text, index, wrong_index, &mut self.hl)
+    }
+
 
     #[inline(always)]
     pub fn set_term_height(
         &mut self,
-        height: u16
+        height: u16,
     ) {
         self.term.set_height(height);
     }
@@ -351,7 +371,8 @@ impl<'a> TyperacerUI<'a> {
         self.draw_progress_bar(*index, &*typeracer_text)?;
 
         let typeracer_text_colored =
-            self.color_format_text(&typeracer_text, *index, *wrong_index);
+            // self.color_format_text(&typeracer_text, *index, *wrong_index);
+            self.color_format_code(&typeracer_text, *index, *wrong_index);
 
         self.term
             .rectangle()
@@ -462,6 +483,53 @@ fn color_format_text(
     // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
     let mut green =
         text[..index].join("").green().to_string().replace(' ', "_");
+
+    let green = if green.contains('\n') {
+        let pat = format!("{ENDC}\n{GREEN}");
+        green.replace('\n', &pat)
+    } else {
+        green
+    };
+
+    let red = text[index..index + wrong_index]
+        .join("")
+        .red()
+        .to_string()
+        .replace(' ', "_");
+    let red = if red.contains('\n') {
+        let pat = format!("{ENDC}\n{RED}");
+        red.replace('\n', &pat)
+    } else {
+        red
+    };
+
+    let rest = text[index + wrong_index..].join("");
+    format!("{green}{red}{rest}")
+}
+
+use crate::TyperacerHighlighter;
+
+fn color_format_code(
+    text: &str,
+    index: usize,
+    wrong_index: usize,
+    hl: &mut TyperacerHighlighter,
+) -> String {
+
+    // dont do anything because nothing changed
+    if index == 0 && wrong_index == 0 {
+        return text.to_string();
+    }
+
+
+    let text =
+        UnicodeSegmentation::graphemes(text, true).collect::<Vec<&str>>();
+
+    // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
+    // let mut green =
+    //     text[..index].join("").green().to_string().replace(' ', "_");
+    let s = &text[..index].join("");
+    let green = hl.highlight_code_block_to_string(&s);
 
     let green = if green.contains('\n') {
         let pat = format!("{ENDC}\n{GREEN}");

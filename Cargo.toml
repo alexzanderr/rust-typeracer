@@ -144,6 +144,7 @@ dirs = "4.0.0"
 serde = { version = "1.0.147", features = ["derive"] }
 itertools = "0.10.5"
 phf = { version = "0.11.1", features = ["macros"] }
+syntect = "5.0.0"
 
 
 
