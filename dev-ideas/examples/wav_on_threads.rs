@@ -38,16 +38,22 @@ pub struct WavWrapper(Wav);
 unsafe impl Send for WavWrapper {
 }
 
+/// ./target/debug/examples/wav_on_threads  4.96s user 0.60s system 642% cpu 0.866 total
 fn main() -> GenericResult<()> {
     let songs_arc: Arc<Mutex<Vec<WavWrapper>>> =
         Arc::new(Mutex::new(Vec::with_capacity(15)));
 
     let mut thread_handles = Vec::with_capacity(15);
 
+    // Soloud can be sent between threads
+    let sol = Soloud::default().unwrap();
+    let sol_arc = Arc::new(Mutex::new(sol));
     for _ in 0..15 {
         let songs_arc = songs_arc.clone();
+        let sol_arc_clone = sol_arc.clone();
 
         let thread_handle = std::thread::spawn(move || {
+            let sol = sol_arc_clone;
             // 1
             let mut w1 = Wav::default();
             w1.load_mem(PLAY_CS16_SOUND);

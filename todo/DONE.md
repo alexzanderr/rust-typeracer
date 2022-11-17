@@ -142,3 +142,13 @@
 - [x] calculate WPM and print it on the screen
 
 - [x] add a section where it shows what keys where pressed just like in `screenkey` binary
+
+- [x] when wpm is bigger than `50` or any user defined value in the config, play `unstoppable` cs 16 sound, or "
+  blazingly fast" primeagen + plus `piuu` sound
+
+  we got a problem:
+  MusicPlayer is isolated on the music thread and right now cant be sent between threads
+
+  2 solutions:
+    - make MusicPlayer Send and Sync; i.e make Wav Send + Sync using WavWrapper which unsafely implements Sync
+    - use channels to communicate with the MusicPlayer to play a new specific song

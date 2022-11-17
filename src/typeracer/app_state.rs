@@ -61,6 +61,10 @@ pub struct AppState {
     // most of the users dont have higher than u8, i.e 256 WPM
     // this is to include all kind of users (fastest ones, especially)
     wpm: RefCell<Option<u16>>,
+    // last wpm before the current one
+    // to be used as comparison
+    // for unstoppable sound
+    last_wpm: RefCell<Option<u16>>,
     total_correct_typed_chars: RefCell<usize>,
 
     /// a queue of typed keyboard keys to show on the screen while playing
@@ -74,6 +78,10 @@ impl AppState {
 
     pub fn total_correct_typed_chars_ref_mut(&self) -> RefMut<'_, usize> {
         self.total_correct_typed_chars.borrow_mut()
+    }
+
+    pub fn last_wpm_ref_mut(&self) -> RefMut<'_, Option<u16>> {
+        self.last_wpm.borrow_mut()
     }
 
     pub fn wpm_ref_mut(&self) -> RefMut<'_, Option<u16>> {
@@ -254,6 +262,7 @@ many classes of bugs at compile-time.";
         let game_state = RefCell::new(GameState::Paused);
 
         let wpm = RefCell::new(None);
+        let last_wpm = RefCell::new(None);
         let total_correct_typed_chars = RefCell::new(0);
 
         let game_started = RefCell::new(false);
@@ -285,6 +294,7 @@ many classes of bugs at compile-time.";
             elapsed_time,
             game_state,
             wpm,
+            last_wpm,
             total_correct_typed_chars,
             typed_keys,
         }

@@ -21,7 +21,7 @@ use std::thread::{
 };
 
 use dbg_pls::{pretty, DebugPls, color};
-
+use crate::statics::UNSTOPPABLE_CS16_SOUND;
 
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
@@ -179,14 +179,18 @@ impl<'a> Typeracer<'a> {
             .spawn(move || -> MusicPlayerResult<()> {
                 let mut mp = MusicPlayer::from_volume(0.5)?;
 
+                // TODO load all music from multiple threads
                 mp.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
                 mp.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
+                mp.load_song_from_mem(UNSTOPPABLE_CS16_SOUND, "unstoppable")?;
 
-                // there inside MusicPLayer I could have
+                // inside MusicPLayer I could have
                 // a reference to AppState, to modifiy the Music state automatically
                 // but we'll see
-                mp.play_all_songs_in_order();
                 {
+                    mp.play_song_by_alias("play");
+                    mp.play_song_by_alias("skeler");
+
                     if let Ok(app_state_mutex) = app_state_arc.lock() {
                         *app_state_mutex.music_state_ref_mut() =
                             MusicState::new_playing();
@@ -199,14 +203,14 @@ impl<'a> Typeracer<'a> {
                 // cause player is running in background
                 // and if this finishes, music player is done
                 loop {
-                    // try lock is non-blocking
-                    // doesnt need to be
 
+
+                    // try lock is non-blocking
                     if let Ok(app_state_mutex) = app_state_arc.try_lock() {
                         let mut music_state =
                             app_state_mutex.music_state_ref_mut();
 
-                        mp.react_to_state(&music_state);
+                        mp.react_to_state(&mut music_state);
                     }
 
                     std::thread::sleep(std::time::Duration::from_millis(
@@ -252,6 +256,28 @@ impl<'a> Typeracer<'a> {
 
                     let mut wpm_ref_mut = app_state_mutex.wpm_ref_mut();
                     *wpm_ref_mut = Some(wpm);
+
+                    let mut last_wpm = app_state_mutex.last_wpm_ref_mut();
+                    if wpm >= 50 {
+                        match *last_wpm {
+                            Some(lw) => {
+                                if lw <= 50 {
+                                    let mut ms = app_state_mutex.music_state_ref_mut();
+                                    *ms = MusicState::PlaySongNowByAlias("unstoppable".to_string());
+
+                                    *last_wpm = Some(wpm);
+                                }
+                            },
+                            None => {
+                                let mut ms = app_state_mutex.music_state_ref_mut();
+                                *ms = MusicState::PlaySongNowByAlias("unstoppable".to_string());
+
+                                *last_wpm = Some(wpm);
+                            }
+                        }
+                    } else {
+                        *last_wpm = Some(wpm);
+                    }
                 },
                 GameState::Paused => {
                     // do nothing if the game hasnt started
@@ -708,6 +734,7 @@ impl<'a> Typeracer<'a> {
                     },
                     MusicState::Paused => music_state.play(),
                     MusicState::Playing => music_state.pause(),
+                    _ => {}
                 }
             },
             // user pressed a char key on keyboard

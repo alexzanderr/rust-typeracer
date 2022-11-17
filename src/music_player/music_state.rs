@@ -11,9 +11,11 @@ use super::MusicPlayer;
 pub enum MusicState {
     Stopped,
     Paused,
-    Playing /* IDEA
-             * LoadSongFromPath(String)
-             * PlaySong(String) */
+    Playing,
+    // plays in the background
+    PlaySongNowByAlias(String),
+
+// LoadSongFromPath(String)
 }
 
 impl MusicState {
@@ -38,7 +40,7 @@ impl MusicState {
                 *self = MusicState::Playing;
             },
             Self::Paused => *self = MusicState::Playing,
-            Self::Playing => {}
+            _ => {}
         }
     }
 
@@ -50,17 +52,17 @@ impl MusicState {
             Self::Playing => {
                 *self = MusicState::Paused;
             },
-            Self::Paused => {}
+            _ => {}
         }
     }
 
     pub fn stop(&mut self) {
         match *self {
-            Self::Stopped => {},
             Self::Paused => *self = MusicState::Stopped,
             Self::Playing => {
                 *self = MusicState::Stopped;
-            }
+            },
+            _ => {}
         }
     }
 
@@ -73,12 +75,15 @@ impl MusicState {
         // but for explicity in the parameter name
         let mp = music_player;
 
-        match *self {
+        match &*self {
             MusicState::Stopped => {
                 mp.stop_all();
             },
             MusicState::Playing => mp.continue_playing(),
-            MusicState::Paused => mp.pause_playing()
+            MusicState::Paused => mp.pause_playing(),
+            MusicState::PlaySongNowByAlias(alias) => {
+                mp.play_song_by_alias_blocking(&alias)
+            }
         }
     }
 }

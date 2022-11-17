@@ -41,10 +41,10 @@
 - [ ] implement control + backspace for the typeracer_text
 
 
-- [ ] cand wpm depaseste 50 sau valoare definita de user atunci ruleaza in alt thread unstoppable, sau "blazingly fast"
-  - primeagen + plus sunetul ala de piuuu
+- [ ] download the default music from yt using yt-dlp api in rust (later) or from my mirror; or from github, lol, why
+  from yt?? thats slow
 
-- [ ] download the default music from yt using yt-dlp api in rust (later)
+  or the user can put a url of a song to download at runtime
 
 - [ ] add ansi code to print url as text inside TUI to click on it and to go on docs for example
 

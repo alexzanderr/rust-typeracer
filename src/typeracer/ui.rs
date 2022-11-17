@@ -211,11 +211,17 @@ impl<'a> TyperacerUI<'a> {
         let mut game_state = app_state.game_state_ref_mut();
         let app_state_elapsed = app_state.elapsed_time_ref_mut();
         let mut wpm = app_state.wpm_ref_mut();
+        let mut last_wpm = app_state.last_wpm_ref_mut();
 
         // self.print(format!("{:#?}", wpm), 23, 10)?;
 
         let wpm = match *wpm {
             Some(wpm) => wpm.to_string().yellow().bold(),
+            None => "None".red().bold()
+        };
+
+        let last_wpm = match *last_wpm {
+            Some(last_wpm) => last_wpm.to_string().yellow().bold(),
             None => "None".red().bold()
         };
 
@@ -238,12 +244,15 @@ impl<'a> TyperacerUI<'a> {
         #[cfg(feature = "music")]
             let header = {
             let music_state = app_state.music_state_ref_mut();
-            let music_state_string = match *music_state {
+            let music_state_string = match &*music_state {
                 MusicState::Playing => {
                     "Playing".green().bold().to_string()
                 },
                 MusicState::Paused => "Paused".yellow().bold().to_string(),
-                MusicState::Stopped => "Stopped".red().bold().to_string()
+                MusicState::Stopped => "Stopped".red().bold().to_string(),
+                MusicState::PlaySongNowByAlias(alias) => {
+                    format!("Playing: {alias}").green().bold().to_string()
+                }
             };
             format!(
                 "{lb}Time: {current_time}{rb} \
@@ -252,6 +261,7 @@ impl<'a> TyperacerUI<'a> {
                 {lb}EAS: {app_state_elapsed:.2}s{rb}\
                 \n\
                 {lb}WPM: {wpm}{rb} \
+                {lb}WPM(last): {last_wpm}{rb} \
                 {lb}Music: {music_state_string}{rb}",
                 lb = yellow_left_bracket,
                 rb = yellow_right_bracket,

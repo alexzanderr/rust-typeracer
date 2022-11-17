@@ -4,6 +4,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::path::Path;
 use std::collections::HashMap;
+use std::io::Write;
 
 use soloud::*;
 
@@ -243,13 +244,48 @@ impl MusicPlayer {
         }
     }
 
-    pub fn play_song_by_alias(
+    pub fn play_song_by_alias_blocking(
         &mut self,
-        song_alias: &str
+        song_alias: &str,
     ) {
         if let Some(songs) = &self.songs {
             if let Some((song_alias, song_wav)) =
-                songs.get_key_value(song_alias)
+            songs.get_key_value(song_alias)
+            {
+                let count = self.player.count_audio_source(song_wav);
+                // not playing
+                if count == 0 {
+                    let handle = self.player.play(song_wav);
+                    if let Some(ref mut handles) = self.handles {
+                        handles.insert(song_alias.clone(), handle);
+                    } else {
+                        let mut hm = HashMap::new();
+                        hm.insert(song_alias.clone(), handle);
+                        self.handles = Some(hm);
+                    }
+                } else {
+                    // dont play the song because its already playing
+                    // and for short sounds it will be spamming
+                }
+
+                // let mut file = std::fs::File::create("out").unwrap();
+                // loop {
+                //     let _ = write!(file, "count: {}\n", count);
+                //     std::thread::sleep(std::time::Duration::from_secs_f32(1.0));
+                // }
+                // while self.player.looping(handle) {
+                // }
+            }
+        }
+    }
+
+    pub fn play_song_by_alias(
+        &mut self,
+        song_alias: &str,
+    ) {
+        if let Some(songs) = &self.songs {
+            if let Some((song_alias, song_wav)) =
+            songs.get_key_value(song_alias)
             {
                 let handle = self.player.play(song_wav);
                 if let Some(ref mut handles) = self.handles {
@@ -286,14 +322,20 @@ impl MusicPlayer {
 
     pub fn react_to_state(
         &mut self,
-        music_state: &MusicState,
+        music_state: &mut MusicState,
     ) {
         match music_state {
             MusicState::Stopped => {
                 self.stop_all();
             },
             MusicState::Playing => self.continue_playing(),
-            MusicState::Paused => self.pause_playing()
+            MusicState::Paused => self.pause_playing(),
+            MusicState::PlaySongNowByAlias(alias) => {
+                self.play_song_by_alias_blocking(&alias);
+                // move back to playing state
+                // cuz that will break up things if not
+                *music_state = MusicState::Playing;
+            }
         }
     }
 }
