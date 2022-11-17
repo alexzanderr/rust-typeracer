@@ -14,10 +14,7 @@ redundant_semicolons,
 unused_macros
 )]
 
-use typeracer::{
-    MusicPlayer,
-    MusicPlayerResult
-};
+use typeracer::*;
 
 fn main() -> MusicPlayerResult<()> {
     Ok(())

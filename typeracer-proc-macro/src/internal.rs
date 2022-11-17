@@ -14,7 +14,7 @@ use syn::{
 // you CANT check, ast.data doesnt contain anything related to a derive section
 pub fn colorize_internal(input: TokenStream) -> TokenStream {
     // abstract syntax tree
-    let ast: _ = parse_macro_input!(input);
+    let ast: DeriveInput = parse_macro_input!(input);
     dbg!(&ast);
     let struct_name = &ast.ident;
     // you cant put this string into the quote! macro, it must be Ident type
