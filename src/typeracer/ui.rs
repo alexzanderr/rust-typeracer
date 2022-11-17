@@ -7,6 +7,7 @@ use std::sync::{
 use std::marker::PhantomData;
 use std::borrow::Cow;
 
+use itertools::join as iter_join;
 use unicode_segmentation::UnicodeSegmentation;
 use colored::*;
 use core_dev::datetime::datetime::{
@@ -33,7 +34,7 @@ use crossterm::{
     terminal::{
         self,
         EnterAlternateScreen,
-        LeaveAlternateScreen,
+        LeaveAlternateScreen
     },
     tty,
     Result as CrosstermResult
@@ -45,7 +46,7 @@ use super::AppState;
 use crate::{
     TerminalScreen,
     TerminalScreenResult,
-    TyperacerErrors,
+    TyperacerErrors
 };
 use super::TyperacerResult;
 use super::Stats;
@@ -281,6 +282,12 @@ impl<'a> TyperacerUI<'a> {
             .build()?
             .draw()?;
 
+        self.draw_user_input_prompt(
+            &user_input_prompt,
+            *user_input_prompt_x,
+            0,
+        )?;
+
         let typeracer_text_colored =
             self.color_format_text(&typeracer_text, *index, *wrong_index);
 
@@ -293,11 +300,27 @@ impl<'a> TyperacerUI<'a> {
             .build()?
             .draw()?;
 
-        self.draw_user_input_prompt(
-            &user_input_prompt,
-            *user_input_prompt_x,
-            0
-        )?;
+        let mut typed_keys = app_state.typed_keys_ref_mut();
+        let typed_keys_string = iter_join(
+            (*typed_keys).iter(),
+            "｜".truecolor(62, 62, 62).bold().to_string().as_str(),
+        );
+
+        let typed_keys_string = if typed_keys.len() > 0 {
+            format!("... {typed_keys_string}")
+        } else {
+            typed_keys_string
+        };
+        let typed_keys_string = format!("{}{}", typed_keys_string, " ".repeat(10));
+        self.term.print(&typed_keys_string, 22, 0)?;
+        // self.term
+        //     .rectangle()
+        //     .screens_width(true)
+        //     .align_center(false)
+        //     .xy(22, 0)
+        //     .text(typed_keys_string)
+        //     .build()?
+        //     .draw()?;
 
         {
             let stats = Stats::new(
@@ -305,7 +328,7 @@ impl<'a> TyperacerUI<'a> {
                 &keyboard_input,
                 *index,
                 *wrong_index,
-                typeracer_text.len()
+                typeracer_text.len(),
             );
             self.draw_stats(stats)?;
         }

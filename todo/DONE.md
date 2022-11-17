@@ -140,3 +140,5 @@
 - [x] so the secret to `no cursor flickering` is to put a higher sleep for the ui, something like 500 ms or 1 second
 
 - [x] calculate WPM and print it on the screen
+
+- [x] add a section where it shows what keys where pressed just like in `screenkey` binary

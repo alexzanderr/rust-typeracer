@@ -1,19 +1,27 @@
+use std::borrow::BorrowMut;
 use std::sync::MutexGuard;
 use std::io::Write;
 use std::time::{
     Duration,
-    Instant
+    Instant,
 };
+use std::cell::RefMut;
+use crate::statics::TYPED_KEYS_CAPACITY;
+use std::collections::VecDeque;
 use std::sync::{
     Arc,
     Mutex,
-    RwLock
+    RwLock,
 };
+use crate::statics::KEYS_REPR;
 use std::cell::RefCell;
 use std::thread::{
     Builder as ThreadBuilder,
-    JoinHandle
+    JoinHandle,
 };
+
+use dbg_pls::{pretty, DebugPls, color};
+
 
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
@@ -40,11 +48,12 @@ use crossterm::{
     terminal::{
         self,
         EnterAlternateScreen,
-        LeaveAlternateScreen
+        LeaveAlternateScreen,
     },
     tty,
     Result as CrosstermResult
 };
+use thiserror::__private::DisplayAsDisplay;
 
 use super::GameState;
 use crate::{
@@ -330,10 +339,95 @@ impl<'a> Typeracer<'a> {
         Ok(())
     }
 
+    fn handle_typed_keys(&self, typed_keys: &mut RefMut<'_, VecDeque<String>>, key: &KeyEvent) {
+        let t = typed_keys.borrow_mut();
+        let k = match key {
+            KeyEvent {
+                code: KeyCode::Enter,
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                let enter = KEYS_REPR.get("enter").unwrap();
+                format!("{enter} ")
+            },
+            KeyEvent {
+                code: KeyCode::Char('h'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                let backspace = KEYS_REPR.get("backspace").unwrap();
+                format!("ctrl+{backspace} ")
+            },
+            KeyEvent {
+                code: KeyCode::Backspace,
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                let key = KEYS_REPR.get("backspace").unwrap();
+                format!("{key} ")
+            },
+            KeyEvent {
+                code: KeyCode::Char(' '),
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                let key = KEYS_REPR.get("space").unwrap();
+                key.to_string()
+            },
+            KeyEvent {
+                code: KeyCode::Char(c),
+                modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
+                ..
+            } => {
+                c.to_string()
+            },
+            KeyEvent {
+                code: KeyCode::Char(c),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                let k = c.to_string();
+                let key = KEYS_REPR.get(&k);
+                match key {
+                    Some(unicode) => {
+                        format!("ctrl+{unicode}")
+                    },
+                    None => {
+                        format!("ctrl+{c}")
+                    }
+                }
+            },
+            KeyEvent {
+                code: KeyCode::Char(c),
+                modifiers: KeyModifiers::SHIFT,
+                ..
+            } => {
+                let shift = KEYS_REPR.get("shift").unwrap();
+                format!("{shift}+{c}")
+            },
+            KeyEvent {
+                code: KeyCode::Tab,
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                let key = KEYS_REPR.get("tab").unwrap();
+                key.to_string()
+            },
+            _ => {
+                "undef".to_string()
+            }
+        };
+
+        if t.len() == TYPED_KEYS_CAPACITY {
+            t.pop_front();
+        }
+        t.push_back(k);
+    }
+
     fn handle_key_event(
         &self,
         key_event: KeyEvent,
-        app_state_mutex_ref: &MutexGuard<AppState>
+        app_state_mutex_ref: &MutexGuard<AppState>,
     ) -> TyperacerResult<(&Self, LoopActions)> {
         let app_state = app_state_mutex_ref;
         // at first keyboard press, the game has started
@@ -391,8 +485,13 @@ impl<'a> Typeracer<'a> {
         let mut total_correct_typed_chars =
             app_state.total_correct_typed_chars_ref_mut();
 
+        let mut typed_keys = app_state.typed_keys_ref_mut();
+
         let key_event_clone = format!("{:?}", key_event.code.clone());
         *keyboard_input = key_event_clone.yellow().to_string();
+
+        // append keys to the list to show them on the screen
+        self.handle_typed_keys(&mut typed_keys, &key_event);
 
         match key_event {
             // this needs to be merged with enter and Char(character)

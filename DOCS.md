@@ -34,3 +34,16 @@ thing
 - https://www.youtube.com/watch?v=ZVi9T1D8clM
 
 - https://stackoverflow.com/questions/50999616/how-to-idiomatically-alias-a-crate-in-rust-2018
+
+# makefile
+
+- https://stackoverflow.com/questions/28890634/how-to-get-a-shell-environment-variable-in-a-makefile
+- https://unix.stackexchange.com/questions/235223/makefile-include-env-file
+
+# VecDeque
+
+- https://stackoverflow.com/questions/68351027/why-is-vecdeque-slower-than-a-vec
+
+# compile time static collections: phf
+
+- https://stackoverflow.com/questions/60273064/rust-best-practices-when-specifying-a-constant-hash-map

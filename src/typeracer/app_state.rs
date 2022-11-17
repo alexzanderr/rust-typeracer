@@ -3,19 +3,21 @@ use std::rc::Rc;
 use std::cell::{
     Ref,
     RefCell,
-    RefMut
+    RefMut,
 };
 
-use crate::{MusicState, GameState};
+use crate::{MusicState, GameState, statics::TYPED_KEYS_CAPACITY};
+use std::collections::VecDeque;
 
 type rusize = RefCell<usize>;
+
 
 #[derive(Debug)]
 // #[derive(Getters, MutGetters, Debug)]
 // #[getset(get = "pub", get_mut = "pub")]
 pub struct AppState {
     /// used to calculate total elapsed time
-    stopwatch:            RefCell<Instant>,
+    stopwatch: RefCell<Instant>,
     typeracer_text:       RefCell<String>,
     // this is broken due to Option in front
     typeracer_text_lines: Option<RefCell<Vec<String>>>,
@@ -59,10 +61,17 @@ pub struct AppState {
     // most of the users dont have higher than u8, i.e 256 WPM
     // this is to include all kind of users (fastest ones, especially)
     wpm: RefCell<Option<u16>>,
-    total_correct_typed_chars: RefCell<usize>
+    total_correct_typed_chars: RefCell<usize>,
+
+    /// a queue of typed keyboard keys to show on the screen while playing
+    typed_keys: RefCell<VecDeque<String>>
 }
 
 impl AppState {
+    pub fn typed_keys_ref_mut(&self) -> RefMut<'_, VecDeque<String>> {
+        self.typed_keys.borrow_mut()
+    }
+
     pub fn total_correct_typed_chars_ref_mut(&self) -> RefMut<'_, usize> {
         self.total_correct_typed_chars.borrow_mut()
     }
@@ -249,6 +258,8 @@ many classes of bugs at compile-time.";
 
         let game_started = RefCell::new(false);
 
+        let typed_keys = RefCell::new(VecDeque::<String>::with_capacity(TYPED_KEYS_CAPACITY));
+
 
         Self {
             stopwatch,
@@ -275,6 +286,7 @@ many classes of bugs at compile-time.";
             game_state,
             wpm,
             total_correct_typed_chars,
+            typed_keys,
         }
     }
 }

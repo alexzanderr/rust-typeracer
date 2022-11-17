@@ -203,6 +203,7 @@ impl TerminalScreen {
         y: usize,
         screens_width: bool,
         align_center: bool
+        // TODO: show_invisibles: bool
     ) -> TerminalScreenResult<&'a mut Self> {
         // TODO: remove this crap and pass the debugging options
         // as field or parameter or global variable along the program

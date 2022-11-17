@@ -1,3 +1,5 @@
+use phf::{phf_map};
+
 pub const TERMINAL_CURSOR: &str = "▏";
 pub const PROMPT_ARROW: &str = "❱";
 pub const GREEN: &'static str = "\x1b[0;32m";
@@ -24,6 +26,20 @@ mod embedded_music {
 #[cfg(feature = "embedded-music")]
 pub use embedded_music::*;
 
+
+/// capacity for the typed keys container
+pub const TYPED_KEYS_CAPACITY: usize = 8;
+pub static KEYS_REPR: phf::Map<&'static str, &'static str> = phf_map! {
+    "enter" => "⏎",
+    "tab" => "↹",
+    "space" => "␣",
+    "backspace" => "⌫",
+    "up" => "↑",
+    "left" => "←",
+    "right" => "→",
+    "down" => "↓",
+    "shift" => "⇧"
+};
 
 // let cursor = "▏".red();
 // let cursor = "│".red();
