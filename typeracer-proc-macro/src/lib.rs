@@ -36,3 +36,21 @@ Note: SomeStruct must derive Builder, otherwise its not going to work
 pub fn colorize(input: TokenStream) -> TokenStream {
     internal::colorize_internal(input)
 }
+
+mod stopwatch;
+
+#[proc_macro_attribute]
+pub fn stopwatch(
+    metadata: TokenStream,
+    input: TokenStream
+) -> TokenStream {
+    stopwatch::stopwatch_internal(metadata, input)
+}
+
+#[proc_macro_attribute]
+pub fn stopwatch_to_file(
+    metadata: TokenStream,
+    input: TokenStream
+) -> TokenStream {
+    stopwatch::stopwatch_to_file_internal(metadata, input)
+}

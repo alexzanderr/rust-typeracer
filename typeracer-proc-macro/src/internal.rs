@@ -5,7 +5,7 @@ use syn::{
     Data,
     DataStruct,
     DeriveInput,
-    Ident,
+    Ident
 };
 
 // use derive_builder::Builder as DeriveBuilder;
@@ -15,7 +15,7 @@ use syn::{
 pub fn colorize_internal(input: TokenStream) -> TokenStream {
     // abstract syntax tree
     let ast: DeriveInput = parse_macro_input!(input);
-    dbg!(&ast);
+    // dbg!(&ast);
     let struct_name = &ast.ident;
     // you cant put this string into the quote! macro, it must be Ident type
     let builder_name = format!("{}Builder", struct_name);

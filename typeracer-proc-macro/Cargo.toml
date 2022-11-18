@@ -12,5 +12,9 @@ proc-macro = true
 
 #syn = "1.0.103"
 #quote = "1.0.21"
-syn = { workspace = true, features = ["extra-traits"] }
+syn = { workspace = true, features = ["full"] }
 quote = { workspace = true }
+colored.workspace = true
+chrono = "0.4.23"
+colors-transform = "0.2.11"
+strip-ansi-escapes = "0.1.1"

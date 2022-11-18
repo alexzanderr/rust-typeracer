@@ -124,7 +124,10 @@ pub struct TyperacerUI<'a> {
     _marker:                PhantomData<TerminalScreen>
 }
 
+use typeracer_proc_macro::stopwatch_to_file;
+
 impl<'a> TyperacerUI<'a> {
+    #[cfg_attr(feature = "time-profiler", stopwatch_to_file)]
     pub fn from_term(
         term: &'a mut TerminalScreen,
         app_state_arc: &Arc<Mutex<AppState>>
@@ -337,6 +340,7 @@ impl<'a> TyperacerUI<'a> {
         Ok(())
     }
 
+    #[cfg_attr(feature = "time-profiler", stopwatch_to_file)]
     pub fn draw(
         &mut self,
         app_state_arc: Arc<Mutex<AppState>>
@@ -590,6 +594,7 @@ fn color_format_text(
     format!("{green}{red}{rest}")
 }
 
+#[cfg_attr(feature = "time-profiler", stopwatch_to_file)]
 fn color_format_code(
     text: &str,
     index: usize,
@@ -612,9 +617,15 @@ fn color_format_code(
     // so you wont get the real colored text back
     // print!("{}{ENDC}", colored_text[..real_index].to_string());
 
-    let real_index =
-        ui.highlighted_code_block.get_real_index(index).unwrap();
-    let green = ui.colored_text[..real_index].to_string();
+    let green = if index != 0 {
+        let real_index =
+            ui.highlighted_code_block.get_real_index(index).unwrap();
+        let green = ui.colored_text[..real_index].to_string();
+        green
+    } else {
+        // join is here because i cant .to_string(), Display not satified on [&str]
+        text[..index].join("")
+    };
     // let green = hl.highlight_code_block_to_string(&s);
 
     let green = if green.contains('\n') {

@@ -60,6 +60,9 @@ music = []
 # statistics in background sent to a database on a separate thread from main
 statistics = []
 embedded-music = []
+# for development only
+time-profiler = [
+]
 
 [dependencies.core-dev]
 git = "https://github.com/alexzanderr/rust-core-dev"
@@ -107,6 +110,7 @@ syntect = "5.0.0"
 
 
 [dependencies]
+typeracer-proc-macro = { path = "./typeracer-proc-macro" }
 dbg-pls = { workspace = true, features = ["pretty", "derive", "colors"] }
 # builder design pattern: create a builder for your struct
 derive_builder = "0.11.2"
@@ -147,6 +151,9 @@ itertools = "0.10.5"
 phf = { version = "0.11.1", features = ["macros"] }
 syntect = { workspace = true }
 scoped-pool = "1.0.0"
+log = "0.4.17"
+chrono = "0.4.23"
+strip-ansi-escapes = "0.1.1"
 
 
 
@@ -164,6 +171,7 @@ members = [
     "typeracer-proc-macro"
 ]
 exclude = [
+    "learning"
 ]
 
 

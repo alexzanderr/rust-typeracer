@@ -20,3 +20,5 @@ logs
 *.code-workspace
 
 *.expanded.rs
+time-profiler.log
+out

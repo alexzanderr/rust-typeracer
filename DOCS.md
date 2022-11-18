@@ -47,3 +47,7 @@ thing
 # compile time static collections: phf
 
 - https://stackoverflow.com/questions/60273064/rust-best-practices-when-specifying-a-constant-hash-map
+
+# conditional application of attribute macro based on feature flag
+
+- https://stackoverflow.com/questions/62300639/how-can-i-conditionally-enable-a-rust-feature-based-on-cfg

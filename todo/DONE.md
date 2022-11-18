@@ -1,4 +1,4 @@
-# TODOs Done
+ TODOs Done
 
 - [x] implement ctrl-backspace to previous delete an entire word
 
@@ -159,3 +159,5 @@
   for this we need a music menu to control what will happen with the music
 
 - [x] add auto detection of window lostfocus and then the game should pause automatically
+
+- [x] add time profiling system
