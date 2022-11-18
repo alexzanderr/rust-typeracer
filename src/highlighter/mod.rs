@@ -1,3 +1,4 @@
 mod highlighter;
+pub use highlighter::{TyperacerHighlighter, Colorizer};
 
-pub use highlighter::{TyperacerHighlighter};
+mod errors;

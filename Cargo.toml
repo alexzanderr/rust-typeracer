@@ -103,6 +103,7 @@ notify = "5.0.0"
 syn = "1.0.103"
 quote = "1.0.21"
 dbg-pls = { git = "https://github.com/alexzanderr/rust-dbg-pls-fork" }
+syntect = "5.0.0"
 
 
 [dependencies]
@@ -144,7 +145,9 @@ dirs = "4.0.0"
 serde = { version = "1.0.147", features = ["derive"] }
 itertools = "0.10.5"
 phf = { version = "0.11.1", features = ["macros"] }
-syntect = "5.0.0"
+syntect = { workspace = true }
+scoped-pool = "1.0.0"
+
 
 
 

@@ -1,30 +1,42 @@
 use std::borrow::BorrowMut;
-use std::sync::MutexGuard;
-use std::io::Write;
-use std::time::{
-    Duration,
-    Instant,
-};
+use std::cell::RefCell;
 use std::cell::RefMut;
-use crate::statics::TYPED_KEYS_CAPACITY;
 use std::collections::VecDeque;
+use std::io::Write;
 use std::sync::{
     Arc,
     Mutex,
     RwLock,
 };
-use crate::statics::KEYS_REPR;
-use std::cell::RefCell;
+use std::sync::MutexGuard;
 use std::thread::{
     Builder as ThreadBuilder,
     JoinHandle,
 };
+use std::time::{
+    Duration,
+    Instant,
+};
 
-use dbg_pls::{pretty, DebugPls, color};
-use crate::statics::UNSTOPPABLE_CS16_SOUND;
-use crate::KeyboardManager;
 use colored::*;
 use core_dev::datetime::datetime::get_current_datetime;
+use crossterm::{
+    cursor,
+    event::{
+        self,
+        DisableMouseCapture,
+        EnableMouseCapture,
+    },
+    execute,
+    Result as CrosstermResult,
+    style,
+    terminal::{
+        self,
+        EnterAlternateScreen,
+        LeaveAlternateScreen,
+    },
+    tty,
+};
 use crossterm::event::{
     Event,
     KeyCode,
@@ -34,47 +46,40 @@ use crossterm::event::{
     KeyModifiers,
     MouseButton,
     MouseEvent,
-    MouseEventKind
+    MouseEventKind,
 };
-use crossterm::{
-    cursor,
-    event::{
-        self,
-        DisableMouseCapture,
-        EnableMouseCapture
-    },
-    execute,
-    style,
-    terminal::{
-        self,
-        EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
-    tty,
-    Result as CrosstermResult
-};
+use dbg_pls::{color, DebugPls, pretty};
 use thiserror::__private::DisplayAsDisplay;
 
-use super::GameState;
 use crate::{
     MusicPlayer,
     MusicPlayerResult,
-    MusicState
+    MusicState,
 };
+use crate::{
+    ConfigResult,
+    TyperacerConfig,
+};
+use crate::KeyboardManager;
+use crate::statics::{
+    PLAY_CS16_SOUND,
+    PROMPT_ARROW,
+    SKELER_TELATIV_SONG,
+    TERMINAL_CURSOR,
+};
+use crate::statics::KEYS_REPR;
+use crate::statics::TYPED_KEYS_CAPACITY;
+use crate::statics::UNSTOPPABLE_CS16_SOUND;
+use crate::terminal_screen::TerminalScreen;
+
 use super::AppState;
 use super::errors::{
     IndexOutOfBoundsError,
     SpanError,
     TyperacerErrors,
-    TyperacerResult
+    TyperacerResult,
 };
-use crate::statics::{
-    PLAY_CS16_SOUND,
-    PROMPT_ARROW,
-    SKELER_TELATIV_SONG,
-    TERMINAL_CURSOR
-};
-use crate::terminal_screen::TerminalScreen;
+use super::GameState;
 use super::Stats;
 use super::TyperacerUI;
 
@@ -88,12 +93,6 @@ pub enum LoopActions {
     ForceQuitGame
 }
 
-use crate::{
-    ConfigResult,
-    TyperacerConfig
-};
-
-#[derive(Debug)]
 /// Typeracer main handle to the game
 pub struct Typeracer<'a> {
     /// separate UI with specific methods
@@ -128,8 +127,8 @@ impl<'a> Typeracer<'a> {
 
     /// typeracer/src/typeracer/typeracer.rs
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
-        let ui = TyperacerUI::from_term(term);
         let app_state = Arc::new(Mutex::new(AppState::init()));
+        let ui = TyperacerUI::from_term(term, &app_state);
         // this is ugly; i dont want this in the future
         // let config = TyperacerConfig::load_default_path().unwrap();
         let config = TyperacerConfig::load_from_str(include_str!(

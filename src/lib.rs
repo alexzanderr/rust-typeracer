@@ -78,4 +78,4 @@ pub use keyboard::{
 
 mod highlighter;
 
-pub use highlighter::{TyperacerHighlighter};
+// pub use highlighter::{TyperacerHighlighter, Colorizer};

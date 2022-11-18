@@ -1,27 +1,17 @@
+use std::borrow::Cow;
 use std::io::Write;
+use std::marker::PhantomData;
 use std::sync::{
     Arc,
     Mutex,
     MutexGuard,
-    RwLock,
+    RwLock
 };
-use std::marker::PhantomData;
-use std::borrow::Cow;
 
-use itertools::join as iter_join;
-use unicode_segmentation::UnicodeSegmentation;
 use colored::*;
 use core_dev::datetime::datetime::{
     get_current_datetime,
     get_current_time
-};
-use crossterm::event::{
-    Event,
-    KeyCode,
-    KeyEvent,
-    KeyEventKind,
-    KeyEventState,
-    KeyModifiers
 };
 use crossterm::{
     cursor,
@@ -40,17 +30,27 @@ use crossterm::{
     tty,
     Result as CrosstermResult
 };
+use crossterm::event::{
+    Event,
+    KeyCode,
+    KeyEvent,
+    KeyEventKind,
+    KeyEventState,
+    KeyModifiers
+};
+use itertools::join as iter_join;
+use unicode_segmentation::UnicodeSegmentation;
 
-use super::GameState;
-use crate::MusicState;
-use super::AppState;
 use crate::{
     TerminalScreen,
     TerminalScreenResult,
     TyperacerErrors
 };
-use super::TyperacerResult;
-use super::Stats;
+use crate::highlighter::{
+    Colorizer,
+    TyperacerHighlighter
+};
+use crate::MusicState;
 use crate::statics::{
     ENDC,
     GREEN,
@@ -58,26 +58,111 @@ use crate::statics::{
     RED,
     TERMINAL_CURSOR
 };
+use super::AppState;
+use super::GameState;
+use super::Stats;
+use super::TyperacerResult;
+
+pub struct TyperacerText {
+    full:        String,
+    highlighted: String
+}
+
+use ansi_parser::{
+    AnsiParser,
+    Output
+};
 
 #[derive(Debug)]
+pub enum SpecialItem<'a> {
+    ANSI(Output<'a>),
+    Char(char)
+}
+
+pub struct HighlightedCodeBlock<'a> {
+    items: Vec<SpecialItem<'a>>
+}
+
+impl HighlightedCodeBlock<'_> {
+    /// this gets the real character from non-colorized typeracer text
+    /// using a special algo
+    pub fn get_real_index(
+        &self,
+        stop_for_slicing: usize
+    ) -> Option<usize> {
+        let mut index = 0;
+        let mut real_index = 0;
+        for pair in self.items.iter().enumerate() {
+            let (enum_index, item) = pair;
+            match item {
+                SpecialItem::Char(c) => {
+                    index += 1;
+                    real_index += 1;
+                    if index == stop_for_slicing {
+                        return Some(real_index);
+                    }
+                },
+                SpecialItem::ANSI(ansi) => {
+                    real_index += ansi.to_string().len();
+                }
+            }
+        }
+        None
+    }
+}
+
 pub struct TyperacerUI<'a> {
     // TODO: mut ref of something its too stupid
     // use Rc<RefCell<TerminalScreen>
-    term: &'a mut TerminalScreen,
-    hl: TyperacerHighlighter,
+    term:                   &'a mut TerminalScreen,
+    highlighter:            TyperacerHighlighter,
+    // colorizer: Colorizer<'a>,
+    colored_text:           String,
+    highlighted_code_block: HighlightedCodeBlock<'a>,
     // this practice is very useful when dropping stuff
     // mostly for the compiler to know
-    _marker: PhantomData<TerminalScreen>,
+    _marker:                PhantomData<TerminalScreen>
 }
 
 impl<'a> TyperacerUI<'a> {
-    pub fn from_term(term: &'a mut TerminalScreen) -> Self {
+    pub fn from_term(
+        term: &'a mut TerminalScreen,
+        app_state_arc: &Arc<Mutex<AppState>>
+    ) -> Self {
         let _marker = PhantomData;
-        let hl = TyperacerHighlighter::new();
+        let mut highlighter = TyperacerHighlighter::new();
+        // let mut colorizer = highlighter.new_colorizer();
+        // текст
+        let colored_text = {
+            let app_state_mutex = app_state_arc.lock().unwrap();
+            let typeracer_text = app_state_mutex.typeracer_text_ref_mut();
+            highlighter.highlight_code_block_to_string(&*typeracer_text)
+        };
+
+        // pre capacity; to not allocate every push; to allocate not so often
+        let mut special_items = Vec::<SpecialItem>::with_capacity(100);
+        for item in colored_text.ansi_parse() {
+            match item {
+                Output::Escape(ansi) => special_items
+                    .push(SpecialItem::ANSI(Output::Escape(ansi))),
+                Output::TextBlock(text) => {
+                    for _char in text.chars() {
+                        special_items.push(SpecialItem::Char(_char));
+                    }
+                },
+            }
+        }
+        let highlighted_code_block = HighlightedCodeBlock {
+            items: special_items
+        };
+
         Self {
             term,
-            hl,
-            _marker,
+            highlighter,
+            // colorizer,
+            colored_text,
+            highlighted_code_block,
+            _marker
         }
     }
 
@@ -141,7 +226,7 @@ impl<'a> TyperacerUI<'a> {
         &self,
         text: &str,
         index: usize,
-        wrong_index: usize,
+        wrong_index: usize
     ) -> String {
         // this function is private and i want to test it individually with private tests
         // im doing this because i dont want to instantiante
@@ -156,20 +241,19 @@ impl<'a> TyperacerUI<'a> {
         &mut self,
         text: &str,
         index: usize,
-        wrong_index: usize,
+        wrong_index: usize
     ) -> String {
         // this function is private and i want to test it individually with private tests
         // im doing this because i dont want to instantiante
         // a TyperacerUI every time i want to test this function
         // color_format_text(text, index, wrong_index)
-        color_format_code(text, index, wrong_index, &mut self.hl)
+        color_format_code(text, index, wrong_index, self)
     }
-
 
     #[inline(always)]
     pub fn set_term_height(
         &mut self,
-        height: u16,
+        height: u16
     ) {
         self.term.set_height(height);
     }
@@ -211,7 +295,7 @@ impl<'a> TyperacerUI<'a> {
     pub fn draw_progress_bar(
         &mut self,
         index: usize,
-        text: &str,
+        text: &str
     ) -> TyperacerResult<()> {
         let progress_bar_width = self.term.width() - 2;
         let text_length = text.len();
@@ -230,8 +314,7 @@ impl<'a> TyperacerUI<'a> {
                 .truecolor(62, 62, 62)
         );
 
-        self.term
-            .print(&progress_bar, 9, 1)?;
+        self.term.print(&progress_bar, 9, 1)?;
 
         //     [Progress]: |███████████████████████_________________| [58.00] [Complete]
         //     [Progress]: |━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━| [58.00] [Complete]
@@ -256,7 +339,7 @@ impl<'a> TyperacerUI<'a> {
 
     pub fn draw(
         &mut self,
-        app_state_arc: Arc<Mutex<AppState>>,
+        app_state_arc: Arc<Mutex<AppState>>
     ) -> TyperacerResult<&mut Self> {
         let app_state = match app_state_arc.lock() {
             Ok(app_state) => app_state,
@@ -309,20 +392,20 @@ impl<'a> TyperacerUI<'a> {
         let current_time = get_current_time();
 
         #[cfg(feature = "music")]
-            let header = {
+        let header = {
             let music_state = app_state.music_state_ref_mut();
             let music_state_string = match &*music_state {
                 MusicState::Playing => {
                     "Playing".green().bold().to_string()
-                }
+                },
                 MusicState::Paused => "Paused".yellow().bold().to_string(),
                 MusicState::Stopped => "Stopped".red().bold().to_string(),
                 MusicState::PlaySongNowByAlias(alias) => {
                     format!("Playing: {alias}").green().bold().to_string()
-                }
+                },
                 MusicState::Muted => {
                     "Muted".truecolor(62, 62, 62).bold().to_string()
-                }
+                },
             };
             format!(
                 "{lb}Time: {current_time}{rb} \
@@ -340,7 +423,7 @@ impl<'a> TyperacerUI<'a> {
         };
 
         #[cfg(not(feature = "music"))]
-            let header = format!(
+        let header = format!(
             "{lb}Time: {current_time}{rb} \
                 {lb}Elapsed: {elapsed_time:.2?}s{rb} \
                 {lb}Game: {game_state_string}{rb} \
@@ -365,7 +448,7 @@ impl<'a> TyperacerUI<'a> {
         self.draw_user_input_prompt(
             &user_input_prompt,
             *user_input_prompt_x,
-            0,
+            0
         )?;
 
         self.draw_progress_bar(*index, &*typeracer_text)?;
@@ -386,7 +469,7 @@ impl<'a> TyperacerUI<'a> {
         let mut typed_keys = app_state.typed_keys_ref_mut();
         let typed_keys_string = iter_join(
             (*typed_keys).iter(),
-            "｜".truecolor(62, 62, 62).bold().to_string().as_str(),
+            "｜".truecolor(62, 62, 62).bold().to_string().as_str()
         );
 
         let typed_keys_string = if typed_keys.len() > 0 {
@@ -507,20 +590,16 @@ fn color_format_text(
     format!("{green}{red}{rest}")
 }
 
-use crate::TyperacerHighlighter;
-
 fn color_format_code(
     text: &str,
     index: usize,
     wrong_index: usize,
-    hl: &mut TyperacerHighlighter,
+    ui: &mut TyperacerUI
 ) -> String {
-
     // dont do anything because nothing changed
     if index == 0 && wrong_index == 0 {
         return text.to_string();
     }
-
 
     let text =
         UnicodeSegmentation::graphemes(text, true).collect::<Vec<&str>>();
@@ -528,8 +607,15 @@ fn color_format_code(
     // "\u{1b}[32mrust_best_asd\nrust_best\nsecond_\u{1b}[0m\u{1b}[31m\u{1b}[0mone long"
     // let mut green =
     //     text[..index].join("").green().to_string().replace(' ', "_");
-    let s = &text[..index].join("");
-    let green = hl.highlight_code_block_to_string(&s);
+    // let s = &text[..index].join("");
+    // BUG: `highlighted_code_block` contains ansi escapes seq
+    // so you wont get the real colored text back
+    // print!("{}{ENDC}", colored_text[..real_index].to_string());
+
+    let real_index =
+        ui.highlighted_code_block.get_real_index(index).unwrap();
+    let green = ui.colored_text[..real_index].to_string();
+    // let green = hl.highlight_code_block_to_string(&s);
 
     let green = if green.contains('\n') {
         let pat = format!("{ENDC}\n{GREEN}");
@@ -556,15 +642,17 @@ fn color_format_code(
 
 #[cfg(test)]
 mod tests {
+    use ansi_parser::*;
     use assert2::assert;
     use rstest::rstest;
 
-    use super::color_format_text;
     use super::{
         ENDC,
         GREEN,
         RED
     };
+    use super::*;
+    use super::color_format_text;
 
     #[rstest]
     #[case("hello world", 0, 0, "hello world")]
@@ -585,5 +673,66 @@ mod tests {
         let colored_formatted_text =
             color_format_text(text, index, wrong_index);
         assert!(colored_formatted_text == expected_text)
+    }
+
+    #[test]
+    fn highlighter() {
+        let mut contains_ansi = false;
+        let mut total_ansi_length = 0usize;
+
+        let typeracer_text = r#"use std::io::stdout;
+fn main() {
+    let x = 123;
+    let y = "\n";
+    // Load these once at the start of your program
+    let syntax = ps.find_syntax_by_extension("rs").unwrap();
+    let ps = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let s = "pub struct Wow { hi: u64 }\nfn blah() -> u64 {}\n";
+"#
+        .replace("    ", "\t");
+        let mut hl = TyperacerHighlighter::new();
+        let colored_text =
+            hl.highlight_code_block_to_string(&typeracer_text);
+        print!("{}", colored_text);
+
+        let mut special_items = Vec::new();
+        let parsed_items =
+            colored_text.ansi_parse().collect::<Vec<Output>>();
+        for item in parsed_items {
+            match item {
+                Output::Escape(ansi) => special_items
+                    .push(SpecialItem::ANSI(Output::Escape(ansi))),
+                Output::TextBlock(text) => {
+                    for _char in text.chars() {
+                        special_items.push(SpecialItem::Char(_char));
+                    }
+                },
+            }
+        }
+        // for special_item in &special_items {
+        //     println!("{:?}", special_item);
+        // }
+        // for item in parsed_ansi_string {
+        //     match item {
+        //         Output::Escape(ansi) => {},
+        //         Output::TextBlock(text) => {}
+        //     }
+        //     if let Output::Escape(ansi) = ansi {
+        //         contains_ansi = true;
+        //         let s = ansi.to_string();
+        //         total_ansi_length += s.len() - 1;
+        //     }
+        // }
+
+        println!();
+        // print!("{:#?}", colored_text);
+        // println!();
+
+        let hcb = HighlightedCodeBlock {
+            items: special_items
+        };
+        let real_index = hcb.get_real_index(2).unwrap();
+        print!("{}{ENDC}", colored_text[..real_index].to_string());
     }
 }
