@@ -3,39 +3,42 @@ use std::rc::Rc;
 use std::cell::{
     Ref,
     RefCell,
-    RefMut,
+    RefMut
 };
-
-use crate::{MusicState, GameState, statics::TYPED_KEYS_CAPACITY};
 use std::collections::VecDeque;
 
-type rusize = RefCell<usize>;
+use crate::{
+    statics::TYPED_KEYS_CAPACITY,
+    GameState,
+    MusicState
+};
 
+type rusize = RefCell<usize>;
 
 #[derive(Debug)]
 pub struct AppState {
     /// used to calculate total elapsed time
-    stopwatch: RefCell<Instant>,
+    stopwatch:            RefCell<Instant>,
     typeracer_text:       RefCell<String>,
     // this is broken due to Option in front
     typeracer_text_lines: Option<RefCell<Vec<String>>>,
 
     // #[getset(skip)]
     typeracer_text_x: RefCell<usize>,
-    what_was_typed: RefCell<String>,
+    what_was_typed:   RefCell<String>,
 
     // #[getset(skip)]
-    what_was_typed_x: RefCell<usize>,
+    what_was_typed_x:  RefCell<usize>,
     user_input_prompt: RefCell<String>,
 
-    index: RefCell<usize>,
+    index:               RefCell<usize>,
     // #[getset(skip)]
     user_input_prompt_x: RefCell<usize>,
-    keyboard_input: RefCell<String>,
+    keyboard_input:      RefCell<String>,
 
     // #[getset(skip)]
     // #[getset(skip)]
-    wrong_index: RefCell<usize>,
+    wrong_index:   RefCell<usize>,
     // #[getset(skip)]
     game_finished: RefCell<bool>,
 
@@ -46,17 +49,17 @@ pub struct AppState {
     cursor_x: RefCell<usize>,
     cursor_y: RefCell<usize>,
 
-    index_shadow: RefCell<usize>,
+    index_shadow:       RefCell<usize>,
     wrong_index_shadow: RefCell<usize>,
-    current_line: RefCell<usize>,
+    current_line:       RefCell<usize>,
 
     #[cfg(feature = "music")]
-    music_state: RefCell<MusicState>,
+    music_state:  RefCell<MusicState>,
     #[cfg(feature = "music")]
     music_volume: RefCell<f32>,
 
     elapsed_time: RefCell<f64>,
-    game_state: RefCell<GameState>,
+    game_state:   RefCell<GameState>,
 
     // most of the users dont have higher than u8, i.e 256 WPM
     // this is to include all kind of users (fastest ones, especially)
@@ -66,9 +69,12 @@ pub struct AppState {
     // for unstoppable sound
     last_wpm: RefCell<Option<u16>>,
     total_correct_typed_chars: RefCell<usize>,
+    total_wrong_typed_chars: RefCell<usize>,
 
     /// a queue of typed keyboard keys to show on the screen while playing
-    typed_keys: RefCell<VecDeque<String>>
+    typed_keys: RefCell<VecDeque<String>>,
+
+    accuracy: RefCell<Option<f32>>
 }
 
 impl AppState {
@@ -76,8 +82,16 @@ impl AppState {
         self.typed_keys.borrow_mut()
     }
 
+    pub fn accuracy_ref_mut(&self) -> RefMut<'_, Option<f32>> {
+        self.accuracy.borrow_mut()
+    }
+
     pub fn total_correct_typed_chars_ref_mut(&self) -> RefMut<'_, usize> {
         self.total_correct_typed_chars.borrow_mut()
+    }
+
+    pub fn total_wrong_typed_chars_ref_mut(&self) -> RefMut<'_, usize> {
+        self.total_wrong_typed_chars.borrow_mut()
     }
 
     pub fn last_wpm_ref_mut(&self) -> RefMut<'_, Option<u16>> {
@@ -193,7 +207,7 @@ impl AppState {
         // game
 
         // let typeracer_text = line;
-        let typeracer_text_x = 10;
+        let typeracer_text_x = 8;
         let typeracer_text =
             "rust is the best language ever and the hardest";
         let typeracer_text =
@@ -217,12 +231,13 @@ fn main() {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let s = "pub struct Wow { hi: u64 }\nfn blah() -> u64 {}\n";
-"#.replace("    ", "\t");
+"#
+        .replace("    ", "\t");
 
         let mut what_was_typed = String::from("");
         let mut what_was_typed_x = 9;
 
-        let user_input_prompt_x = 6;
+        let user_input_prompt_x = 4;
 
         let mut user_input_prompt = String::from("");
         let mut total_spaces = 0usize;
@@ -272,7 +287,7 @@ fn main() {
         let current_line = RefCell::new(0usize);
 
         #[cfg(feature = "music")]
-            let music_state = RefCell::new(MusicState::new_stopped());
+        let music_state = RefCell::new(MusicState::new_stopped());
 
         let elapsed_time = RefCell::new(0f64);
         let game_state = RefCell::new(GameState::Paused);
@@ -283,10 +298,14 @@ fn main() {
 
         let game_started = RefCell::new(false);
 
-        let typed_keys = RefCell::new(VecDeque::<String>::with_capacity(TYPED_KEYS_CAPACITY));
+        let typed_keys = RefCell::new(VecDeque::<String>::with_capacity(
+            TYPED_KEYS_CAPACITY
+        ));
 
         let music_volume = RefCell::new(0.5);
 
+        let total_wrong_typed_chars = RefCell::new(0);
+        let accuracy = RefCell::new(None);
 
         Self {
             stopwatch,
@@ -316,7 +335,9 @@ fn main() {
             wpm,
             last_wpm,
             total_correct_typed_chars,
+            total_wrong_typed_chars,
             typed_keys,
+            accuracy
         }
     }
 }

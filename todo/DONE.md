@@ -1,4 +1,4 @@
- TODOs Done
+# TODOs Done
 
 - [x] implement ctrl-backspace to previous delete an entire word
 
@@ -161,3 +161,5 @@
 - [x] add auto detection of window lostfocus and then the game should pause automatically
 
 - [x] add time profiling system
+
+- [x] add calculate accuracy

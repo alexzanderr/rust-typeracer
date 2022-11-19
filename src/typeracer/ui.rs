@@ -395,6 +395,14 @@ impl<'a> TyperacerUI<'a> {
         let header_x = 0usize;
         // let elapsed_repr = format!("{:.2?}", elapsed_time);
         let current_time = get_current_time();
+        let accuracy = app_state.accuracy_ref_mut();
+
+        let acc = match *accuracy {
+            Some(acc) => {
+                format!("{:.2}%", acc).yellow().bold().to_string()
+            },
+            None => "None".red().bold().to_string()
+        };
 
         #[cfg(feature = "music")]
         let header = {

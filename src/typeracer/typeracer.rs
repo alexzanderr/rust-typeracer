@@ -251,6 +251,64 @@ impl<'a> Typeracer<'a> {
         Ok(music_thread)
     }
 
+    fn calculate_accuracy(&mut self) {
+        if let Ok(mut app_state_mutex) = self.app_state.lock() {
+            let mut game_state = app_state_mutex.game_state_ref_mut();
+
+            match *game_state {
+                GameState::Playing => {
+                    let total_correct_typed_chars = app_state_mutex
+                        .total_correct_typed_chars_ref_mut();
+
+                    let total_wrong_typed_chars =
+                        app_state_mutex.total_wrong_typed_chars_ref_mut();
+
+                    let text_len =
+                        app_state_mutex.typeracer_text_ref_mut().len();
+                    let text_len_f32 = text_len as f32;
+                    let total_wrong = *total_wrong_typed_chars as f32;
+
+                    let acc = (text_len_f32 - total_wrong) / text_len_f32
+                        * 100.0;
+                    let mut accuracy = app_state_mutex.accuracy_ref_mut();
+                    *accuracy = Some(acc);
+
+                    // this block is here to play music when
+                    // accuracy drops: FAILURE
+                    // if wpm >= 50 {
+                    //     match *last_wpm {
+                    //         Some(lw) => {
+                    //             if lw <= 50 {
+                    //                 let mut ms = app_state_mutex
+                    //                     .music_state_ref_mut();
+                    //                 *ms = MusicState::PlaySongNowByAlias(
+                    //                     "unstoppable".to_string()
+                    //                 );
+                    //
+                    //                 *last_wpm = Some(wpm);
+                    //             }
+                    //         },
+                    //         None => {
+                    //             let mut ms =
+                    //                 app_state_mutex.music_state_ref_mut();
+                    //             *ms = MusicState::PlaySongNowByAlias(
+                    //                 "unstoppable".to_string()
+                    //             );
+                    //
+                    //             *last_wpm = Some(wpm);
+                    //         }
+                    //     }
+                    // } else {
+                    //     *last_wpm = Some(wpm);
+                    // }
+                },
+                GameState::Paused => {
+                    // do nothing if the game hasnt started
+                }
+            }
+        }
+    }
+
     fn calculate_wpm(&mut self) {
         // def calculate_wpm(self):
         //     try:
@@ -336,6 +394,9 @@ impl<'a> Typeracer<'a> {
             // calculate WPM always
             self.calculate_wpm();
 
+            // calculate Accuracy always
+            self.calculate_accuracy();
+
             // render ui
             {
                 let app_state_arc = self.app_state.clone();
@@ -420,6 +481,14 @@ impl<'a> Typeracer<'a> {
             } => {
                 let enter = KEYS_REPR.get("enter").unwrap();
                 format!("{enter} ")
+            },
+            KeyEvent {
+                code: KeyCode::Char(' '),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                let key = KEYS_REPR.get("space").unwrap();
+                format!("ctrl+{key} ")
             },
             KeyEvent {
                 code: KeyCode::Char('h'),
@@ -552,6 +621,9 @@ impl<'a> Typeracer<'a> {
 
         let mut total_correct_typed_chars =
             app_state.total_correct_typed_chars_ref_mut();
+
+        let mut total_wrong_typed_chars =
+            app_state.total_wrong_typed_chars_ref_mut();
 
         let mut typed_keys = app_state.typed_keys_ref_mut();
 
@@ -694,8 +766,10 @@ impl<'a> Typeracer<'a> {
                     if '\n' == typeracer_text.chars().nth(current_index).ok_or_else(|| { TyperacerErrors::IndexOutOfBounds(index_error.clone()) })? {
                         return Ok((self, LoopActions::TimeToContinue))
                     }
-                    // dbg!("herer");
+                    // dbg!("herer");   
                     *wrong_index += 1;
+                    // this is for accuracy
+                    *total_wrong_typed_chars += 1;
                     *wrong_index_shadow += 1;
                 }
 
@@ -853,6 +927,8 @@ impl<'a> Typeracer<'a> {
                     *total_correct_typed_chars += 1;
                 } else if *index + *wrong_index < typeracer_text.len() {
                     *wrong_index += 1;
+                    // this is for accuracy
+                    *total_wrong_typed_chars += 1;
                     *wrong_index_shadow += 1;
                 }
             },
