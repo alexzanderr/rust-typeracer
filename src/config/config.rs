@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 use crate::utils::__exit;
 use super::{
     ConfigErrors,
-    ConfigResult,
+    ConfigResult
 };
 
 #[cfg(feature = "config-load-from-bin")]
@@ -36,8 +36,8 @@ lazy_static! {
 #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct TyperacerConfig {
     pub(super) sleep_ms: u16,
-    music: bool,
-    pub(super) ui: UIConfig,
+    music:               bool,
+    pub(super) ui:       UIConfig
 }
 
 impl Default for TyperacerConfig {
@@ -45,14 +45,14 @@ impl Default for TyperacerConfig {
         Self {
             // 1 second
             sleep_ms: 1000,
-            music: true,
-            ui: UIConfig::default(),
+            music:    true,
+            ui:       UIConfig::default()
         }
     }
 }
 
 #[derive(
-Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone,
+    Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone,
 )]
 pub enum Border {
     // this is to write
@@ -66,17 +66,17 @@ pub enum Border {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct UIConfig {
-    wpm: bool,
+    wpm:        bool,
     invisibles: bool,
-    border: Border,
+    border:     Border
 }
 
 impl Default for UIConfig {
     fn default() -> Self {
         Self {
-            wpm: true,
+            wpm:        true,
             invisibles: true,
-            border: Border::Square,
+            border:     Border::Square
         }
     }
 }
@@ -105,14 +105,16 @@ impl TyperacerConfig {
         Ok(_self)
     }
 
-    fn _load_from_str<S: AsRef<str>>(config_contents: S) -> ConfigResult<Self> {
+    fn _load_from_str<S: AsRef<str>>(
+        config_contents: S
+    ) -> ConfigResult<Self> {
         let config: Self = toml::from_str(config_contents.as_ref())?;
         Self::check_values(config)
     }
 
     fn _load_from_path<P>(path: P) -> ConfigResult<Self>
-        where
-            P: AsRef<Path>
+    where
+        P: AsRef<Path>
     {
         let config_contents = fs::read_to_string(&path)?;
         let config = Self::_load_from_str(config_contents)?;
@@ -126,13 +128,15 @@ impl TyperacerConfig {
 
     /// load from custom path
     pub fn load_from_toml<P>(path: P) -> ConfigResult<Self>
-        where
-            P: AsRef<Path>
+    where
+        P: AsRef<Path>
     {
         Self::_load_from_path(path)
     }
 
-    pub fn load_from_str<S: AsRef<str>>(file_contents: S) -> ConfigResult<Self> {
+    pub fn load_from_str<S: AsRef<str>>(
+        file_contents: S
+    ) -> ConfigResult<Self> {
         Self::_load_from_str(file_contents)
     }
 
@@ -153,7 +157,7 @@ mod tests {
         ConfigErrors,
         ConfigResult,
         TyperacerConfig,
-        DEFAULT_CONFIG_PATH,
+        DEFAULT_CONFIG_PATH
     };
 
     #[test]

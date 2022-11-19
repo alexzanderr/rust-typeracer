@@ -6,16 +6,16 @@ use std::io::Write;
 use std::sync::{
     Arc,
     Mutex,
-    RwLock,
+    RwLock
 };
 use std::sync::MutexGuard;
 use std::thread::{
     Builder as ThreadBuilder,
-    JoinHandle,
+    JoinHandle
 };
 use std::time::{
     Duration,
-    Instant,
+    Instant
 };
 
 use colored::*;
@@ -25,17 +25,17 @@ use crossterm::{
     event::{
         self,
         DisableMouseCapture,
-        EnableMouseCapture,
+        EnableMouseCapture
     },
     execute,
-    Result as CrosstermResult,
     style,
     terminal::{
         self,
         EnterAlternateScreen,
-        LeaveAlternateScreen,
+        LeaveAlternateScreen
     },
     tty,
+    Result as CrosstermResult
 };
 use crossterm::event::{
     Event,
@@ -46,38 +46,42 @@ use crossterm::event::{
     KeyModifiers,
     MouseButton,
     MouseEvent,
-    MouseEventKind,
+    MouseEventKind
 };
-use dbg_pls::{color, DebugPls, pretty};
+use dbg_pls::{
+    color,
+    pretty,
+    DebugPls
+};
 use thiserror::__private::DisplayAsDisplay;
+use typeracer_proc_macro::stopwatch_to_file;
 
 use crate::{
     MusicPlayer,
     MusicPlayerResult,
-    MusicState,
+    MusicState
 };
 use crate::{
     ConfigResult,
-    TyperacerConfig,
+    TyperacerConfig
 };
 use crate::KeyboardManager;
 use crate::statics::{
     PLAY_CS16_SOUND,
     PROMPT_ARROW,
     SKELER_TELATIV_SONG,
-    TERMINAL_CURSOR,
+    TERMINAL_CURSOR
 };
 use crate::statics::KEYS_REPR;
 use crate::statics::TYPED_KEYS_CAPACITY;
 use crate::statics::UNSTOPPABLE_CS16_SOUND;
 use crate::terminal_screen::TerminalScreen;
-
 use super::AppState;
 use super::errors::{
     IndexOutOfBoundsError,
     SpanError,
     TyperacerErrors,
-    TyperacerResult,
+    TyperacerResult
 };
 use super::GameState;
 use super::Stats;
@@ -96,13 +100,13 @@ pub enum LoopActions {
 /// Typeracer main handle to the game
 pub struct Typeracer<'a> {
     /// separate UI with specific methods
-    ui: TyperacerUI<'a>,
+    ui:        TyperacerUI<'a>,
     /// entire app state
     /// similar to `context` in other "contexts"
     app_state: Arc<Mutex<AppState>>,
     /// configuration for the game
     // NOTE: I suppose you will need to make arc<mutex<>> from this one
-    config: TyperacerConfig,
+    config: TyperacerConfig
 }
 
 impl<'a> Typeracer<'a> {
@@ -134,7 +138,7 @@ impl<'a> Typeracer<'a> {
         let config = TyperacerConfig::load_from_str(include_str!(
             "../../config.toml"
         ))
-            .unwrap();
+        .unwrap();
 
         Self {
             ui,
@@ -181,8 +185,16 @@ impl<'a> Typeracer<'a> {
                 // TODO load all music from multiple threads
                 mp.load_song_from_mem(PLAY_CS16_SOUND, "play")?;
                 mp.load_song_from_mem(SKELER_TELATIV_SONG, "skeler")?;
-                mp.load_song_from_mem(include_bytes!("../../static/audio/davai_hardbass.wav"), "davai")?;
-                mp.load_song_from_mem(UNSTOPPABLE_CS16_SOUND, "unstoppable")?;
+                mp.load_song_from_mem(
+                    include_bytes!(
+                        "../../static/audio/davai_hardbass.wav"
+                    ),
+                    "davai"
+                )?;
+                mp.load_song_from_mem(
+                    UNSTOPPABLE_CS16_SOUND,
+                    "unstoppable"
+                )?;
 
                 // inside MusicPLayer I could have
                 // a reference to AppState, to modifiy the Music state automatically
@@ -204,14 +216,13 @@ impl<'a> Typeracer<'a> {
                 // cause player is running in background
                 // and if this finishes, music player is done
                 loop {
-
-
                     // try lock is non-blocking
                     if let Ok(app_state_mutex) = app_state_arc.try_lock() {
                         let mut music_state =
                             app_state_mutex.music_state_ref_mut();
 
-                        let mut game_state = app_state_mutex.game_state_ref_mut();
+                        let mut game_state =
+                            app_state_mutex.game_state_ref_mut();
 
                         mp.react_to_state(&mut music_state);
                     }
@@ -265,15 +276,21 @@ impl<'a> Typeracer<'a> {
                         match *last_wpm {
                             Some(lw) => {
                                 if lw <= 50 {
-                                    let mut ms = app_state_mutex.music_state_ref_mut();
-                                    *ms = MusicState::PlaySongNowByAlias("unstoppable".to_string());
+                                    let mut ms = app_state_mutex
+                                        .music_state_ref_mut();
+                                    *ms = MusicState::PlaySongNowByAlias(
+                                        "unstoppable".to_string()
+                                    );
 
                                     *last_wpm = Some(wpm);
                                 }
                             },
                             None => {
-                                let mut ms = app_state_mutex.music_state_ref_mut();
-                                *ms = MusicState::PlaySongNowByAlias("unstoppable".to_string());
+                                let mut ms =
+                                    app_state_mutex.music_state_ref_mut();
+                                *ms = MusicState::PlaySongNowByAlias(
+                                    "unstoppable".to_string()
+                                );
 
                                 *last_wpm = Some(wpm);
                             }
@@ -359,8 +376,8 @@ impl<'a> Typeracer<'a> {
     pub fn mainloop(mut self) -> TyperacerResult<()> {
         // arc pointer is in self as field
         #[cfg(feature = "music")]
-            // this only exists if the music feature is ON
-            let music_thread_handle = self.create_and_spawn_music_thread()?;
+        // this only exists if the music feature is ON
+        let music_thread_handle = self.create_and_spawn_music_thread()?;
 
         let stopwatch_thread_handle =
             self.create_and_spawn_stopwatch_thread()?;
@@ -369,7 +386,11 @@ impl<'a> Typeracer<'a> {
         Ok(())
     }
 
-    fn handle_typed_keys(&self, typed_keys: &mut RefMut<'_, VecDeque<String>>, key: &KeyEvent) {
+    fn handle_typed_keys(
+        &self,
+        typed_keys: &mut RefMut<'_, VecDeque<String>>,
+        key: &KeyEvent
+    ) {
         let t = typed_keys.borrow_mut();
         let k = match key {
             KeyEvent {
@@ -408,9 +429,7 @@ impl<'a> Typeracer<'a> {
                 code: KeyCode::Char(c),
                 modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
                 ..
-            } => {
-                c.to_string()
-            },
+            } => c.to_string(),
             KeyEvent {
                 code: KeyCode::Char(c),
                 modifiers: KeyModifiers::CONTROL,
@@ -443,9 +462,7 @@ impl<'a> Typeracer<'a> {
                 let key = KEYS_REPR.get("tab").unwrap();
                 key.to_string()
             },
-            _ => {
-                "undef".to_string()
-            }
+            _ => "undef".to_string()
         };
 
         if t.len() == TYPED_KEYS_CAPACITY {
@@ -454,17 +471,18 @@ impl<'a> Typeracer<'a> {
         t.push_back(k);
     }
 
+    #[stopwatch_to_file]
     fn handle_key_event(
         &self,
         key_event: KeyEvent,
-        app_state_mutex_ref: &MutexGuard<AppState>,
+        app_state_mutex_ref: &MutexGuard<AppState>
     ) -> TyperacerResult<(&Self, LoopActions)> {
         let app_state = app_state_mutex_ref;
         // at first keyboard press, the game has started
         let mut game_state = app_state.game_state_ref_mut();
 
         #[cfg(feature = "music")]
-            let mut music_state = app_state.music_state_ref_mut();
+        let mut music_state = app_state.music_state_ref_mut();
 
         let mut has_game_started = app_state.game_started_ref_mut();
 
@@ -524,7 +542,6 @@ impl<'a> Typeracer<'a> {
 
         // append keys to the list to show them on the screen
         self.handle_typed_keys(&mut typed_keys, &key_event);
-
 
         match key_event {
             // TODO: replace all match match with these kind of managers

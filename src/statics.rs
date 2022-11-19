@@ -1,4 +1,7 @@
-use phf::{phf_map};
+use phf::{
+    phf_map as static_hash_map,
+    Map as StaticHashMap
+};
 
 pub const TERMINAL_CURSOR: &str = "▏";
 pub const PROMPT_ARROW: &str = "❱";
@@ -19,7 +22,6 @@ pub const UNSTOPPABLE_CS16_SOUND: &'static [u8] =
 pub const PROGRESS_BAR_LINE: &'static str = "━";
 pub const PROGRESS_BAR: &'static str = "█";
 
-
 #[cfg(feature = "embedded-music")]
 mod embedded_music {
     pub const SKELER_TELATIV_SONG1: &'static [u8] =
@@ -31,10 +33,9 @@ mod embedded_music {
 #[cfg(feature = "embedded-music")]
 pub use embedded_music::*;
 
-
 /// capacity for the typed keys container
 pub const TYPED_KEYS_CAPACITY: usize = 8;
-pub static KEYS_REPR: phf::Map<&'static str, &'static str> = phf_map! {
+pub static KEYS_REPR: StaticHashMap<&'static str, &'static str> = static_hash_map! {
     "enter" => "⏎",
     "tab" => "↹",
     "space" => "␣",

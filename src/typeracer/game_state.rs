@@ -5,4 +5,6 @@ pub enum GameState {
     /// including `music thread` and the `stopwatch thread`
     Paused,
     Playing
+    // NotStarted,
+    // Stopped
 }
