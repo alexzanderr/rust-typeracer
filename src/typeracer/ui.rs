@@ -300,7 +300,7 @@ impl<'a> TyperacerUI<'a> {
         index: usize,
         text: &str
     ) -> TyperacerResult<()> {
-        let progress_bar_width = self.term.width() - 2;
+        let progress_bar_width = self.term.width() - 2 - 5;
         let text_length = text.len();
         let text_length_f32 = text_length as f32;
 
@@ -310,14 +310,15 @@ impl<'a> TyperacerUI<'a> {
         let fill_len = progress_bar_width * index / text_length;
 
         let progress_bar = format!(
-            "{}{}",
+            "{}{} {}",
             "━".repeat(fill_len).green(),
             "━"
                 .repeat(progress_bar_width - fill_len)
-                .truecolor(62, 62, 62)
+                .truecolor(62, 62, 62),
+            format!("{:.2}%", progress_percent)
         );
 
-        self.term.print(&progress_bar, 9, 1)?;
+        self.term.print(&progress_bar, 7, 1)?;
 
         //     [Progress]: |███████████████████████_________________| [58.00] [Complete]
         //     [Progress]: |━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━| [58.00] [Complete]
