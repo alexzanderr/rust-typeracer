@@ -1,6 +1,6 @@
 use super::{
     TyperacerConfig,
-    UIConfig,
+    UIConfig
 };
 
 impl TyperacerConfig {
@@ -17,5 +17,10 @@ impl TyperacerConfig {
     #[inline(always)]
     pub fn sleep_ms(&self) -> u16 {
         self.sleep_ms
+    }
+
+    #[inline(always)]
+    pub fn music_ref(&self) -> &bool {
+        &self.music
     }
 }

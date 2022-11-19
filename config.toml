@@ -6,7 +6,7 @@
 
 # so the secret to `no cursor flickering` is to put a higher sleep for the ui, something like 500 ms or 1 second
 sleep_ms = 700
-music = true
+music = false
 
 
 [ui]

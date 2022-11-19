@@ -36,7 +36,7 @@ lazy_static! {
 #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct TyperacerConfig {
     pub(super) sleep_ms: u16,
-    music:               bool,
+    pub(super) music:    bool,
     pub(super) ui:       UIConfig
 }
 

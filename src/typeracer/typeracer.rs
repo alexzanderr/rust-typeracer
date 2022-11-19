@@ -130,6 +130,7 @@ impl<'a> Typeracer<'a> {
     // }
 
     /// typeracer/src/typeracer/typeracer.rs
+    /// typeracer/../../config.toml
     pub fn from_term(term: &'a mut TerminalScreen) -> Self {
         let app_state = Arc::new(Mutex::new(AppState::init()));
         let ui = TyperacerUI::from_term(term, &app_state);
@@ -205,8 +206,20 @@ impl<'a> Typeracer<'a> {
                     // mp.play_song_by_alias("davai");
 
                     if let Ok(app_state_mutex) = app_state_arc.lock() {
-                        *app_state_mutex.music_state_ref_mut() =
-                            MusicState::new_playing();
+                        let mut music_state =
+                            app_state_mutex.music_state_ref_mut();
+
+                        // default is stopped at the beginning
+                        // cant do negation in if let:
+                        // https://github.com/rust-lang/rfcs/issues/2616
+                        match *music_state {
+                            MusicState::Paused => {},
+                            _ => {
+                                // auto-play only when music = true in config.toml
+                                // or --music flag is passed to commandline
+                                *music_state = MusicState::Playing;
+                            }
+                        }
                     } else {
                         panic!("here")
                     }
@@ -304,13 +317,20 @@ impl<'a> Typeracer<'a> {
                 }
             }
         } else {
-            // this will only panic if the music thread panics while guarding the lock
-            panic!("panicked inside calculate_wpm()")
+            panic!("this will only panic if the music thread panics while guarding the lock")
         }
     }
 
     fn game_loop(mut self) -> TyperacerResult<()> {
         let sleep_ms = u64::from(self.config.sleep_ms());
+        // music is off
+        if !self.config.music_ref() {
+            if let Ok(app_state_mutex) = self.app_state.lock() {
+                let mut music_state =
+                    app_state_mutex.music_state_ref_mut();
+                *music_state = MusicState::Paused;
+            }
+        }
 
         loop {
             // calculate WPM always
