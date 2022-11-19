@@ -175,7 +175,7 @@ impl<'a> TyperacerUI<'a> {
     ) -> TyperacerResult<()> {
         // 6 + 2 (the borders)
         let total_lines_of_stats = 9;
-        let x = self.term.height() - total_lines_of_stats;
+        let x = self.term.height() - total_lines_of_stats - 4;
 
         let text = game_stats.to_string();
 
@@ -250,7 +250,7 @@ impl<'a> TyperacerUI<'a> {
         // im doing this because i dont want to instantiante
         // a TyperacerUI every time i want to test this function
         // color_format_text(text, index, wrong_index)
-        color_format_code(text, index, wrong_index, self)
+        __color_format_code(text, index, wrong_index, self)
     }
 
     #[inline(always)]
@@ -419,6 +419,7 @@ impl<'a> TyperacerUI<'a> {
                 \n\
                 {lb}WPM: {wpm}{rb} \
                 {lb}WPM(last): {last_wpm}{rb} \
+                {lb}Accuracy: {acc}{rb} \
                 {lb}Music: {music_state_string}{rb}",
                 lb = yellow_left_bracket,
                 rb = yellow_right_bracket,
@@ -433,7 +434,9 @@ impl<'a> TyperacerUI<'a> {
                 {lb}Game: {game_state_string}{rb} \
                 {lb}EAS: {app_state_elapsed:.2}s{rb}\
                 \n\
-                {lb}WPM: {wpm}{rb}",
+                {lb}WPM: {wpm}{rb} \
+                {lb}WPM(last): {last_wpm}{rb} \
+                {lb}Accuracy: {acc}{rb}",
             lb = yellow_left_bracket,
             rb = yellow_right_bracket,
             app_state_elapsed = *app_state_elapsed as f32
@@ -483,7 +486,7 @@ impl<'a> TyperacerUI<'a> {
         };
         let typed_keys_string =
             format!("{}{}", typed_keys_string, " ".repeat(10));
-        self.term.print(&typed_keys_string, 22, 0)?;
+        self.term.print(&typed_keys_string, 20, 0)?;
         // self.term
         //     .rectangle()
         //     .screens_width(true)
@@ -502,6 +505,22 @@ impl<'a> TyperacerUI<'a> {
                 typeracer_text.len()
             );
             self.draw_stats(stats)?;
+        }
+
+        {
+            let text = "[pause game: `ctrl+space`] \
+[pause music: `ctrl+s`]
+[mute music: `alt+m`] \
+thats it";
+            let x = self.term.height() - 4;
+            self.term
+                .rectangle()
+                .align_center(false)
+                .screens_width(true)
+                .xy(x, 0)
+                .text(text)
+                .build()?
+                .draw()?;
         }
 
         let cursor_x = app_state.cursor_x_ref_mut();
@@ -595,7 +614,7 @@ fn color_format_text(
 }
 
 #[cfg_attr(feature = "time-profiler", stopwatch_to_file)]
-fn color_format_code(
+fn __color_format_code(
     text: &str,
     index: usize,
     wrong_index: usize,
